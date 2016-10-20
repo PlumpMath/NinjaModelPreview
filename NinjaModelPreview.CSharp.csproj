@@ -76,5 +76,8 @@
     <Compile Include="Assets\Scripts\SwipeTrailController.cs" />
     <Compile Include="Assets\Scripts\Tasks.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Assets\Shaders\ProjectorAlphaBlend.shader" />
+  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\SyntaxTree\UnityVS\2015\UnityVS.CSharp.targets" />
 </Project>

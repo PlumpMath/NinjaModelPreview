@@ -16,6 +16,8 @@ public class Swipe : MonoBehaviour {
     }
 
 
+    public Tasks taskObject;
+
     public GameObject swipeTrailPrefab;
     public GameObject missilePrefab;
 
@@ -27,11 +29,17 @@ public class Swipe : MonoBehaviour {
     public float lastTouchY = 0.0f;
     public ThrowState throwState = ThrowState.NONE;
 
+    private float screenScale = 1.0f;
     private float touchTime = 0.0f;
 
     void Start ()
     {
         swipeController.OnInvokeAction += OnThrow;
+        if (Screen.dpi > 0.0f)
+        {
+            screenScale = Mathf.Min(1.0f, Mathf.Max(0.75f, 4.0f / (Screen.height / Screen.dpi)));
+            swipeController.screenScale = screenScale;
+        }
     }
 
     void Update ()
@@ -51,7 +59,7 @@ public class Swipe : MonoBehaviour {
             touchX = touch.position.x / (float)Screen.width;
             touchY = 1.0f - touch.position.y / (float)Screen.height;
             position = (camera.ScreenToWorldPoint(new Vector3(touch.position.x, touch.position.y, 0.5f)) - camera.transform.position);
-            if (throwState != ThrowState.TOUCHED && touchX > 0.25f && touchX < 0.75f && touchY > 0.8f && touchY < 1.0f)
+            if (throwState != ThrowState.TOUCHED && touchX > 0.5f - 0.25f * screenScale && touchX < 0.5f + 0.25f * screenScale && touchY > 1.0f - 0.22f * screenScale && touchY < 1.0f)
             {
                 throwState = ThrowState.TOUCHED;
                 /*
@@ -203,26 +211,27 @@ public class Swipe : MonoBehaviour {
 
         MissileController missileController;
         float trimmedSpeed = Mathf.Min(1.0f, Mathf.Max(1.0f, speed)) * 50.0f;
-        float horizontalAngle = Mathf.Min(22.0f, Mathf.Max(-22.0f, angle.x));
+        float horizontalAngle = Mathf.Min(10.0f, Mathf.Max(-10.0f, angle.x));
         float t = 1.0f / trimmedSpeed;
         missileController = (Instantiate(missilePrefab)).GetComponent<MissileController>();
+        missileController.taskObject = taskObject;
         if (angle.y < 0.0f)
         {
             angle.y = 1.0f;
             t *= 0.5f;
             position = armedMissile.transform.position;
             acceleration = new Vector3(0.0f, (angle.y - 0.5f) * 2.0f * gravity * 2.0f, 0.0f);
-            velocity = new Vector3(0.0f, Mathf.Min(0.44f, 0.44f), trimmedSpeed * 0.05f + Mathf.Abs(horizontalAngle) / 30.0f * 0.1f); // !!! not trigonometrical coeficient
+            velocity = new Vector3(0.0f, Mathf.Min(0.44f, 0.44f), trimmedSpeed * 0.05f + Mathf.Abs(horizontalAngle) / 22.0f * 0.1f); // !!! not trigonometrical coeficient
             velocity = Quaternion.Euler(0.0f, horizontalAngle + (1.0f + position.z / Mathf.Abs(position.z)) * 90.0f, 0.0f) * velocity;
-            _torsion = new Vector3(360.0f, Mathf.Min(90.0f, Mathf.Max(-90.0f, torsion)), 0.0f);
+            _torsion = new Vector3(360.0f, Mathf.Min(90.0f, Mathf.Max(-90.0f, torsion)) - (angle.x - horizontalAngle) * 5.0f, 0.0f);
         }
         else
         {
             position = armedMissile.transform.position;
             acceleration = new Vector3(torsion * trimmedSpeed, (angle.y - 0.5f) * 2.0f * gravity, 0.0f);
-            velocity = new Vector3(-acceleration.x / 2, Mathf.Min(0.044f * 30.0f, Mathf.Max(-0.176f * 30.0f, (angle.y - 0.8f) * 0.22f * 30.0f)) - acceleration.y / 2, trimmedSpeed * (1.0f + Mathf.Abs(horizontalAngle) / 30.0f * 0.1f)); // !!! not trigonometrical coeficient
+            velocity = new Vector3(-acceleration.x / 2, Mathf.Min(0.044f * 30.0f, Mathf.Max(-0.176f * 30.0f, (angle.y - 0.8f) * 0.22f * 30.0f)) - acceleration.y / 2, trimmedSpeed * (1.0f + Mathf.Abs(horizontalAngle) / 10.0f * 0.1f)); // !!! not trigonometrical coeficient
             velocity = Quaternion.Euler(0.0f, horizontalAngle + (1.0f + position.z / Mathf.Abs(position.z)) * 90.0f, 0.0f) * velocity;
-            _torsion = new Vector3(0.0f, Mathf.Min(90.0f, Mathf.Max(-90.0f, torsion)), 0.0f);
+            _torsion = new Vector3(0.0f, Mathf.Min(90.0f, Mathf.Max(-90.0f, torsion)) - (angle.x - horizontalAngle) * 5.0f, 0.0f);
         }
         armedMissile.Rearm();
         missileController.transform.Rotate(70.0f, 0.0f, 0.0f);

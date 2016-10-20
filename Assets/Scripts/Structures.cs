@@ -46,8 +46,9 @@ public class SwipePoint
 public class SwipeController
 {
 
+    public float screenScale = 1.0f;
     public float minLength = 0.025f;
-    public float minY = 0.25f;
+    public float minY = 0.22f;
     public float maxY = 0.5f;
     public int swipeType = 3;
 
@@ -78,6 +79,7 @@ public class SwipeController
             float beginX = 0.0f;
             float beginY = 0.0f;
             */
+            float f;
             float endX = 0.0f;
             float endY = 0.0f;
             float fullX = 0.0f;
@@ -97,9 +99,12 @@ public class SwipeController
             Vector2 v2Delta = Vector2.zero;
             Vector2 v2Delta2 = Vector2.zero;
             Vector2 v2Average = Vector2.zero;
+            Vector2 v2StartPoint = Vector2.zero;
             LinkedListNode<SwipePoint> prevPointNode = null;
             LinkedListNode<SwipePoint> pointNode = null;
+            LinkedListNode<SwipePoint> pointNodePrev = null;
             LinkedListNode<SwipePoint> pointNodeNext = null;
+            LinkedListNode<SwipePoint> pointNodeNextNext = null;
             SwipePoint middleCorrectPoint = null;
             SwipeEventArgs eventArgs;
             if (!started && !touched)
@@ -107,7 +112,7 @@ public class SwipeController
                 locked = false;
                 return;
             }
-            if (started || (touched && newPoint.x > 0.25f && newPoint.x < 0.75f && newPoint.y > 0.75f))
+            if (started || (touched && newPoint.x > 0.5f - 0.25f * screenScale && newPoint.x < 0.5f + 0.25f * screenScale && newPoint.y > 1.0f - 0.22f * screenScale))
             {
                 if (!started)
                 {
@@ -315,8 +320,50 @@ public class SwipeController
                     if (i >= startPoint && i < endPoint)
                     {
                         correctPointsList.AddLast(pointNode.Value);
+                        if(pointNodeNext != null)
+                        {
+                            pointNodePrev = pointNode.Previous;
+                            pointNodeNextNext = pointNodeNext.Next;
+                            pointNode = correctPointsList.Last;
+                            if (pointNodePrev != null && pointNodeNextNext != null)
+                            {
+                                f = Mathf.Max(0.0f, Mathf.Min(1.0f, Vector2.Angle(pointNode.Value.point - pointNodePrev.Value.point, pointNodeNextNext.Value.point - pointNodeNext.Value.point) / 90.0f));
+                                pointNode.Value.point = pointNode.Value.point * f + (pointNodePrev.Value.point + pointNodeNext.Value.point) * 0.5f * (1.0f - f);
+                            }
+                        }
                     }
                     i++;
+                    pointNode = pointNodeNext;
+                }
+                v2Average = correctPointsList.Last.Value.point - correctPointsList.First.Value.point;
+                v2Delta = v2Average;
+                v2Delta.Normalize();
+                v2Delta *= 0.01f;
+                f = 1.0f;
+                i = 0;
+                pointNode = pointsList.Last;
+                for (i = 0; i < pointsList.Count - endPoint; i++)
+                {
+                    pointNodePrev = pointNode.Previous;
+                    if(pointNodePrev != null)
+                    {
+                        v2Delta += pointNode.Value.point - pointNodePrev.Value.point;
+                    }
+                    pointNode = pointNodePrev;
+                    if (pointNode == null)
+                    {
+                        i = pointsList.Count;
+                    }
+                }
+                v2Average.Normalize();
+                v2Delta.Normalize();
+                v2StartPoint = correctPointsList.First.Value.point;
+                f = 1.0f - Mathf.Max(0.0f, Mathf.Min(1.0f, Vector2.Angle(v2Average, v2Delta) / 90.0f));
+                pointNode = correctPointsList.First;
+                while (pointNode != null)
+                {
+                    pointNodeNext = pointNode.Next;
+                    pointNode.Value.point = pointNode.Value.point * f + (v2StartPoint + v2Average.normalized * (pointNode.Value.point - v2StartPoint).magnitude) * (1.0f - f);
                     pointNode = pointNodeNext;
                 }
                 i = 0;
@@ -374,8 +421,20 @@ public class SwipeController
                         eventArgs.angle.x = Mathf.Pow(Mathf.Abs(eventArgs.angle.x), 2.0f) * dxSign;
                     }
                     eventArgs.angle.x *= 180.0f / Mathf.PI;
-                    eventArgs.angle.y = Mathf.Min(1.0f, Mathf.Max(0.0f, (1.0f - correctPointsList.Last.Value.point.y) - minY) / (maxY - minY));
-                    if(!correct)
+                    eventArgs.angle.y = Mathf.Min(1.0f, Mathf.Max(0.0f, (1.0f - correctPointsList.Last.Value.point.y) - minY * screenScale) / (maxY - minY) * screenScale);
+                    if(eventArgs.angle.y < 0.5f)
+                    {
+                        eventArgs.angle.y = 0.3f;
+                    }
+                    else if (eventArgs.angle.y > 0.9f)
+                    {
+                        eventArgs.angle.y = 1.0f;
+                    }
+                    else
+                    {
+                        eventArgs.angle.y = 0.8f;
+                    }
+                    if (!correct)
                     {
                         eventArgs.angle.y = -1.0f;
                     }
@@ -384,7 +443,7 @@ public class SwipeController
                     v2Delta2.Normalize();
                     eventArgs.torsion = Vector2.Angle(v2Delta, v2Delta2) / 180.0f * (v2Delta.x - v2Delta2.x) / Mathf.Abs(v2Delta.x - v2Delta2.x);
                     eventArgs.speed = Mathf.Sqrt(0.2f / duration);
-                    if (length > minLength)
+                    if (length > minLength * screenScale)
                     {
                         if (!touched || pointsList.Last.Value.point.y < 1.0f - maxY /* || pointsList.Last.Previous.Value.point.y - newPoint.y < 0.0f*/)
                         {
