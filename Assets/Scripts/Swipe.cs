@@ -21,6 +21,8 @@ public class Swipe : MonoBehaviour {
     public GameObject swipeTrailPrefab;
     public GameObject missilePrefab;
 
+    public Button swipeType2;
+    public Button swipeType3;
     public ArmedMissileController armedMissile;
     public SwipeTrailController swipeTrail = null;
     public SwipeController swipeController = new SwipeController();
@@ -32,6 +34,8 @@ public class Swipe : MonoBehaviour {
     private float screenScale = 1.0f;
     private float touchTime = 0.0f;
 
+    private bool touchedOnce = false;
+
     void Start ()
     {
         swipeController.OnInvokeAction += OnThrow;
@@ -40,10 +44,80 @@ public class Swipe : MonoBehaviour {
             screenScale = Mathf.Min(1.0f, Mathf.Max(0.75f, 4.0f / (Screen.height / Screen.dpi)));
             swipeController.screenScale = screenScale;
         }
+
+        swipeType2.onClick.AddListener(delegate() {
+            if (swipeType2.image.color == Color.green)
+            {
+                swipeType2.image.color = Color.red;
+            }
+            else
+            {
+                swipeType2.image.color = Color.green;
+            }
+            OnSwipeTypeChanged();
+        });
+        swipeType3.onClick.AddListener(delegate () {
+            if (swipeType3.image.color == Color.green)
+            {
+                swipeType3.image.color = Color.red;
+            }
+            else
+            {
+                swipeType3.image.color = Color.green;
+            }
+            OnSwipeTypeChanged();
+        });
+        OnSwipeTypeChanged();
+
     }
+
+    public void OnSwipeTypeChanged()
+    {
+        int swipeType = 1;
+        if(swipeType2.image.color == Color.green)
+        {
+            if(swipeType3.image.color == Color.green)
+            {
+                swipeType = 4;
+            }
+            else
+            {
+                swipeType = 2;
+            }
+        }
+        else
+        {
+            if (swipeType3.image.color == Color.green)
+            {
+                swipeType = 3;
+            }
+            else
+            {
+                swipeType = 1;
+            }
+        }
+        swipeController.swipeType = swipeType;
+    }
+
+    private Vector3 normalCameraPosition = new Vector3(0.0f, 5.0f, -25.0f);
 
     void Update ()
     {
+
+        if(!touchedOnce && Input.touchCount > 0)
+        {
+            armedMissile.Rearm();
+            touchedOnce = true;
+        }
+        if (touchedOnce && (transform.position - normalCameraPosition).magnitude > 0.01f)
+        {
+            transform.position += (normalCameraPosition - transform.position) * Time.deltaTime * 5.0f;
+            if ((normalCameraPosition - transform.position).magnitude < 1.0f)
+            {
+                transform.position = normalCameraPosition;
+            }
+        }
+
         float angle = 0.0f;
         float power = 0.0f;
         float mouseX = Input.mousePosition.x / (float)Screen.width;

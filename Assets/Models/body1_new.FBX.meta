@@ -1,0 +1,159 @@
+fileFormatVersion: 2
+guid: 092baa5b9453bfa49ad77a90b79a89c6
+timeCreated: 1476969823
+licenseType: Free
+ModelImporter:
+  serializedVersion: 19
+  fileIDToRecycleName:
+    100000: belt_low
+    100002: //RootNode
+    100004: bootPlank_low
+    100006: boots_low
+    100008: bootStrap_low
+    100010: eyes_low
+    100012: face_low
+    100014: forearm_low
+    100016: forearmStraps_low
+    100018: hands_low
+    100020: mask_low
+    100022: pants_low
+    100024: ribbon_low
+    100026: rope_low
+    100028: shirt2_low
+    100030: shirt3_low
+    100032: shirt_low
+    100034: skirt_low
+    400000: belt_low
+    400002: //RootNode
+    400004: bootPlank_low
+    400006: boots_low
+    400008: bootStrap_low
+    400010: eyes_low
+    400012: face_low
+    400014: forearm_low
+    400016: forearmStraps_low
+    400018: hands_low
+    400020: mask_low
+    400022: pants_low
+    400024: ribbon_low
+    400026: rope_low
+    400028: shirt2_low
+    400030: shirt3_low
+    400032: shirt_low
+    400034: skirt_low
+    2300000: belt_low
+    2300002: bootPlank_low
+    2300004: boots_low
+    2300006: bootStrap_low
+    2300008: eyes_low
+    2300010: face_low
+    2300012: forearm_low
+    2300014: forearmStraps_low
+    2300016: hands_low
+    2300018: mask_low
+    2300020: pants_low
+    2300022: ribbon_low
+    2300024: rope_low
+    2300026: shirt2_low
+    2300028: shirt3_low
+    2300030: shirt_low
+    2300032: skirt_low
+    3300000: belt_low
+    3300002: bootPlank_low
+    3300004: boots_low
+    3300006: bootStrap_low
+    3300008: eyes_low
+    3300010: face_low
+    3300012: forearm_low
+    3300014: forearmStraps_low
+    3300016: hands_low
+    3300018: mask_low
+    3300020: pants_low
+    3300022: ribbon_low
+    3300024: rope_low
+    3300026: shirt2_low
+    3300028: shirt3_low
+    3300030: shirt_low
+    3300032: skirt_low
+    4300000: bootStrap_low
+    4300002: hands_low
+    4300004: mask_low
+    4300006: face_low
+    4300008: eyes_low
+    4300010: shirt3_low
+    4300012: shirt2_low
+    4300014: forearm_low
+    4300016: forearmStraps_low
+    4300018: belt_low
+    4300020: rope_low
+    4300022: ribbon_low
+    4300024: pants_low
+    4300026: bootPlank_low
+    4300028: boots_low
+    4300030: shirt_low
+    4300032: skirt_low
+    9500000: //RootNode
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 0.1
+    meshCompression: 0
+    addColliders: 0
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+  importAnimation: 0
+  copyAvatar: 0
+  humanDescription:
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
