@@ -112,7 +112,7 @@ public class SwipeController
                 locked = false;
                 return;
             }
-            if (started || (touched && newPoint.x > 0.5f - 0.25f * screenScale && newPoint.x < 0.5f + 0.25f * screenScale && newPoint.y > 1.0f - 0.22f * screenScale))
+            if (started || (touched /* && newPoint.x > 0.5f - 0.25f * screenScale && newPoint.x < 0.5f + 0.25f * screenScale */ && newPoint.y > 1.0f - minY * screenScale))
             {
                 if (!started)
                 {
@@ -338,69 +338,70 @@ public class SwipeController
                     i++;
                     pointNode = pointNodeNext;
                 }
-                if (swipeType == 2 || swipeType == 4)
+                if (correctPointsList.Count > 1)
                 {
-                    v2Average = correctPointsList.Last.Value.point - correctPointsList.First.Value.point;
-                    v2Delta = v2Average;
-                    v2Delta.Normalize();
-                    v2Delta *= 0.01f;
-                    f = 1.0f;
-                    i = 0;
-                    pointNode = pointsList.Last;
-                    for (i = 0; i < pointsList.Count - endPoint; i++)
+                    if (swipeType == 2 || swipeType == 4)
                     {
-                        pointNodePrev = pointNode.Previous;
-                        if (pointNodePrev != null)
+                        v2Average = correctPointsList.Last.Value.point - correctPointsList.First.Value.point;
+                        v2Delta = v2Average;
+                        v2Delta.Normalize();
+                        v2Delta *= 0.01f;
+                        f = 1.0f;
+                        i = 0;
+                        pointNode = pointsList.Last;
+                        for (i = 0; i < pointsList.Count - endPoint; i++)
                         {
-                            v2Delta += pointNode.Value.point - pointNodePrev.Value.point;
+                            pointNodePrev = pointNode.Previous;
+                            if (pointNodePrev != null)
+                            {
+                                v2Delta += pointNode.Value.point - pointNodePrev.Value.point;
+                            }
+                            pointNode = pointNodePrev;
+                            if (pointNode == null)
+                            {
+                                i = pointsList.Count;
+                            }
                         }
-                        pointNode = pointNodePrev;
-                        if (pointNode == null)
+                        v2Average.Normalize();
+                        v2Delta.Normalize();
+                        v2StartPoint = correctPointsList.First.Value.point;
+                        f = 1.0f - Mathf.Max(0.0f, Mathf.Min(1.0f, Vector2.Angle(v2Average, v2Delta) / 90.0f));
+                        pointNode = correctPointsList.First;
+                        while (pointNode != null)
                         {
-                            i = pointsList.Count;
+                            pointNodeNext = pointNode.Next;
+                            pointNode.Value.point = pointNode.Value.point * f + (v2StartPoint + v2Average.normalized * (pointNode.Value.point - v2StartPoint).magnitude) * (1.0f - f);
+                            pointNode = pointNodeNext;
                         }
                     }
-                    v2Average.Normalize();
-                    v2Delta.Normalize();
-                    v2StartPoint = correctPointsList.First.Value.point;
-                    f = 1.0f - Mathf.Max(0.0f, Mathf.Min(1.0f, Vector2.Angle(v2Average, v2Delta) / 90.0f));
+                    i = 0;
+                    v2Average *= 0.0f;
+                    duration2 = 0.0f;
                     pointNode = correctPointsList.First;
                     while (pointNode != null)
                     {
                         pointNodeNext = pointNode.Next;
-                        pointNode.Value.point = pointNode.Value.point * f + (v2StartPoint + v2Average.normalized * (pointNode.Value.point - v2StartPoint).magnitude) * (1.0f - f);
+                        if (prevPointNode != null)
+                        {
+                            v2Delta = pointNode.Value.point - prevPointNode.Value.point;
+                        }
+                        else
+                        {
+                            v2Delta = Vector2.zero;
+                        }
+                        v2Delta.y *= -1.0f;
+                        v2Average += v2Delta * pointNode.Value.duration;
+                        duration2 += pointNode.Value.duration;
+                        if (i <= correctPointsList.Count / 2 && i + 1 > correctPointsList.Count / 2)
+                        {
+                            middleCorrectPoint = pointNode.Value;
+                        }
+                        i++;
+                        prevPointNode = pointNode;
                         pointNode = pointNodeNext;
                     }
-                }
-                i = 0;
-                v2Average *= 0.0f;
-                duration2 = 0.0f;
-                pointNode = correctPointsList.First;
-                while (pointNode != null)
-                {
-                    pointNodeNext = pointNode.Next;
-                    if (prevPointNode != null)
-                    {
-                        v2Delta = pointNode.Value.point - prevPointNode.Value.point;
-                    }
-                    else
-                    {
-                        v2Delta = Vector2.zero;
-                    }
-                    v2Delta.y *= -1.0f;
-                    v2Average += v2Delta * pointNode.Value.duration;
-                    duration2 += pointNode.Value.duration;
-                    if (i <= correctPointsList.Count / 2 && i + 1 > correctPointsList.Count / 2)
-                    {
-                        middleCorrectPoint = pointNode.Value;
-                    }
-                    i++;
-                    prevPointNode = pointNode;
-                    pointNode = pointNodeNext;
-                }
-                v2Average.Normalize();
-                if (correctPointsList.Count > 1)
-                {
+                    v2Average.Normalize();
+
                     correct = true;
                     if(correctPointsList.Last.Value.point.y > 1.0f - minY)
                     {
@@ -421,12 +422,13 @@ public class SwipeController
                         v2Delta.x = v2Delta.x / Mathf.Abs(v2Delta.x) * Mathf.Abs(v2Delta.x);
                     }
                     float dxSign = v2Delta.x / Mathf.Abs(v2Delta.x);
-                    eventArgs.angle.x = Mathf.Atan(v2Delta.x / v2Delta.y);
+                    eventArgs.angle.x = -Mathf.Atan(v2Delta.x / (v2Delta.y * 4.0f)) / Mathf.PI;
                     if (Mathf.Abs(eventArgs.angle.x) > 0.0001f)
                     {
-                        eventArgs.angle.x = Mathf.Pow(Mathf.Abs(eventArgs.angle.x), 2.0f) * dxSign;
+                        //eventArgs.angle.x = Mathf.Pow(Mathf.Abs(eventArgs.angle.x * 1.0f), 1.8f) * dxSign * 1.0f;
                     }
-                    eventArgs.angle.x *= 180.0f / Mathf.PI;
+                    eventArgs.angle.x *= 180.0f;
+                    eventArgs.angle.x += (correctPointsList.First.Value.point.x - 0.5f) * 18.0f;
                     eventArgs.angle.y = Mathf.Min(1.0f, Mathf.Max(0.0f, (1.0f - correctPointsList.Last.Value.point.y) - minY * screenScale) / (maxY - minY) * screenScale);
                     if(eventArgs.angle.y < 0.5f)
                     {
@@ -464,6 +466,11 @@ public class SwipeController
                             eventArgs.throwing = false;
                             InvokeAction(eventArgs);
                         }
+                    }
+                    if(correctPointsList.Count < pointsList.Count * 0.75f && newPoint.y > 1.0f - minY * screenScale)
+                    {
+                        pointsList.Clear();
+                        started = false;
                     }
                 }
             }

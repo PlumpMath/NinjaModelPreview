@@ -100,21 +100,30 @@ public class Swipe : MonoBehaviour {
     }
 
     private Vector3 normalCameraPosition = new Vector3(0.0f, 5.0f, -25.0f);
+    private Quaternion normalCameraRotation = Quaternion.Euler(10.0f, 0.0f, 0.0f);
+    private float normalCameraFov = 30;
 
     void Update ()
     {
 
-        if(!touchedOnce && Input.touchCount > 0)
+        if(!touchedOnce)
         {
             armedMissile.Rearm();
+        }
+        if(!touchedOnce && (Input.touchCount > 0 || Input.GetMouseButtonDown(0)))
+        {
             touchedOnce = true;
         }
         if (touchedOnce && (transform.position - normalCameraPosition).magnitude > 0.01f)
         {
             transform.position += (normalCameraPosition - transform.position) * Time.deltaTime * 5.0f;
+            transform.rotation = Quaternion.Lerp(normalCameraRotation, transform.rotation, Time.deltaTime * 5.0f);
+            camera.fov += (normalCameraFov - camera.fov) * Time.deltaTime * 5.0f;
             if ((normalCameraPosition - transform.position).magnitude < 1.0f)
             {
                 transform.position = normalCameraPosition;
+                transform.rotation = normalCameraRotation;
+                camera.fov = normalCameraFov;
             }
         }
 
@@ -133,7 +142,7 @@ public class Swipe : MonoBehaviour {
             touchX = touch.position.x / (float)Screen.width;
             touchY = 1.0f - touch.position.y / (float)Screen.height;
             position = (camera.ScreenToWorldPoint(new Vector3(touch.position.x, touch.position.y, 0.5f)) - camera.transform.position);
-            if (throwState != ThrowState.TOUCHED && touchX > 0.5f - 0.25f * screenScale && touchX < 0.5f + 0.25f * screenScale && touchY > 1.0f - 0.22f * screenScale && touchY < 1.0f)
+            if (throwState != ThrowState.TOUCHED /* && touchX > 0.5f - 0.25f * screenScale && touchX < 0.5f + 0.25f * screenScale */ && touchY > 1.0f - 0.22f * screenScale && touchY < 1.0f)
             {
                 throwState = ThrowState.TOUCHED;
                 /*
@@ -219,7 +228,8 @@ public class Swipe : MonoBehaviour {
         if (throwState == ThrowState.TOUCHED)
         {
             touchTime += Time.deltaTime;
-            armedMissile.transform.localRotation = Quaternion.AngleAxis(Mathf.Min(60.0f, transform.localRotation.eulerAngles.x + touchTime * 180.0f), Vector3.right);
+            //armedMissile.transform.localRotation = Quaternion.AngleAxis(Mathf.Min(60.0f, transform.localRotation.eulerAngles.x + touchTime * 180.0f), Vector3.right);
+            armedMissile.transform.localRotation = Quaternion.AngleAxis(Mathf.Min(15.0f, transform.localRotation.eulerAngles.x + touchTime * 180.0f), Vector3.right);
         }
         else
         {
@@ -285,7 +295,7 @@ public class Swipe : MonoBehaviour {
 
         MissileController missileController;
         float trimmedSpeed = Mathf.Min(1.0f, Mathf.Max(1.0f, speed)) * 50.0f;
-        float horizontalAngle = Mathf.Min(10.0f, Mathf.Max(-10.0f, angle.x));
+        float horizontalAngle = angle.x;//Mathf.Min(10.0f, Mathf.Max(-10.0f, angle.x));
         float t = 1.0f / trimmedSpeed;
         missileController = (Instantiate(missilePrefab)).GetComponent<MissileController>();
         missileController.taskObject = taskObject;
