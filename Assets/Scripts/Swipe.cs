@@ -99,28 +99,44 @@ public class Swipe : MonoBehaviour {
         swipeController.swipeType = swipeType;
     }
 
+    private Vector3 startCameraPosition = new Vector3();
     private Vector3 normalCameraPosition = new Vector3(0.0f, 5.0f, -25.0f);
+    private Quaternion startCameraRotation = new Quaternion();
     private Quaternion normalCameraRotation = Quaternion.Euler(10.0f, 0.0f, 0.0f);
+    private float startCameraFov = 60;
     private float normalCameraFov = 30;
+    private float normalCameraCooldown = 2.0f;
 
     void Update ()
     {
+        float f;
 
-        if(!touchedOnce)
+        if (!touchedOnce)
         {
             armedMissile.Rearm();
         }
         if(!touchedOnce && (Input.touchCount > 0 || Input.GetMouseButtonDown(0)))
         {
             touchedOnce = true;
+            startCameraPosition = new Vector3(transform.position.x, transform.position.y, transform.position.z);
+            startCameraRotation = new Quaternion(transform.rotation.x, transform.rotation.y, transform.rotation.z, transform.rotation.w);
+            startCameraFov = camera.fov;
         }
-        if (touchedOnce && (transform.position - normalCameraPosition).magnitude > 0.01f)
+        if (touchedOnce && normalCameraCooldown > 0.0f)
         {
-            transform.position += (normalCameraPosition - transform.position) * Time.deltaTime * 5.0f;
-            transform.rotation = Quaternion.Lerp(normalCameraRotation, transform.rotation, Time.deltaTime * 5.0f);
-            camera.fov += (normalCameraFov - camera.fov) * Time.deltaTime * 5.0f;
-            if ((normalCameraPosition - transform.position).magnitude < 1.0f)
+            normalCameraCooldown -= Time.deltaTime;
+            f = normalCameraCooldown - 1.0f;
+            f = ((Mathf.Pow(Mathf.Abs(f), 0.5f) * f / Mathf.Abs(f)) + 1.0f) * 0.5f;
+            if(f < 0.0f)
             {
+                f = 0.0f;
+            }
+            transform.position = normalCameraPosition * (1.0f - f) + startCameraPosition * f;
+            transform.rotation = Quaternion.Lerp(normalCameraRotation, startCameraRotation, f);
+            camera.fov = normalCameraFov * (1.0f - f) + startCameraFov * f;
+            if (normalCameraCooldown <= 0.0f)
+            {
+                normalCameraCooldown = 0.0f;
                 transform.position = normalCameraPosition;
                 transform.rotation = normalCameraRotation;
                 camera.fov = normalCameraFov;
@@ -142,7 +158,7 @@ public class Swipe : MonoBehaviour {
             touchX = touch.position.x / (float)Screen.width;
             touchY = 1.0f - touch.position.y / (float)Screen.height;
             position = (camera.ScreenToWorldPoint(new Vector3(touch.position.x, touch.position.y, 0.5f)) - camera.transform.position);
-            if (throwState != ThrowState.TOUCHED /* && touchX > 0.5f - 0.25f * screenScale && touchX < 0.5f + 0.25f * screenScale */ && touchY > 1.0f - 0.22f * screenScale && touchY < 1.0f)
+            if (throwState != ThrowState.TOUCHED /* && touchX > 0.5f - 0.25f * screenScale && touchX < 0.5f + 0.25f * screenScale */ && touchY > 1.0f - 0.27f * screenScale && touchY < 1.0f)
             {
                 throwState = ThrowState.TOUCHED;
                 /*
@@ -189,10 +205,10 @@ public class Swipe : MonoBehaviour {
                 swipeTrail.lineRenderer.SetVertexCount(swipeTrail.pointsCount);
                 swipeTrail.lineRenderer.SetPosition(swipeTrail.pointsCount - 1, position);
                 */
-                //if (mouseX > 0.25f && mouseX < 0.75f && mouseY > 0.8f && mouseY < 1.0f)
-                //{
-                throwState = ThrowState.TOUCHED;
-                //}
+                if (/* mouseX > 0.25f && mouseX < 0.75f && */ mouseY > 1.0f - 0.27f && mouseY < 1.0f)
+                {
+                    throwState = ThrowState.TOUCHED;
+                }
             }
         }
         if( Input.GetMouseButton(0))
@@ -291,13 +307,19 @@ public class Swipe : MonoBehaviour {
         Vector3 velocity;
         Vector3 _torsion;
 
+        if(float.IsNaN(torsion) || Mathf.Abs(torsion) < 0.001f)
+        {
+            torsion = 0.0f;
+        }
+
         float gravity = -0.98f;
 
         MissileController missileController;
         float trimmedSpeed = Mathf.Min(1.0f, Mathf.Max(1.0f, speed)) * 50.0f;
-        float horizontalAngle = angle.x;//Mathf.Min(10.0f, Mathf.Max(-10.0f, angle.x));
+        float horizontalAngle = angle.x; //Mathf.Min(10.0f, Mathf.Max(-10.0f, angle.x));
         float t = 1.0f / trimmedSpeed;
         missileController = (Instantiate(missilePrefab)).GetComponent<MissileController>();
+        missileController.name = missilePrefab.name;
         missileController.taskObject = taskObject;
         if (angle.y < 0.0f)
         {
@@ -307,7 +329,7 @@ public class Swipe : MonoBehaviour {
             acceleration = new Vector3(0.0f, (angle.y - 0.5f) * 2.0f * gravity * 2.0f, 0.0f);
             velocity = new Vector3(0.0f, Mathf.Min(0.44f, 0.44f), trimmedSpeed * 0.05f + Mathf.Abs(horizontalAngle) / 22.0f * 0.1f); // !!! not trigonometrical coeficient
             velocity = Quaternion.Euler(0.0f, horizontalAngle + (1.0f + position.z / Mathf.Abs(position.z)) * 90.0f, 0.0f) * velocity;
-            _torsion = new Vector3(360.0f, Mathf.Min(90.0f, Mathf.Max(-90.0f, torsion)) - (angle.x - horizontalAngle) * 5.0f, 0.0f);
+            _torsion = new Vector3(360.0f, Mathf.Min(90.0f, Mathf.Max(-90.0f, torsion)) - (angle.x - horizontalAngle) * 5.0f, UnityEngine.Random.Range(-180.0f, 180.0f));
         }
         else
         {
@@ -315,15 +337,17 @@ public class Swipe : MonoBehaviour {
             acceleration = new Vector3(torsion * trimmedSpeed, (angle.y - 0.5f) * 2.0f * gravity, 0.0f);
             velocity = new Vector3(-acceleration.x / 2, Mathf.Min(0.044f * 30.0f, Mathf.Max(-0.176f * 30.0f, (angle.y - 0.8f) * 0.22f * 30.0f)) - acceleration.y / 2, trimmedSpeed * (1.0f + Mathf.Abs(horizontalAngle) / 10.0f * 0.1f)); // !!! not trigonometrical coeficient
             velocity = Quaternion.Euler(0.0f, horizontalAngle + (1.0f + position.z / Mathf.Abs(position.z)) * 90.0f, 0.0f) * velocity;
-            _torsion = new Vector3(0.0f, Mathf.Min(90.0f, Mathf.Max(-90.0f, torsion)) - (angle.x - horizontalAngle) * 5.0f, 0.0f);
+            _torsion = new Vector3(0.0f, Mathf.Min(90.0f, Mathf.Max(-90.0f, torsion)) - (angle.x - horizontalAngle) * 5.0f, UnityEngine.Random.Range(-60.0f, 60.0f));
+            _torsion.z /= Mathf.Max(1.0f, torsion);
         }
+        position += velocity * Time.deltaTime;
         armedMissile.Rearm();
         missileController.transform.Rotate(70.0f, 0.0f, 0.0f);
         missileController.transform.position = position;
         missileController.acceleration = acceleration;
         missileController.velocity = velocity;
         missileController.torsion = _torsion;
-        GameObject.Destroy(missileController.gameObject, 2.0f);
+        //GameObject.Destroy(missileController.gameObject, 2.0f);
         return true;
     }
     

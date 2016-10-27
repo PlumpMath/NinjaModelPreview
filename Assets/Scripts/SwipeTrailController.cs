@@ -18,7 +18,7 @@ public class SwipeTrailController : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-        if(cooldown > 0.0f)
+        if (cooldown > 0.0f)
         {
             cooldown -= Time.deltaTime;
             startColor.a = Mathf.Max(0.0f, Mathf.Min(1.0f, cooldown * 2.0f));

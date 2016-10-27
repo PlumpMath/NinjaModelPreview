@@ -14,7 +14,6 @@ public class MissileController : MonoBehaviour {
 
     public GameObject damagePrefab;
 
-    private SphereCollider collider;
     private bool collided = false;
 
     void Start () {
@@ -26,10 +25,16 @@ public class MissileController : MonoBehaviour {
 
     void Update () {
 
-        transform.Rotate(torsion.x * Time.deltaTime, torsion.y * Time.deltaTime, -2.0f * torsion.z * Time.deltaTime);
-        meshObject.transform.Rotate(0.0f, 0.0f, -(passiveRotation + 50.0f * torsion.y) * Time.deltaTime);
-        velocity += acceleration * Time.deltaTime;
-        transform.position += velocity * Time.deltaTime;
+        if (collided)
+        {
+        }
+        else
+        {
+            transform.Rotate(torsion.x * Time.deltaTime, torsion.z * Time.deltaTime /* torsion.y * Time.deltaTime */, -2.0f * torsion.y * Time.deltaTime);
+            meshObject.transform.Rotate(0.0f, 0.0f, -(passiveRotation + 50.0f * torsion.y) * Time.deltaTime);
+            velocity += acceleration * Time.deltaTime;
+            transform.position += velocity * Time.deltaTime;
+        }
 
     }
 
@@ -51,17 +56,23 @@ public class MissileController : MonoBehaviour {
         {
             return;
         }
+        if(collision.collider.name == "missile0")
+        {
+            return;
+        }
         collided = true;
+        transform.position = (transform.position + collision.contacts[0].point) * 0.5f;
+        transform.parent = collision.collider.transform;
+        Rigidbody.Destroy(GetComponent<Rigidbody>());
         if (collision.collider.name != "Ground")
         {
             GameObject projector = (GameObject)GameObject.Instantiate(damagePrefab);
             projector.transform.position = collision.contacts[0].point + collision.contacts[0].normal * 0.2f;
-            //projector.transform.forward = -collision.contacts[0].normal;
             projector.transform.forward = transform.forward;
             GameObject.Destroy(projector, 1.0f);
             taskObject.Hit(transform.position.y);
         }
-        GameObject.Destroy(gameObject);
+        GameObject.Destroy(gameObject, 1.0f);
     }
 
 }

@@ -7,6 +7,7 @@ public class Tasks : MonoBehaviour {
 
     public EventHandler<EventArgs> OnThrow;
 
+    public Button uiFPSButton;
     public Text uiFPSLabel;
 
     public Text uiProgressLabel;
@@ -16,8 +17,10 @@ public class Tasks : MonoBehaviour {
     private int task = 0;
     private int hits = 0;
 
-	// Use this for initialization
-	void Start () {
+    private float lastFPS = 0.0f;
+
+    // Use this for initialization
+    void Start () {
 
         uiPositions[0] = -35.0f;
         uiPositions[1] = -9.0f;
@@ -26,14 +29,24 @@ public class Tasks : MonoBehaviour {
         uiProgressLabel.text = hits + " / 3";
         uiProgressLabel.rectTransform.localPosition = new Vector3(uiProgressLabel.rectTransform.localPosition.x, uiPositions[task], 0.0f);
 
+        uiFPSButton.onClick.AddListener(delegate() {
+            if (uiFPSLabel.color == Color.white)
+            {
+                uiFPSLabel.color = new Color(0.0f, 0.0f, 0.0f, 0.0f);
+            }
+            else
+            {
+                uiFPSLabel.color = Color.white;
+            }
+        });
+
     }
 
     // Update is called once per frame
     void Update () {
 
-
-        uiFPSLabel.text = Mathf.Round(1.0f / Time.deltaTime)  + " FPS";
-
+        lastFPS += (Mathf.Round(1.0f / Time.deltaTime) - lastFPS) * Time.deltaTime;
+        uiFPSLabel.text = Mathf.Round(lastFPS)  + " FPS";
 
     }
 
