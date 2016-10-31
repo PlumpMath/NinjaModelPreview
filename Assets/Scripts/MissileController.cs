@@ -10,7 +10,7 @@ public class MissileController : MonoBehaviour {
     public Vector3 velocity = Vector3.zero;
     public Vector3 acceleration = Vector3.zero;
     public Vector3 torsion = Vector3.zero;
-    public float passiveRotation = 900.0f;
+    public float passiveRotation = 360.0f;
 
     public GameObject damagePrefab;
 
@@ -25,15 +25,22 @@ public class MissileController : MonoBehaviour {
 
     void Update () {
 
-        if (collided)
+        if (false && collided)
         {
         }
         else
         {
-            transform.Rotate(torsion.x * Time.deltaTime, torsion.z * Time.deltaTime /* torsion.y * Time.deltaTime */, -2.0f * torsion.y * Time.deltaTime);
-            meshObject.transform.Rotate(0.0f, 0.0f, -(passiveRotation + 50.0f * torsion.y) * Time.deltaTime);
             velocity += acceleration * Time.deltaTime;
             transform.position += velocity * Time.deltaTime;
+            if (collided)
+            {
+                velocity *= 1.0f - Time.deltaTime * 20.0f;
+            }
+            else
+            {
+                transform.Rotate(torsion.x * Time.deltaTime, torsion.z * Time.deltaTime /* torsion.y * Time.deltaTime */, -2.0f * torsion.y * Time.deltaTime);
+                meshObject.transform.Rotate(0.0f, 0.0f, -(passiveRotation + 50.0f * torsion.y) * Time.deltaTime);
+            }
         }
 
     }
@@ -56,16 +63,19 @@ public class MissileController : MonoBehaviour {
         {
             return;
         }
-        if(collision.collider.name == "missile0")
+        if(collision.collider.name == "MissileObject")
         {
             return;
         }
         collided = true;
-        transform.position = (transform.position + collision.contacts[0].point) * 0.5f;
+        //transform.position = (transform.position + collision.contacts[0].point) * 0.5f;
+        acceleration *= 0.0f;
+        velocity *= 0.0f;
         transform.parent = collision.collider.transform;
         Rigidbody.Destroy(GetComponent<Rigidbody>());
         if (collision.collider.name != "Ground")
         {
+            velocity = ((transform.position + collision.contacts[0].point) * 0.5f - transform.position) * 25.0f;
             GameObject projector = (GameObject)GameObject.Instantiate(damagePrefab);
             projector.transform.position = collision.contacts[0].point + collision.contacts[0].normal * 0.2f;
             projector.transform.forward = transform.forward;

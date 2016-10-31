@@ -119,6 +119,16 @@ public class SwipeController
                     started = true;
                 }
                 pointsList.AddLast(new SwipePoint(newPoint, newDuration));
+                if (swipeType == 3 || swipeType == 4)
+                {
+                    if (pointsList.Last.Previous != null && pointsList.Last.Previous.Previous != null)
+                    {
+                        if (pointsList.Last.Value.point.y < pointsList.Last.Previous.Value.point.y)
+                        {
+                            pointsList.Last.Previous.Value.point = (pointsList.Last.Value.point + pointsList.Last.Previous.Previous.Value.point) * 0.5f;
+                        }
+                    }
+                }
             }
             /*
             pointNode = pointsList.First;
@@ -413,10 +423,12 @@ public class SwipeController
                     v2Average.Normalize();
 
                     correct = true;
+                    /*
                     if(correctPointsList.Last.Value.point.y > 1.0f - minY)
                     {
                         correct = false;
                     }
+                    */
                     if (correctPointsList.First.Value.point.y < 1.0f - minY)
                     {
                         correct = false;
@@ -442,24 +454,43 @@ public class SwipeController
                     eventArgs.angle.y = Mathf.Min(1.0f, Mathf.Max(0.0f, (1.0f - correctPointsList.Last.Value.point.y) - minY * screenScale) / (maxY - minY) * screenScale);
                     if(eventArgs.angle.y < 0.5f)
                     {
-                        eventArgs.angle.y = 0.3f;
+                        if (eventArgs.angle.y < 0.1f)
+                        {
+                            eventArgs.angle.y = 0.1f;
+                        }
+                        else if (eventArgs.angle.y < 0.3f)
+                        {
+                            eventArgs.angle.y = 0.25f;
+                        }
+                        else
+                        {
+                            eventArgs.angle.y = 0.45f;
+                        }
                     }
-                    else if (eventArgs.angle.y > 0.9f)
+                    else if (eventArgs.angle.y > 0.95f)
                     {
                         eventArgs.angle.y = 1.0f;
                     }
                     else
                     {
-                        eventArgs.angle.y = 0.8f;
+                        if (eventArgs.angle.y < 0.75f)
+                        {
+                            eventArgs.angle.y = 0.65f;
+                        }
+                        else
+                        {
+                            eventArgs.angle.y = 0.8f;
+                        }
                     }
                     if (!correct)
                     {
                         eventArgs.angle.y = -1.0f;
                     }
+                    //eventArgs.angle.y = 0.01f;
                     v2Delta2 = middleCorrectPoint.point - correctPointsList.First.Value.point;
                     v2Delta.Normalize();
                     v2Delta2.Normalize();
-                    if (swipeType > 1)
+                    if (swipeType == 2 || swipeType == 4)
                     {
                         if (Vector2.Angle(v2Delta, v2Delta2) > 15.0f)
                         {

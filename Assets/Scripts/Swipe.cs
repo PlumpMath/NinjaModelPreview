@@ -306,8 +306,10 @@ public class Swipe : MonoBehaviour {
         Vector3 acceleration;
         Vector3 velocity;
         Vector3 _torsion;
+        float zTorsionMin = -60.0f;
+        float zTorsionMax = 60.0f;
 
-        if(float.IsNaN(torsion) || Mathf.Abs(torsion) < 0.001f)
+        if (float.IsNaN(torsion) || Mathf.Abs(torsion) < 0.001f)
         {
             torsion = 0.0f;
         }
@@ -315,9 +317,9 @@ public class Swipe : MonoBehaviour {
         float gravity = -0.98f;
 
         MissileController missileController;
-        float trimmedSpeed = Mathf.Min(1.0f, Mathf.Max(1.0f, speed)) * 50.0f;
+        float trimmedSpeed = Mathf.Min(1.0f, Mathf.Max(1.0f, speed)) * 50.0f * 2.0f;
         float horizontalAngle = angle.x; //Mathf.Min(10.0f, Mathf.Max(-10.0f, angle.x));
-        float t = 1.0f / trimmedSpeed;
+        float t = 50.0f / trimmedSpeed;
         missileController = (Instantiate(missilePrefab)).GetComponent<MissileController>();
         missileController.name = missilePrefab.name;
         missileController.taskObject = taskObject;
@@ -327,17 +329,25 @@ public class Swipe : MonoBehaviour {
             t *= 0.5f;
             position = armedMissile.transform.position;
             acceleration = new Vector3(0.0f, (angle.y - 0.5f) * 2.0f * gravity * 2.0f, 0.0f);
-            velocity = new Vector3(0.0f, Mathf.Min(0.44f, 0.44f), trimmedSpeed * 0.05f + Mathf.Abs(horizontalAngle) / 22.0f * 0.1f); // !!! not trigonometrical coeficient
+            velocity = new Vector3(0.0f, 0.44f, trimmedSpeed * 0.05f + Mathf.Abs(horizontalAngle) / 22.0f * 0.1f); // !!! not trigonometrical coeficient
             velocity = Quaternion.Euler(0.0f, horizontalAngle + (1.0f + position.z / Mathf.Abs(position.z)) * 90.0f, 0.0f) * velocity;
             _torsion = new Vector3(360.0f, Mathf.Min(90.0f, Mathf.Max(-90.0f, torsion)) - (angle.x - horizontalAngle) * 5.0f, UnityEngine.Random.Range(-180.0f, 180.0f));
         }
         else
         {
             position = armedMissile.transform.position;
-            acceleration = new Vector3(torsion * trimmedSpeed, (angle.y - 0.5f) * 2.0f * gravity, 0.0f);
-            velocity = new Vector3(-acceleration.x / 2, Mathf.Min(0.044f * 30.0f, Mathf.Max(-0.176f * 30.0f, (angle.y - 0.8f) * 0.22f * 30.0f)) - acceleration.y / 2, trimmedSpeed * (1.0f + Mathf.Abs(horizontalAngle) / 10.0f * 0.1f)); // !!! not trigonometrical coeficient
+            acceleration = new Vector3(torsion * trimmedSpeed, (angle.y - 0.5f) * 2.0f * gravity / t, 0.0f);
+            velocity = new Vector3(-acceleration.x / 2, Mathf.Min(/*0.044f*/ 0.12f * 50.0f, Mathf.Max(/*-0.176f*/ -0.13f * 50.0f, (angle.y - 0.63f) * /* 0.22f */ 0.26f * 50.0f)) - acceleration.y / 2, trimmedSpeed * (1.0f + Mathf.Abs(horizontalAngle) * 0.01f)); // !!! not trigonometrical coeficient
             velocity = Quaternion.Euler(0.0f, horizontalAngle + (1.0f + position.z / Mathf.Abs(position.z)) * 90.0f, 0.0f) * velocity;
-            _torsion = new Vector3(0.0f, Mathf.Min(90.0f, Mathf.Max(-90.0f, torsion)) - (angle.x - horizontalAngle) * 5.0f, UnityEngine.Random.Range(-60.0f, 60.0f));
+            if (torsion > 0.0f)
+            {
+                zTorsionMax = 0.0f;
+            }
+            else if(torsion < 0.0f)
+            {
+                zTorsionMin = 0.0f;
+            }
+            _torsion = new Vector3(0.0f, Mathf.Min(90.0f, Mathf.Max(-90.0f, torsion)) - (angle.x - horizontalAngle) * 5.0f, UnityEngine.Random.Range(zTorsionMin, zTorsionMax));
             _torsion.z /= Mathf.Max(1.0f, torsion);
         }
         position += velocity * Time.deltaTime;

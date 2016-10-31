@@ -22,9 +22,9 @@ public class Tasks : MonoBehaviour {
     // Use this for initialization
     void Start () {
 
-        uiPositions[0] = -35.0f;
-        uiPositions[1] = -9.0f;
-        uiPositions[2] = -86.0f;
+        uiPositions[0] = -35.0f * 10.0f;
+        uiPositions[1] = -9.0f * 10.0f;
+        uiPositions[2] = -86.0f * 10.0f;
 
         uiProgressLabel.text = hits + " / 3";
         uiProgressLabel.rectTransform.localPosition = new Vector3(uiProgressLabel.rectTransform.localPosition.x, uiPositions[task], 0.0f);
