@@ -37,9 +37,9 @@ public class ArmedMissileController : MonoBehaviour {
 
     public void SetAnchor(Vector2 position, float time)
     {
-        anchor.x = baseAnchor.x + (position.x - 0.5f) * 0.78f * (1.0f + Mathf.Pow(position.y, 2.0f) * 10.0f);
-        anchor.y = baseAnchor.y + 0.0f + position.y * 0.5f;
-        anchor.z = baseAnchor.z + Mathf.Pow(position.y, 2.0f) * 24.0f;
+        anchor.x = baseAnchor.x + (position.x - 0.5f) * 0.67f * (1.0f + Mathf.Pow(position.y, 2.0f) * 5.5f);
+        anchor.y = baseAnchor.y + 0.07f + position.y * 1.0f;
+        anchor.z = baseAnchor.z - 0.5f + Mathf.Pow(position.y, 2.0f) * 12.0f;
     }
 
     public void ResetAnchor()

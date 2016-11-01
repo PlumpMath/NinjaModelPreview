@@ -48,9 +48,9 @@ public class SwipeController
 
     public float screenScale = 1.0f;
     public float minLength = 0.025f;
-    public float minY = 0.27f;
+    public float minY = 0.45f; // 0.27f
     public float maxY = 0.5f;
-    public int swipeType = 4;
+    public int swipeType = 1;
 
     public bool active = true;
     public bool started = false;
@@ -105,7 +105,9 @@ public class SwipeController
             LinkedListNode<SwipePoint> pointNodePrev = null;
             LinkedListNode<SwipePoint> pointNodeNext = null;
             LinkedListNode<SwipePoint> pointNodeNextNext = null;
+            SwipePoint firstQuarterCorrectPoint = null;
             SwipePoint middleCorrectPoint = null;
+            SwipePoint thirdQuarterCorrectPoint = null;
             SwipeEventArgs eventArgs;
             if (!started && !touched)
             {
@@ -119,14 +121,11 @@ public class SwipeController
                     started = true;
                 }
                 pointsList.AddLast(new SwipePoint(newPoint, newDuration));
-                if (swipeType == 3 || swipeType == 4)
+                if (pointsList.Last.Previous != null && pointsList.Last.Previous.Previous != null)
                 {
-                    if (pointsList.Last.Previous != null && pointsList.Last.Previous.Previous != null)
+                    if (pointsList.Last.Value.point.y < pointsList.Last.Previous.Value.point.y)
                     {
-                        if (pointsList.Last.Value.point.y < pointsList.Last.Previous.Value.point.y)
-                        {
-                            pointsList.Last.Previous.Value.point = (pointsList.Last.Value.point + pointsList.Last.Previous.Previous.Value.point) * 0.5f;
-                        }
+                        pointsList.Last.Previous.Value.point = (pointsList.Last.Value.point + pointsList.Last.Previous.Previous.Value.point) * 0.5f;
                     }
                 }
             }
@@ -416,6 +415,14 @@ public class SwipeController
                         {
                             middleCorrectPoint = pointNode.Value;
                         }
+                        if (i <= correctPointsList.Count / 4 && i + 1 > correctPointsList.Count / 4)
+                        {
+                            firstQuarterCorrectPoint = pointNode.Value;
+                        }
+                        if (i <= correctPointsList.Count * 3 / 4 && i + 1 > correctPointsList.Count * 3 / 4)
+                        {
+                            thirdQuarterCorrectPoint = pointNode.Value;
+                        }
                         i++;
                         prevPointNode = pointNode;
                         pointNode = pointNodeNext;
@@ -438,6 +445,10 @@ public class SwipeController
                         correct = false;
                     }
                     v2Delta = correctPointsList.Last.Value.point - correctPointsList.First.Value.point;
+                    float firstHalfCurvature = Vector3.Angle(firstQuarterCorrectPoint.point - correctPointsList.First.Value.point, middleCorrectPoint.point - firstQuarterCorrectPoint.point);
+                    float secondHalfCurvature = Vector3.Angle(correctPointsList.Last.Value.point - thirdQuarterCorrectPoint.point, thirdQuarterCorrectPoint.point - middleCorrectPoint.point);
+                    float curvature = Mathf.Max(0.0f, Mathf.Min(1.0f, (firstHalfCurvature - secondHalfCurvature) / firstHalfCurvature));
+                    v2Delta = v2Delta * (1.0f - curvature) + (middleCorrectPoint.point - correctPointsList.First.Value.point + (middleCorrectPoint.point - firstQuarterCorrectPoint.point).normalized * (correctPointsList.Last.Value.point - middleCorrectPoint.point).magnitude) * curvature;
                     v2Delta.Normalize();
                     //if (Mathf.Abs(v2Delta.x) > Mathf.Abs(v2Delta.y))
                     //{
@@ -490,20 +501,13 @@ public class SwipeController
                     v2Delta2 = middleCorrectPoint.point - correctPointsList.First.Value.point;
                     v2Delta.Normalize();
                     v2Delta2.Normalize();
-                    if (swipeType == 2 || swipeType == 4)
+                    if (Vector2.Angle(v2Delta, v2Delta2) > 15.0f)
                     {
-                        if (Vector2.Angle(v2Delta, v2Delta2) > 15.0f)
-                        {
-                            eventArgs.torsion = Vector2.Angle(v2Delta, v2Delta2) / 180.0f * (v2Delta.x - v2Delta2.x) / Mathf.Abs(v2Delta.x - v2Delta2.x);
-                        }
-                        else
-                        {
-                            eventArgs.torsion = 0.0f;
-                        }
+                        eventArgs.torsion = Vector2.Angle(v2Delta, v2Delta2) / 180.0f * (v2Delta.x - v2Delta2.x) / Mathf.Abs(v2Delta.x - v2Delta2.x);
                     }
                     else
                     {
-                        eventArgs.torsion = Vector2.Angle(v2Delta, v2Delta2) / 180.0f * (v2Delta.x - v2Delta2.x) / Mathf.Abs(v2Delta.x - v2Delta2.x);
+                        eventArgs.torsion = 0.0f;
                     }
                     eventArgs.speed = Mathf.Sqrt(0.2f / duration);
                     if (length > minLength * screenScale)

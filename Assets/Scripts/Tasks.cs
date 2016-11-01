@@ -26,27 +26,36 @@ public class Tasks : MonoBehaviour {
         uiPositions[1] = -9.0f * 10.0f;
         uiPositions[2] = -86.0f * 10.0f;
 
-        uiProgressLabel.text = hits + " / 3";
-        uiProgressLabel.rectTransform.localPosition = new Vector3(uiProgressLabel.rectTransform.localPosition.x, uiPositions[task], 0.0f);
+        if (uiProgressLabel != null)
+        {
 
-        uiFPSButton.onClick.AddListener(delegate() {
-            if (uiFPSLabel.color == Color.white)
+            uiProgressLabel.text = hits + " / 3";
+            uiProgressLabel.rectTransform.localPosition = new Vector3(uiProgressLabel.rectTransform.localPosition.x, uiPositions[task], 0.0f);
+
+            uiFPSButton.onClick.AddListener(delegate ()
             {
-                uiFPSLabel.color = new Color(0.0f, 0.0f, 0.0f, 0.0f);
-            }
-            else
-            {
-                uiFPSLabel.color = Color.white;
-            }
-        });
+                if (uiFPSLabel.color == Color.white)
+                {
+                    uiFPSLabel.color = new Color(0.0f, 0.0f, 0.0f, 0.0f);
+                }
+                else
+                {
+                    uiFPSLabel.color = Color.white;
+                }
+            });
+
+        }
 
     }
 
     // Update is called once per frame
     void Update () {
 
+        string screenSize = "Size: " + (Mathf.Round(Screen.height / Screen.dpi * 10.0f) * 0.1f) + " inch";
+        string screenScale = "Scale: " + Mathf.Round(Mathf.Min(1.0f, Mathf.Max(0.6f, 3.0f / (Screen.height / Screen.dpi))) * 100.0f) * 0.01f;
+
         lastFPS += (Mathf.Round(1.0f / Time.deltaTime) - lastFPS) * Time.deltaTime;
-        uiFPSLabel.text = Mathf.Round(lastFPS)  + " FPS";
+        uiFPSLabel.text = Mathf.Round(lastFPS)  + " FPS\n" + screenSize + "\n" + screenScale;
 
     }
 

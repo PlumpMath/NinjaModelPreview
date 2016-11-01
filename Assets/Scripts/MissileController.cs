@@ -14,11 +14,13 @@ public class MissileController : MonoBehaviour {
 
     public GameObject damagePrefab;
 
+    private Rigidbody rigidbody;
     private bool collided = false;
 
     void Start () {
 
         name = "MissileObject";
+        rigidbody = GetComponent<Rigidbody>();
         GameObject.Destroy(gameObject, 10.0f);
 
     }
@@ -31,7 +33,7 @@ public class MissileController : MonoBehaviour {
         else
         {
             velocity += acceleration * Time.deltaTime;
-            transform.position += velocity * Time.deltaTime;
+            //transform.position += velocity * Time.deltaTime;
             if (collided)
             {
                 velocity *= 1.0f - Time.deltaTime * 20.0f;
@@ -40,6 +42,10 @@ public class MissileController : MonoBehaviour {
             {
                 transform.Rotate(torsion.x * Time.deltaTime, torsion.z * Time.deltaTime /* torsion.y * Time.deltaTime */, -2.0f * torsion.y * Time.deltaTime);
                 meshObject.transform.Rotate(0.0f, 0.0f, -(passiveRotation + 50.0f * torsion.y) * Time.deltaTime);
+            }
+            if (rigidbody != null)
+            {
+                rigidbody.velocity = velocity;
             }
         }
 
@@ -72,7 +78,8 @@ public class MissileController : MonoBehaviour {
         acceleration *= 0.0f;
         velocity *= 0.0f;
         transform.parent = collision.collider.transform;
-        Rigidbody.Destroy(GetComponent<Rigidbody>());
+        Rigidbody.Destroy(rigidbody);
+        rigidbody = null;
         if (collision.collider.name != "Ground")
         {
             velocity = ((transform.position + collision.contacts[0].point) * 0.5f - transform.position) * 25.0f;
