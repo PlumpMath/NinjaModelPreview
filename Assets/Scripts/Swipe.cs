@@ -42,8 +42,9 @@ public class Swipe : MonoBehaviour {
         swipeController.OnInvokeAction += OnThrow;
         if (Screen.dpi > 0.0f)
         {
-            screenScale = Mathf.Min(1.0f, Mathf.Max(0.6f, 3.0f / (Screen.height / Screen.dpi)));
+            screenScale = Mathf.Min(1.0f, Mathf.Max(0.6f, 4.0f / (Screen.height / Screen.dpi)));
             swipeController.screenScale = screenScale;
+            swipeController.screenAspect = (float)Screen.width / (float)Screen.height;
         }
 
         swipeType2.onClick.AddListener(delegate() {
@@ -165,6 +166,7 @@ public class Swipe : MonoBehaviour {
         float mouseY = 1.0f - Input.mousePosition.y / (float)Screen.height;
         float touchX = 0.0f;
         float touchY = 0.0f;
+        Vector2 v2 = Vector2.zero;
         Vector3 position = Vector3.zero;
 #if !UNITY_STANDALONE
         Touch touch;
@@ -174,7 +176,9 @@ public class Swipe : MonoBehaviour {
             touchX = touch.position.x / (float)Screen.width;
             touchY = 1.0f - touch.position.y / (float)Screen.height;
             position = (camera.ScreenToWorldPoint(new Vector3(touch.position.x, touch.position.y, 0.5f)) - camera.transform.position);
-            if (throwState != ThrowState.TOUCHED /* && touchX > 0.5f - 0.25f * screenScale && touchX < 0.5f + 0.25f * screenScale */ && touchY > 1.0f - 0.45f * screenScale && touchY < 1.0f)
+            v2.x = (touchX - 0.5f) / swipeController.screenScale;
+            v2.y = Mathf.Max(0.0f, (1.0f - (touchY + 0.1f)) / swipeController.screenAspect) / swipeController.screenScale;
+            if (throwState != ThrowState.TOUCHED /* && touchX > 0.5f - 0.25f * screenScale && touchX < 0.5f + 0.25f * screenScale && touchY > 1.0f - 0.45f * screenScale && touchY < 1.0f */ && v2.magnitude < 0.5f)
             {
                 throwState = ThrowState.TOUCHED;
                 /*
@@ -209,7 +213,9 @@ public class Swipe : MonoBehaviour {
             lastTouchX = mouseX;
             lastTouchY = mouseY;
             position = (camera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0.1f)) - camera.transform.position * 0.0001f);
-            if (throwState != ThrowState.TOUCHED)
+            v2.x = (lastTouchX - 0.5f) / swipeController.screenScale;
+            v2.y = Mathf.Max(0.0f, (1.0f - (lastTouchY + 0.1f)) / swipeController.screenAspect) / swipeController.screenScale;
+            if (throwState != ThrowState.TOUCHED && v2.magnitude < 0.5f)
             {
                 /*
                 swipeTrail = ((GameObject)GameObject.Instantiate(swipeTrailPrefab, position, Quaternion.identity)).GetComponent<SwipeTrailController>();
@@ -221,10 +227,10 @@ public class Swipe : MonoBehaviour {
                 swipeTrail.lineRenderer.SetVertexCount(swipeTrail.pointsCount);
                 swipeTrail.lineRenderer.SetPosition(swipeTrail.pointsCount - 1, position);
                 */
-                if (/* mouseX > 0.25f && mouseX < 0.75f && */ mouseY > 1.0f - 0.27f && mouseY < 1.0f)
-                {
+                //if (mouseX > 0.25f && mouseX < 0.75f && mouseY > 1.0f - 0.27f && mouseY < 1.0f)
+                //{
                     throwState = ThrowState.TOUCHED;
-                }
+                //}
             }
         }
         if( Input.GetMouseButton(0))
@@ -318,6 +324,7 @@ public class Swipe : MonoBehaviour {
 
     public bool Throw(Vector2 angle, float torsion, float speed)
     {
+        int i;
         Vector3 position;
         Vector3 acceleration;
         Vector3 velocity;
@@ -332,23 +339,27 @@ public class Swipe : MonoBehaviour {
             torsion = 0.0f;
         }
 
-        float gravity = -0.98f * 10.0f;
+        float gravity = -0.98f * 3.0f;
 
         MissileController missileController;
-        float trimmedSpeed = Mathf.Min(1.0f, Mathf.Max(1.0f, speed)) * distance * 1.4f;
+        float trimmedSpeed = Mathf.Min(1.0f, Mathf.Max(1.0f, speed)) * distance * 1.8f;
         float realLength = 1.0f - Mathf.Abs(camera.transform.position.z - armedMissile.transform.position.z) / distance;
         float horizontalAngle = angle.x; //Mathf.Min(10.0f, Mathf.Max(-10.0f, angle.x));
+        if(float.IsNaN(horizontalAngle))
+        {
+            horizontalAngle = 0.0f;
+        }
         float t = distance * realLength / trimmedSpeed;
 
         if(swipeController.swipeType == 1)
         {
-            trimmedSpeed = distance * 1.8f;
-            gravity = -0.98f * 3.0f;
+            trimmedSpeed = distance * 2.0f;
+            gravity = -0.98f * 2.0f;
         }
         else if(swipeController.swipeType == 3)
         {
-            trimmedSpeed = distance * 1.0f;
-            gravity = -0.98f * 3.0f;
+            trimmedSpeed = distance * 1.6f;
+            gravity = -0.98f * 4.0f;
         }
 
         missileController = (Instantiate(missilePrefab)).GetComponent<MissileController>();
@@ -367,7 +378,7 @@ public class Swipe : MonoBehaviour {
         else
         {
             acceleration = new Vector3(torsion * trimmedSpeed, (angle.y - 0.4f) * 4.0f * gravity, 0.0f);
-            //velocity = new Vector3(-acceleration.x / 2, Mathf.Min(/*0.044f*/ 0.12f * 50.0f, Mathf.Max(/*-0.176f*/ -0.13f * 50.0f, (angle.y - 0.63f) * /* 0.22f */ 0.26f * 50.0f)) - acceleration.y / 2 / t, trimmedSpeed * (1.0f + Mathf.Abs(horizontalAngle) * 0.01f)); // !!! not trigonometrical coeficient
+            //velocity = new Vector3(-acceleration.x / 2, Mathf.Min(/*0.044f*/ 0.12f * 50.0f, Mathf.Max(/*-0.176f*/ -0.13fs * 50.0f, (angle.y - 0.63f) * /* 0.22f */ 0.26f * 50.0f)) - acceleration.y / 2 / t, trimmedSpeed * (1.0f + Mathf.Abs(horizontalAngle) * 0.01f)); // !!! not trigonometrical coeficient
             velocity = new Vector3(-acceleration.x / 2, Mathf.Min(0.044f * 50.0f, Mathf.Max(-0.174f * 50.0f, (angle.y - 0.63f) * 0.22f * 50.0f)) - acceleration.y / 2 * t, trimmedSpeed); // !!! not trigonometrical coeficient
             velocity = Quaternion.Euler(0.0f, horizontalAngle + (1.0f + position.z / Mathf.Abs(position.z)) * 90.0f, 0.0f) * velocity;
             if (torsion > 0.0f)
@@ -381,22 +392,24 @@ public class Swipe : MonoBehaviour {
             _torsion = new Vector3(0.0f, Mathf.Min(90.0f, Mathf.Max(-90.0f, torsion)) - (angle.x - horizontalAngle) * 5.0f, UnityEngine.Random.Range(zTorsionMin, zTorsionMax));
             _torsion.z /= Mathf.Max(1.0f, torsion);
         }
-
-        Debug.Log("armedMissile.transform.position: " + armedMissile.transform.position);
-
         Vector3 intersectionPosition = position + velocity * t + acceleration * Mathf.Pow(t, 2.0f) / 2.0f;
+        RaycastHit[] hits = Physics.SphereCastAll(new Ray(intersectionPosition - new Vector3(0.0f, 0.0f, 5.0f), new Vector3(0.0f, 0.0f, 1.0f)), 1.7f, 10.0f, 255, QueryTriggerInteraction.Collide);
         RaycastHit hit;
-        Debug.Log("intersectionPosition: " + intersectionPosition + " ( " + position + " )");
-        if(Physics.SphereCast(new Ray(intersectionPosition - new Vector3(0.0f, 0.0f, 5.0f), new Vector3(0.0f, 0.0f, 1.0f)), 2.5f, out hit, 3.0f, 255, QueryTriggerInteraction.Collide))
+        Vector3 deltaVelocity = Vector3.zero;
+        float lastDistance = 1000.0f;
+        for(i = 0; i < hits.Length; i++)
         {
-            Debug.Log("hit[" + hit.collider.name + "]: " + hit.point);
-            if (hit.collider.name != "Ground" && hit.collider.name != "MissileObject")
+            hit = hits[i];
+            if (hit.collider.name != "Ground" && hit.collider.name != "MissileObject" && hit.point.magnitude > 0.01f && (intersectionPosition - hit.point).magnitude < lastDistance)
             {
                 Vector3 delta = hit.point - intersectionPosition;
-                velocity.x += delta.x / t;
-                velocity.y += delta.y / t;
+                lastDistance = delta.magnitude;
+                deltaVelocity.x = delta.x / t;
+                deltaVelocity.y = delta.y / t;
             }
         }
+        velocity.x += deltaVelocity.x;
+        velocity.y += deltaVelocity.y;
 
 
         position += velocity * Time.deltaTime;

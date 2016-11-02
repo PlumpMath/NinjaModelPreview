@@ -47,6 +47,7 @@ public class SwipeController
 {
 
     public float screenScale = 1.0f;
+    public float screenAspect = 1.0f;
     public float minLength = 0.025f;
     public float minY = 0.45f; // 0.27f
     public float maxY = 0.5f;
@@ -114,7 +115,9 @@ public class SwipeController
                 locked = false;
                 return;
             }
-            if (started || (touched /* && newPoint.x > 0.5f - 0.25f * screenScale && newPoint.x < 0.5f + 0.25f * screenScale */ && newPoint.y > 1.0f - minY * screenScale))
+            v2Delta.x = (newPoint.x - 0.5f) * screenScale;
+            v2Delta.y = Mathf.Max(0.0f, (1.0f - (newPoint.y + 0.1f)) / screenAspect) * screenScale;
+            if (started || (touched /* && newPoint.x > 0.5f - 0.25f * screenScale && newPoint.x < 0.5f + 0.25f * screenScale && newPoint.y > 1.0f - minY * screenScale */ && v2Delta.magnitude < 0.5f))
             {
                 if (!started)
                 {
@@ -448,7 +451,7 @@ public class SwipeController
                     float firstHalfCurvature = Vector3.Angle(firstQuarterCorrectPoint.point - correctPointsList.First.Value.point, middleCorrectPoint.point - firstQuarterCorrectPoint.point);
                     float secondHalfCurvature = Vector3.Angle(correctPointsList.Last.Value.point - thirdQuarterCorrectPoint.point, thirdQuarterCorrectPoint.point - middleCorrectPoint.point);
                     float curvature = Mathf.Max(0.0f, Mathf.Min(1.0f, (firstHalfCurvature - secondHalfCurvature) / firstHalfCurvature));
-                    v2Delta = v2Delta * (1.0f - curvature) + (middleCorrectPoint.point - correctPointsList.First.Value.point + (middleCorrectPoint.point - firstQuarterCorrectPoint.point).normalized * (correctPointsList.Last.Value.point - middleCorrectPoint.point).magnitude) * curvature;
+                    v2Delta = v2Delta * (1.0f - curvature) + (middleCorrectPoint.point - correctPointsList.First.Value.point + (thirdQuarterCorrectPoint.point - middleCorrectPoint.point).normalized * (correctPointsList.Last.Value.point - middleCorrectPoint.point).magnitude) * curvature;
                     v2Delta.Normalize();
                     //if (Mathf.Abs(v2Delta.x) > Mathf.Abs(v2Delta.y))
                     //{
