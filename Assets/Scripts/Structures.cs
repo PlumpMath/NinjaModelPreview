@@ -49,7 +49,7 @@ public class SwipeController
     public float screenScale = 1.0f;
     public float screenAspect = 1.0f;
     public float minLength = 0.025f;
-    public float minY = 0.45f; // 0.27f
+    public float minY = 0.2f; // 0.27f
     public float maxY = 0.5f;
     public int swipeType = 1;
 
@@ -439,10 +439,12 @@ public class SwipeController
                         correct = false;
                     }
                     */
+                    /*
                     if (correctPointsList.First.Value.point.y < 1.0f - minY)
                     {
                         correct = false;
                     }
+                    */
                     if (duration2 > 0.5f)
                     {
                         correct = false;
@@ -466,13 +468,13 @@ public class SwipeController
                     eventArgs.angle.x *= 180.0f;
                     eventArgs.angle.x += (correctPointsList.First.Value.point.x - 0.5f) * 18.0f;
                     eventArgs.angle.y = Mathf.Min(1.0f, Mathf.Max(0.0f, (1.0f - correctPointsList.Last.Value.point.y) - minY * screenScale) / (maxY - minY) * screenScale);
-                    if(eventArgs.angle.y < 0.5f)
+                    if(eventArgs.angle.y < 0.45f)
                     {
                         if (eventArgs.angle.y < 0.1f)
                         {
                             eventArgs.angle.y = 0.1f;
                         }
-                        else if (eventArgs.angle.y < 0.3f)
+                        else if (eventArgs.angle.y < 0.25f)
                         {
                             eventArgs.angle.y = 0.25f;
                         }
@@ -481,7 +483,7 @@ public class SwipeController
                             eventArgs.angle.y = 0.45f;
                         }
                     }
-                    else if (eventArgs.angle.y > 0.95f)
+                    else if (eventArgs.angle.y > 0.99f)
                     {
                         eventArgs.angle.y = 1.0f;
                     }

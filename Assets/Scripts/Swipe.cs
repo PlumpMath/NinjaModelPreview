@@ -393,7 +393,8 @@ public class Swipe : MonoBehaviour {
             _torsion.z /= Mathf.Max(1.0f, torsion);
         }
         Vector3 intersectionPosition = position + velocity * t + acceleration * Mathf.Pow(t, 2.0f) / 2.0f;
-        RaycastHit[] hits = Physics.SphereCastAll(new Ray(intersectionPosition - new Vector3(0.0f, 0.0f, 5.0f), new Vector3(0.0f, 0.0f, 1.0f)), 1.7f, 10.0f, 255, QueryTriggerInteraction.Collide);
+        //RaycastHit[] hits = Physics.SphereCastAll(new Ray(intersectionPosition - new Vector3(0.0f, 0.0f, 5.0f), new Vector3(0.0f, 0.0f, 1.0f)), 1.7f, 10.0f, 255, QueryTriggerInteraction.Collide);
+        RaycastHit[] hits = Physics.CapsuleCastAll(intersectionPosition - new Vector3(0.6f, 0.0f, 0.0f) - new Vector3(0.0f, 0.0f, 5.0f), intersectionPosition + new Vector3(0.6f, 0.0f, 0.0f) - new Vector3(0.0f, 0.0f, 5.0f), 0.5f, new Vector3(0.0f, 0.0f, 1.0f), 10.0f, 255, QueryTriggerInteraction.Collide);
         RaycastHit hit;
         Vector3 deltaVelocity = Vector3.zero;
         float lastDistance = 1000.0f;
