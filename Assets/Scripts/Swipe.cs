@@ -113,7 +113,24 @@ public class Swipe : MonoBehaviour {
         {
             swipeType = 3;
         }
-        swipeController.swipeType = swipeType;
+        if(swipeType == 1)
+        {
+            taskObject.players[0].globalSpeed = 0.0f;
+            taskObject.players[1].globalSpeed = 0.0f;
+            taskObject.players[0].transform.position -= Vector3.right * taskObject.players[0].transform.position.x;
+            taskObject.players[1].transform.position -= Vector3.right * taskObject.players[1].transform.position.x;
+        }
+        else if(swipeType == 2)
+        {
+            taskObject.players[0].globalSpeed = 1.0f;
+            taskObject.players[1].globalSpeed = 1.0f;
+        }
+        else
+        {
+            taskObject.players[0].globalSpeed = 2.0f;
+            taskObject.players[1].globalSpeed = 2.0f;
+        }
+        //swipeController.swipeType = swipeType;
     }
 
     private Vector3 startCameraPosition = new Vector3();
@@ -157,6 +174,9 @@ public class Swipe : MonoBehaviour {
                 transform.position = normalCameraPosition;
                 transform.rotation = normalCameraRotation;
                 camera.fov = normalCameraFov;
+                taskObject.players[0].enabled = true;
+                taskObject.players[1].enabled = true;
+                taskObject.players[1].GetComponent<Animation>().Play();
             }
         }
 

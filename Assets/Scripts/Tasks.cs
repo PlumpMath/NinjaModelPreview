@@ -7,6 +7,8 @@ public class Tasks : MonoBehaviour {
 
     public EventHandler<EventArgs> OnThrow;
 
+    public PlayerController[] players = new PlayerController[2];
+
     public Button uiFPSButton;
     public Text uiFPSLabel;
 
@@ -77,7 +79,7 @@ public class Tasks : MonoBehaviour {
         {
             hits = 0;
             task = Math.Max(0, Math.Min(2, UnityEngine.Random.Range(0, 3)));
-            dummy.transform.position += Vector3.right * (Mathf.Round(UnityEngine.Random.Range(-1.4f, 1.4f)) * 5.0f - dummy.transform.position.x);
+            //dummy.transform.position += Vector3.right * (Mathf.Round(UnityEngine.Random.Range(-1.4f, 1.4f)) * 5.0f - dummy.transform.position.x);
         }
         uiProgressLabel.text = hits + " / 3";
         uiProgressLabel.rectTransform.localPosition = new Vector3(uiProgressLabel.rectTransform.localPosition.x, uiPositions[task], 0.0f);

@@ -40,6 +40,18 @@ public class MissileController : MonoBehaviour {
             }
             else
             {
+                if(float.IsNaN(torsion.x))
+                {
+                    torsion.x = 0.0f;
+                }
+                if (float.IsNaN(torsion.y))
+                {
+                    torsion.y = 0.0f;
+                }
+                if (float.IsNaN(torsion.z))
+                {
+                    torsion.z = 0.0f;
+                }
                 transform.Rotate(torsion.x * Time.deltaTime, torsion.z * Time.deltaTime /* torsion.y * Time.deltaTime */, -2.0f * torsion.y * Time.deltaTime);
                 meshObject.transform.Rotate(0.0f, 0.0f, -(passiveRotation + 50.0f * torsion.y) * Time.deltaTime);
             }

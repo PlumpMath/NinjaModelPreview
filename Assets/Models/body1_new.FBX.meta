@@ -23,6 +23,22 @@ ModelImporter:
     100030: shirt3_low
     100032: shirt_low
     100034: skirt_low
+    100036: Bone001
+    100038: Bone002
+    100040: Bone003
+    100042: Bone004
+    100044: Bone005
+    100046: Bone006
+    100048: Bone007
+    100050: Bone008
+    100052: Bone009
+    100054: Bone010
+    100056: Bone011
+    100058: Bone013
+    100060: Bone014
+    100062: Bone015
+    100064: Bone016
+    100066: Bone017
     400000: belt_low
     400002: //RootNode
     400004: bootPlank_low
@@ -41,6 +57,22 @@ ModelImporter:
     400030: shirt3_low
     400032: shirt_low
     400034: skirt_low
+    400036: Bone001
+    400038: Bone002
+    400040: Bone003
+    400042: Bone004
+    400044: Bone005
+    400046: Bone006
+    400048: Bone007
+    400050: Bone008
+    400052: Bone009
+    400054: Bone010
+    400056: Bone011
+    400058: Bone013
+    400060: Bone014
+    400062: Bone015
+    400064: Bone016
+    400066: Bone017
     2300000: belt_low
     2300002: bootPlank_low
     2300004: boots_low
@@ -92,7 +124,26 @@ ModelImporter:
     4300028: boots_low
     4300030: shirt_low
     4300032: skirt_low
+    7400000: walk
     9500000: //RootNode
+    11100000: //RootNode
+    13700000: belt_low
+    13700002: bootPlank_low
+    13700004: boots_low
+    13700006: bootStrap_low
+    13700008: eyes_low
+    13700010: face_low
+    13700012: forearm_low
+    13700014: forearmStraps_low
+    13700016: hands_low
+    13700018: mask_low
+    13700020: pants_low
+    13700022: ribbon_low
+    13700024: rope_low
+    13700026: shirt2_low
+    13700028: shirt3_low
+    13700030: shirt_low
+    13700032: skirt_low
   materials:
     importMaterials: 1
     materialName: 0
@@ -113,7 +164,103 @@ ModelImporter:
     animationScaleError: 0.5
     animationWrapMode: 0
     extraExposedTransformPaths: []
-    clipAnimations: []
+    clipAnimations:
+    - serializedVersion: 16
+      name: walk
+      takeName: Take 001
+      firstFrame: 0
+      lastFrame: 30
+      wrapMode: 2
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask:
+      - path: 
+        weight: 1
+      - path: belt_low
+        weight: 1
+      - path: Bone001
+        weight: 1
+      - path: Bone001/Bone002
+        weight: 1
+      - path: Bone001/Bone002/Bone003
+        weight: 1
+      - path: Bone001/Bone002/Bone003/Bone004
+        weight: 1
+      - path: Bone001/Bone002/Bone003/Bone005
+        weight: 1
+      - path: Bone001/Bone002/Bone003/Bone005/Bone006
+        weight: 1
+      - path: Bone001/Bone002/Bone003/Bone005/Bone006/Bone010
+        weight: 1
+      - path: Bone001/Bone002/Bone003/Bone007
+        weight: 1
+      - path: Bone001/Bone002/Bone003/Bone007/Bone008
+        weight: 1
+      - path: Bone001/Bone002/Bone003/Bone007/Bone008/Bone009
+        weight: 1
+      - path: Bone001/Bone011
+        weight: 1
+      - path: Bone001/Bone011/Bone015
+        weight: 1
+      - path: Bone001/Bone011/Bone015/Bone016
+        weight: 1
+      - path: Bone001/Bone013
+        weight: 1
+      - path: Bone001/Bone013/Bone014
+        weight: 1
+      - path: Bone001/Bone013/Bone014/Bone017
+        weight: 1
+      - path: bootPlank_low
+        weight: 1
+      - path: boots_low
+        weight: 1
+      - path: bootStrap_low
+        weight: 1
+      - path: eyes_low
+        weight: 1
+      - path: face_low
+        weight: 1
+      - path: forearm_low
+        weight: 1
+      - path: forearmStraps_low
+        weight: 1
+      - path: hands_low
+        weight: 1
+      - path: mask_low
+        weight: 1
+      - path: pants_low
+        weight: 1
+      - path: ribbon_low
+        weight: 1
+      - path: rope_low
+        weight: 1
+      - path: shirt2_low
+        weight: 1
+      - path: shirt3_low
+        weight: 1
+      - path: shirt_low
+        weight: 1
+      - path: skirt_low
+        weight: 1
+      maskType: 0
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
     isReadable: 1
   meshes:
     lODScreenPercentages: []
@@ -136,7 +283,7 @@ ModelImporter:
     normalSmoothAngle: 60
     normalImportMode: 0
     tangentImportMode: 3
-  importAnimation: 0
+  importAnimation: 1
   copyAvatar: 0
   humanDescription:
     human: []
@@ -151,7 +298,7 @@ ModelImporter:
     rootMotionBoneName: 
     hasTranslationDoF: 0
   lastHumanDescriptionAvatarSource: {instanceID: 0}
-  animationType: 0
+  animationType: 1
   humanoidOversampling: 1
   additionalBone: 0
   userData: 
