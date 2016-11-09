@@ -51,7 +51,7 @@ public class SwipeController
     public float minLength = 0.025f;
     public float minY = 0.2f; // 0.27f
     public float maxY = 0.5f;
-    public int swipeType = 1;
+    public int swipeType = 2;
 
     public bool active = true;
     public bool started = false;

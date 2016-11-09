@@ -8,7 +8,10 @@ public class SwipeTrailController : MonoBehaviour {
     public Color endColor = Color.white;
 
     public int pointsCount = 1;
+    public Vector3[] points = new Vector3[1];
     public float cooldown = 2.0f;
+
+    public Vector3 lastParentPosition = Vector3.zero;
 
 	// Use this for initialization
 	void Start () {
@@ -18,6 +21,8 @@ public class SwipeTrailController : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
+        int i;
+        Vector3 v3Delta;
         if (cooldown > 0.0f)
         {
             cooldown -= Time.deltaTime;
@@ -29,6 +34,13 @@ public class SwipeTrailController : MonoBehaviour {
                 Destroy(gameObject);
             }
         }
-	
-	}
+        v3Delta = transform.parent.position - lastParentPosition;
+        for (i = 0; i < points.Length; i++)
+        {
+            points[i] += v3Delta;
+        }
+        lineRenderer.SetPositions(points);
+        lastParentPosition = transform.parent.position;
+
+    }
 }

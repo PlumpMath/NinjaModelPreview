@@ -80,8 +80,9 @@ public class Swipe : MonoBehaviour {
 
     public void OnSwipeTypeChanged()
     {
-        int swipeType = 2;
+        int behaviorType = 3;
         /*
+        int swipeType = 2;
         if(swipeType2.image.color == Color.green)
         {
             if(swipeType3.image.color == Color.green)
@@ -104,8 +105,7 @@ public class Swipe : MonoBehaviour {
                 swipeType = 1;
             }
         }
-        */
-        if(swipeType2.image.color == Color.green)
+        if (swipeType2.image.color == Color.green)
         {
             swipeType = 1;
         }
@@ -113,6 +113,16 @@ public class Swipe : MonoBehaviour {
         {
             swipeType = 3;
         }
+        */
+        if (swipeType2.image.color == Color.green)
+        {
+            behaviorType = 1;
+        }
+        if (swipeType3.image.color == Color.green)
+        {
+            behaviorType = 2;
+        }
+        /*
         if(swipeType == 1)
         {
             taskObject.players[0].globalSpeed = 0.0f;
@@ -130,7 +140,12 @@ public class Swipe : MonoBehaviour {
             taskObject.players[0].globalSpeed = 2.0f;
             taskObject.players[1].globalSpeed = 2.0f;
         }
+        */
+        taskObject.players[0].globalSpeed = 2.0f;
+        taskObject.players[1].globalSpeed = 2.0f;
         //swipeController.swipeType = swipeType;
+        taskObject.players[0].behaviorType = behaviorType;
+        taskObject.players[1].behaviorType = behaviorType;
     }
 
     private Vector3 startCameraPosition = new Vector3();
@@ -328,14 +343,17 @@ public class Swipe : MonoBehaviour {
         }
         swipeTrail.transform.parent = camera.transform;
         swipeTrail.transform.localPosition = Vector3.zero;
+        swipeTrail.lastParentPosition = camera.transform.position;
         swipeTrail.pointsCount = swipeController.correctPointsList.Count;
         swipeTrail.lineRenderer.SetVertexCount(swipeTrail.pointsCount);
+        swipeTrail.points = new Vector3[swipeTrail.pointsCount];
         i = 0;
         pointNode = swipeController.correctPointsList.First;
         while(pointNode != null)
         {
             position = camera.ViewportToWorldPoint(new Vector3(pointNode.Value.point.x, 1.0f - pointNode.Value.point.y, 0.11f));
             swipeTrail.lineRenderer.SetPosition(i, position);
+            swipeTrail.points[i] = position;
             i++;
             pointNode = pointNode.Next;
         }
@@ -413,8 +431,15 @@ public class Swipe : MonoBehaviour {
             _torsion.z /= Mathf.Max(1.0f, torsion);
         }
         Vector3 intersectionPosition = position + velocity * t + acceleration * Mathf.Pow(t, 2.0f) / 2.0f;
+
+        Vector3 lastPlayer2Position = taskObject.players[1].transform.position;
+        taskObject.players[1].transform.position += taskObject.players[1].rigidbody.velocity * t;
+
         //RaycastHit[] hits = Physics.SphereCastAll(new Ray(intersectionPosition - new Vector3(0.0f, 0.0f, 5.0f), new Vector3(0.0f, 0.0f, 1.0f)), 1.7f, 10.0f, 255, QueryTriggerInteraction.Collide);
         RaycastHit[] hits = Physics.CapsuleCastAll(intersectionPosition - new Vector3(0.6f, 0.0f, 0.0f) - new Vector3(0.0f, 0.0f, 5.0f), intersectionPosition + new Vector3(0.6f, 0.0f, 0.0f) - new Vector3(0.0f, 0.0f, 5.0f), 0.5f, new Vector3(0.0f, 0.0f, 1.0f), 10.0f, 255, QueryTriggerInteraction.Collide);
+
+        taskObject.players[1].transform.position = lastPlayer2Position;
+
         RaycastHit hit;
         Vector3 deltaVelocity = Vector3.zero;
         float lastDistance = 1000.0f;

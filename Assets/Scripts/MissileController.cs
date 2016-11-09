@@ -92,6 +92,8 @@ public class MissileController : MonoBehaviour {
         transform.parent = collision.collider.transform;
         Rigidbody.Destroy(rigidbody);
         rigidbody = null;
+        Collider collider = GetComponent<SphereCollider>();
+        Rigidbody.Destroy(collider);
         if (collision.collider.name != "Ground")
         {
             velocity = ((transform.position + collision.contacts[0].point) * 0.5f - transform.position) * 25.0f;

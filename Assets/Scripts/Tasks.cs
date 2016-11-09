@@ -8,6 +8,7 @@ public class Tasks : MonoBehaviour {
     public EventHandler<EventArgs> OnThrow;
 
     public PlayerController[] players = new PlayerController[2];
+    public GameObject[] obstructions = new GameObject[0];
 
     public Button uiFPSButton;
     public Text uiFPSLabel;
@@ -17,7 +18,7 @@ public class Tasks : MonoBehaviour {
 
     private float[] uiPositions = new float[3];
     private int task = 0;
-    private int hits = 0;
+    public int hits = 0;
 
     private float lastFPS = 0.0f;
 
@@ -53,11 +54,31 @@ public class Tasks : MonoBehaviour {
     // Update is called once per frame
     void Update () {
 
+        int i;
+        float dx;
+        PlayerController me;
+        GameObject obj;
+
         string screenSize = "Size: " + (Mathf.Round(Screen.height / Screen.dpi * 10.0f) * 0.1f) + " inch";
         string screenScale = "Scale: " + Mathf.Round(Mathf.Min(1.0f, Mathf.Max(0.6f, 3.0f / (Screen.height / Screen.dpi))) * 100.0f) * 0.01f;
 
         lastFPS += (Mathf.Round(1.0f / Time.deltaTime) - lastFPS) * Time.deltaTime;
         uiFPSLabel.text = Mathf.Round(lastFPS)  + " FPS\n" + screenSize + "\n" + screenScale;
+
+        me = players[0];
+        for(i = 0; i < obstructions.Length; i++)
+        {
+            obj = obstructions[i];
+            dx = (obj.transform.position - me.transform.position).x;
+            if(dx > 20.0f)
+            {
+                obj.transform.position -= Vector3.right * 40.0f;
+            }
+            if (dx < -20.0f)
+            {
+                obj.transform.position += Vector3.right * 40.0f;
+            }
+        }
 
     }
 
