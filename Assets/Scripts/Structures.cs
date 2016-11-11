@@ -49,7 +49,7 @@ public class SwipeController
     public float screenScale = 1.0f;
     public float screenAspect = 1.0f;
     public float minLength = 0.025f;
-    public float minY = 0.2f; // 0.27f
+    public float minY = 0.22f; // 0.27f
     public float maxY = 0.5f;
     public int swipeType = 2;
 

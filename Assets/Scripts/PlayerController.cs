@@ -19,15 +19,19 @@ public class PlayerController : MonoBehaviour {
     public float reverseCooldownMax = 1.5f;
     public float reverseTimeout = 0.0f;
     public float speed = 0.0f;
+    public bool runaway = false;
+    public bool takeCover = false;
 
     public Rigidbody rigidbody;
+    public Vector3 velocity = Vector3.zero;
 
     private AnimationState animationWalk;
     private float animationTime = 0.0f;
 
-    public float globalSpeed = 1.0f;
-
     public int behaviorType = 1;
+
+    private float walkSpeed = 2.0f;
+    private float runSpeed = 4.0f;
 
     // Use this for initialization
     void Start () {
@@ -47,6 +51,9 @@ public class PlayerController : MonoBehaviour {
 
         int i;
         float dx;
+        float dx1;
+        float dx2;
+        float dx3;
         PlayerController me;
         WayPoint newWaypoint = null;
         WayPoint obj;
@@ -56,7 +63,7 @@ public class PlayerController : MonoBehaviour {
         {
 
 
-            me = tasks.players[0];
+            me = this;
             for (i = 0; i < waypoints.Length; i++)
             {
                 obj = waypoints[i];
@@ -89,14 +96,192 @@ public class PlayerController : MonoBehaviour {
                 direction *= -1.0f;
             }
             */
-            bool runaway = (tasks.players[0] == this && tasks.hits <= 1) || (tasks.players[1] == this && tasks.hits > 1);
+
+            newWaypoint = waypoint;
+            runaway = (tasks.players[0] == this && tasks.hits <= 1) || (tasks.players[1] == this && tasks.hits > 1);
+            if (runaway)
+            {
+                if(takeCover)
+                {
+                    if(waypoint.waypointType == WayPoint.WaypointType.OPEN)
+                    {
+                        if(lastWaypoint == waypoint)
+                        {
+                            takeCover = false;
+                            if(waypoint.leftNode.waypointType == WayPoint.WaypointType.COVER_FULL /* || waypoint.leftNode.waypointType == WayPoint.WaypointType.COVER_DOWN */)
+                            {
+                                newWaypoint = waypoint.leftNode;
+                                speed = runSpeed;
+                            }
+                            else if(waypoint.rightNode.waypointType == WayPoint.WaypointType.COVER_FULL /* || waypoint.rightNode.waypointType == WayPoint.WaypointType.COVER_DOWN */)
+                            {
+                                newWaypoint = waypoint.rightNode;
+                                speed = runSpeed;
+                            }
+                        }
+                        else
+                        {
+                            speed = 0.0f;
+                            reverseTimeout = 1.0f;
+                        }
+                    }
+                    else
+                    {
+                        if (lastWaypoint == waypoint)
+                        {
+                            speed = walkSpeed;
+                            if (Random.Range(0.0f, 1.0f) > 0.5f)
+                            {
+                                newWaypoint = waypoint.leftNode;
+                            }
+                            else
+                            {
+                                newWaypoint = waypoint.rightNode;
+                            }
+                        }
+                        else
+                        {
+                            direction = 0.0f;
+                            speed = 0.0f;
+                            reverseTimeout = 0.5f;
+                        }
+                    }
+                }
+                else
+                {
+                    if(waypoint.waypointType == WayPoint.WaypointType.COVER_FULL /* || waypoint.waypointType == WayPoint.WaypointType.COVER_DOWN */)
+                    {
+                        if (Random.Range(0.0f, 1.0f) > 0.5f)
+                        {
+                            takeCover = true;
+                        }
+                    }
+                    if (takeCover)
+                    {
+                        if (lastWaypoint == waypoint)
+                        {
+                            speed = runSpeed;
+                            if (opponent.transform.position.x - transform.position.x > 0.0f)
+                            {
+                                newWaypoint = waypoint.leftNode;
+                            }
+                            else
+                            {
+                                newWaypoint = waypoint.rightNode;
+                            }
+                        }
+                        else
+                        {
+                            direction = 0.0f;
+                            speed = 0.0f;
+                            reverseTimeout = 0.5f;
+                        }
+                    }
+                    else
+                    {
+                        speed = walkSpeed;
+                        if (opponent.transform.position.x - transform.position.x > 0.0f)
+                        {
+                            newWaypoint = waypoint.leftNode;
+                        }
+                        else
+                        {
+                            newWaypoint = waypoint.rightNode;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                speed = runSpeed;
+                if (opponent.transform.position.x - transform.position.x > 0.0f)
+                {
+                    newWaypoint = waypoint.rightNode;
+                }
+                else
+                {
+                    newWaypoint = waypoint.leftNode;
+                }
+                dx1 = opponent.transform.position.x - transform.position.x;
+                dx2 = newWaypoint.transform.position.x - waypoint.transform.position.x;
+                dx3 = waypoint.transform.position.x - lastWaypoint.transform.position.x;
+                if (Mathf.Abs(dx1) < 0.001f)
+                {
+                    dx1 = 0.001f;
+                }
+                if (Mathf.Abs(dx2) < 0.001f)
+                {
+                    dx2 = 0.001f;
+                }
+                if (Mathf.Abs(dx3) < 0.001f)
+                {
+                    dx3 = 0.001f;
+                }
+                if (Mathf.Abs(dx1) < Mathf.Abs(dx2) * 0.5f && Mathf.Abs(dx2 / Mathf.Abs(dx2) - dx3 / Mathf.Abs(dx3)) > 0.5f)
+                {
+                    if (Random.Range(0.0f, 1.0f) > 0.5f)
+                    {
+                        newWaypoint = waypoint;
+                        speed = 0.0f;
+                        reverseTimeout = 0.5f;
+                    }
+                    else
+                    {
+                        speed = walkSpeed;
+                        /*
+                        if (waypoint.leftNode == newWaypoint)
+                        {
+                            newWaypoint = waypoint.rightNode;
+                        }
+                        else
+                        {
+                            newWaypoint = waypoint.leftNode;
+                        }
+                        */
+                    }
+                }
+            }
+            if (waypoint != newWaypoint)
+            {
+                if (newWaypoint.transform.position.x - waypoint.transform.position.x > 0.0f)
+                {
+                    direction = 1.0f;
+                }
+                else
+                {
+                    direction = -1.0f;
+                }
+                dx = newWaypoint.transform.position.x - transform.position.x;
+                reverseTimeout = Mathf.Abs(dx) / speed;
+            }
+            else
+            {
+                direction = 0.0f;
+            }
+
+
+
+            if(behaviorType == 1)
+            {
+                newWaypoint = waypoint;
+                reverseTimeout = 1.0f;
+                speed = 0.0f;
+                direction = 0.0f;
+            }
+
+
+            lastWaypoint = waypoint;
+            waypoint = newWaypoint;
+
+
+            /*
             if (Random.Range(0.0f, 1.0f) > 0.5f || (!runaway && behaviorType == 3))
             {
                 speed = 1.5f * globalSpeed;
             }
             else
             {
-                speed = 1.0f * globalSpeed;
+                speed = 0.7f * globalSpeed;
             }
             if (opponent.transform.position.x - transform.position.x > 0.0f && !runaway)
             {
@@ -125,6 +310,9 @@ public class PlayerController : MonoBehaviour {
             {
                 newWaypoint = waypoint.leftNode;
             }
+
+
+
             if (newWaypoint != null)
             {
                 waypoint = newWaypoint;
@@ -136,15 +324,16 @@ public class PlayerController : MonoBehaviour {
                 reverseTimeout = Random.Range(0.5f, 0.5f);
                 lastWaypoint = waypoint;
             }
+            */
         }
         float d = 0.0f;
-        if (speed == 2.5f)
+        if (speed == runSpeed)
         {
-            d = 0.6f * globalSpeed;
+            d = 1.2f;
         }
         else
         {
-            d = 0.4f * globalSpeed;
+            d = 0.6f;
         }
         if (Mathf.Abs(direction) > 0.0f)
         {
@@ -162,8 +351,9 @@ public class PlayerController : MonoBehaviour {
         {
             animationWalk.time = animationTime;
         }
-        rigidbody.velocity = Vector3.right * direction * speed;
-        transform.position += Vector3.right * direction * speed * Time.deltaTime;
+        velocity = Vector3.right * direction * speed;
+        //rigidbody.velocity = velocity;
+        transform.position += velocity * Time.deltaTime;
 
     }
 }

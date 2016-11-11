@@ -141,8 +141,8 @@ public class Swipe : MonoBehaviour {
             taskObject.players[1].globalSpeed = 2.0f;
         }
         */
-        taskObject.players[0].globalSpeed = 2.0f;
-        taskObject.players[1].globalSpeed = 2.0f;
+        //taskObject.players[0].globalSpeed = 2.0f;
+        //taskObject.players[1].globalSpeed = 2.0f;
         //swipeController.swipeType = swipeType;
         taskObject.players[0].behaviorType = behaviorType;
         taskObject.players[1].behaviorType = behaviorType;
@@ -203,7 +203,7 @@ public class Swipe : MonoBehaviour {
         float touchY = 0.0f;
         Vector2 v2 = Vector2.zero;
         Vector3 position = Vector3.zero;
-#if !UNITY_STANDALONE
+#if !UNITY_STANDALONE && !UNITY_EDITOR
         Touch touch;
         if (Input.touchCount > 0)
         {
@@ -389,6 +389,7 @@ public class Swipe : MonoBehaviour {
         }
         float t = distance * realLength / trimmedSpeed;
 
+        /*
         if(swipeController.swipeType == 1)
         {
             trimmedSpeed = distance * 2.0f;
@@ -399,6 +400,7 @@ public class Swipe : MonoBehaviour {
             trimmedSpeed = distance * 1.6f;
             gravity = -0.98f * 4.0f;
         }
+        */
 
         missileController = (Instantiate(missilePrefab)).GetComponent<MissileController>();
         missileController.name = missilePrefab.name;
@@ -417,7 +419,7 @@ public class Swipe : MonoBehaviour {
         {
             acceleration = new Vector3(torsion * trimmedSpeed, (angle.y - 0.4f) * 4.0f * gravity, 0.0f);
             //velocity = new Vector3(-acceleration.x / 2, Mathf.Min(/*0.044f*/ 0.12f * 50.0f, Mathf.Max(/*-0.176f*/ -0.13fs * 50.0f, (angle.y - 0.63f) * /* 0.22f */ 0.26f * 50.0f)) - acceleration.y / 2 / t, trimmedSpeed * (1.0f + Mathf.Abs(horizontalAngle) * 0.01f)); // !!! not trigonometrical coeficient
-            velocity = new Vector3(-acceleration.x / 2, Mathf.Min(0.044f * 50.0f, Mathf.Max(-0.174f * 50.0f, (angle.y - 0.63f) * 0.22f * 50.0f)) - acceleration.y / 2 * t, trimmedSpeed); // !!! not trigonometrical coeficient
+            velocity = new Vector3(-acceleration.x / 2, Mathf.Min(0.049f * 50.0f, Mathf.Max(-0.19f * 50.0f, (angle.y - 0.63f) * 0.24f * 50.0f)) - acceleration.y / 2 * t, trimmedSpeed); // !!! not trigonometrical coeficient
             velocity = Quaternion.Euler(0.0f, horizontalAngle + (1.0f + position.z / Mathf.Abs(position.z)) * 90.0f, 0.0f) * velocity;
             if (torsion > 0.0f)
             {
@@ -430,15 +432,24 @@ public class Swipe : MonoBehaviour {
             _torsion = new Vector3(0.0f, Mathf.Min(90.0f, Mathf.Max(-90.0f, torsion)) - (angle.x - horizontalAngle) * 5.0f, UnityEngine.Random.Range(zTorsionMin, zTorsionMax));
             _torsion.z /= Mathf.Max(1.0f, torsion);
         }
+
+        //velocity.x += taskObject.players[0].rigidbody.velocity.x;
+
         Vector3 intersectionPosition = position + velocity * t + acceleration * Mathf.Pow(t, 2.0f) / 2.0f;
 
         Vector3 lastPlayer2Position = taskObject.players[1].transform.position;
-        taskObject.players[1].transform.position += taskObject.players[1].rigidbody.velocity * t;
+        taskObject.players[1].transform.position += taskObject.players[1].velocity * t;
+        taskObject.players[1].rigidbody.position = taskObject.players[1].transform.position;
+        taskObject.players[1].rigidbody.velocity = taskObject.players[1].velocity;
 
         //RaycastHit[] hits = Physics.SphereCastAll(new Ray(intersectionPosition - new Vector3(0.0f, 0.0f, 5.0f), new Vector3(0.0f, 0.0f, 1.0f)), 1.7f, 10.0f, 255, QueryTriggerInteraction.Collide);
-        RaycastHit[] hits = Physics.CapsuleCastAll(intersectionPosition - new Vector3(0.6f, 0.0f, 0.0f) - new Vector3(0.0f, 0.0f, 5.0f), intersectionPosition + new Vector3(0.6f, 0.0f, 0.0f) - new Vector3(0.0f, 0.0f, 5.0f), 0.5f, new Vector3(0.0f, 0.0f, 1.0f), 10.0f, 255, QueryTriggerInteraction.Collide);
+        RaycastHit[] hits = Physics.CapsuleCastAll(intersectionPosition - new Vector3(1.0f, 0.0f, 0.0f) - new Vector3(0.0f, 0.0f, 5.0f), intersectionPosition + new Vector3(1.0f, 0.0f, 0.0f) - new Vector3(0.0f, 0.0f, 5.0f), 0.1f, new Vector3(0.0f, 0.0f, 1.0f), 10.0f, 255, QueryTriggerInteraction.Collide);
 
         taskObject.players[1].transform.position = lastPlayer2Position;
+        taskObject.players[1].rigidbody.position = taskObject.players[1].transform.position;
+        taskObject.players[1].rigidbody.velocity = Vector3.zero;
+
+        //Debug.Log("Throw");
 
         RaycastHit hit;
         Vector3 deltaVelocity = Vector3.zero;
@@ -446,9 +457,10 @@ public class Swipe : MonoBehaviour {
         for(i = 0; i < hits.Length; i++)
         {
             hit = hits[i];
-            if (hit.collider.name != "Ground" && hit.collider.name != "MissileObject" && hit.point.magnitude > 0.01f && (intersectionPosition - hit.point).magnitude < lastDistance)
+            if (hit.collider.tag == "Player" && hit.point.magnitude > 0.01f && (intersectionPosition - hit.point).magnitude < lastDistance)
             {
-                Vector3 delta = hit.point - intersectionPosition;
+                Vector3 delta = (hit.point - intersectionPosition);
+                //Debug.Log("Delta[" + i + "]: " + delta);
                 lastDistance = delta.magnitude;
                 deltaVelocity.x = delta.x / t;
                 deltaVelocity.y = delta.y / t;
