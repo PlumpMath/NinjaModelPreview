@@ -17,6 +17,7 @@ public class Swipe : MonoBehaviour {
 
 
     public Tasks taskObject;
+    public HookController hook;
 
     public GameObject swipeTrailPrefab;
     public GameObject missilePrefab;
@@ -158,6 +159,7 @@ public class Swipe : MonoBehaviour {
 
     void Update ()
     {
+        int i;
         float f;
 
         if (!touchedOnce)
@@ -233,6 +235,21 @@ public class Swipe : MonoBehaviour {
             {
                 armedMissile.SetAnchor(new Vector2(lastTouchX, 1.0f - lastTouchY), touchTime);
             }
+
+            position = (camera.ScreenToWorldPoint(new Vector3(lastTouchX * (float)Screen.width, (1.0f - lastTouchY) * (float)Screen.height, 0.1f)) - camera.transform.position * 0.0001f);
+            RaycastHit[] hits = Physics.RaycastAll(new Ray(camera.transform.position, (position - camera.transform.position).normalized), 100.0f, 255);
+            GameObject obj;
+            for (i = 0; i < hits.Length; i++)
+            {
+                obj = hits[i].collider.gameObject;
+                Debug.Log("Hit[" + obj.name + "]");
+                if (obj.tag == "Bonus")
+                {
+                    i = hits.Length;
+                    hook.Throw(obj);
+                }
+            }
+
         }
         else
         {
@@ -267,8 +284,21 @@ public class Swipe : MonoBehaviour {
                     throwState = ThrowState.TOUCHED;
                 //}
             }
+            position = (camera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0.1f)) - camera.transform.position * 0.0001f);
+            RaycastHit[] hits = Physics.RaycastAll(new Ray(camera.transform.position, (position - camera.transform.position).normalized), 100.0f, 255);
+            GameObject obj;
+            for (i = 0; i < hits.Length; i++)
+            {
+                obj = hits[i].collider.gameObject;
+                Debug.Log("Hit[" + obj.name + "]");
+                if (obj.tag == "Bonus")
+                {
+                    i = hits.Length;
+                    hook.Throw(obj);
+                }
+            }
         }
-        if( Input.GetMouseButton(0))
+        if ( Input.GetMouseButton(0))
         {
             lastTouchX = mouseX;
             lastTouchY = mouseY;

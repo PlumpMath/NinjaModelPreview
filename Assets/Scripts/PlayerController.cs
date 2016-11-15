@@ -25,6 +25,9 @@ public class PlayerController : MonoBehaviour {
     public Rigidbody rigidbody;
     public Vector3 velocity = Vector3.zero;
 
+    public float basePositionY = 0.0f;
+    public float marginY = 0.0f;
+
     private AnimationState animationWalk;
     private float animationTime = 0.0f;
 
@@ -146,6 +149,10 @@ public class PlayerController : MonoBehaviour {
                             reverseTimeout = 0.5f;
                         }
                     }
+                    if (newWaypoint.waypointType != WayPoint.WaypointType.COVER_DOWN)
+                    {
+                        marginY = 0.0f;
+                    }
                 }
                 else
                 {
@@ -154,6 +161,14 @@ public class PlayerController : MonoBehaviour {
                         if (Random.Range(0.0f, 1.0f) > 0.5f)
                         {
                             takeCover = true;
+                        }
+                    }
+                    if (waypoint.waypointType == WayPoint.WaypointType.COVER_DOWN)
+                    {
+                        if (Random.Range(0.0f, 1.0f) > 0.5f)
+                        {
+                            takeCover = true;
+                            marginY = -2.0f;
                         }
                     }
                     if (takeCover)
@@ -174,7 +189,14 @@ public class PlayerController : MonoBehaviour {
                         {
                             direction = 0.0f;
                             speed = 0.0f;
-                            reverseTimeout = 0.5f;
+                            if (waypoint.waypointType == WayPoint.WaypointType.COVER_DOWN)
+                            {
+                                reverseTimeout = 1.5f;
+                            }
+                            else
+                            {
+                                reverseTimeout = 0.5f;
+                            }
                         }
                     }
                     else
@@ -354,6 +376,7 @@ public class PlayerController : MonoBehaviour {
         velocity = Vector3.right * direction * speed;
         //rigidbody.velocity = velocity;
         transform.position += velocity * Time.deltaTime;
+        transform.position += Vector3.up * (basePositionY + marginY - transform.position.y) * Mathf.Min(1.0f, Time.deltaTime * 5.0f);
 
     }
 }

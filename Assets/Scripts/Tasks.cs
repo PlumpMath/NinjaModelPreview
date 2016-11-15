@@ -69,14 +69,17 @@ public class Tasks : MonoBehaviour {
         for(i = 0; i < obstructions.Length; i++)
         {
             obj = obstructions[i];
-            dx = (obj.transform.position - me.transform.position).x;
-            if(dx > 20.0f)
+            if (obj != null)
             {
-                obj.transform.position -= Vector3.right * 40.0f;
-            }
-            if (dx < -20.0f)
-            {
-                obj.transform.position += Vector3.right * 40.0f;
+                dx = (obj.transform.position - me.transform.position).x;
+                if (dx > 20.0f)
+                {
+                    obj.transform.position -= Vector3.right * 40.0f;
+                }
+                if (dx < -20.0f)
+                {
+                    obj.transform.position += Vector3.right * 40.0f;
+                }
             }
         }
 
