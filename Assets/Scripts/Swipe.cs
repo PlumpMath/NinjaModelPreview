@@ -290,7 +290,6 @@ public class Swipe : MonoBehaviour {
             for (i = 0; i < hits.Length; i++)
             {
                 obj = hits[i].collider.gameObject;
-                Debug.Log("Hit[" + obj.name + "]");
                 if (obj.tag == "Bonus")
                 {
                     i = hits.Length;
@@ -436,8 +435,9 @@ public class Swipe : MonoBehaviour {
         missileController.name = missilePrefab.name;
         missileController.taskObject = taskObject;
         position = armedMissile.transform.position;
-        if (angle.y < 0.0f)
+        if (angle.y < 0.0f || taskObject.players[0].stamina < 0.33f)
         {
+            taskObject.players[0].stamina = Mathf.Max(0.0f, taskObject.players[0].stamina - 0.1f);
             angle.y = 1.0f;
             t *= 0.5f;
             acceleration = new Vector3(0.0f, (angle.y - 0.5f) * 2.0f * gravity * 2.0f, 0.0f);
@@ -447,6 +447,7 @@ public class Swipe : MonoBehaviour {
         }
         else
         {
+            taskObject.players[0].stamina -= 0.33f;
             acceleration = new Vector3(torsion * trimmedSpeed, (angle.y - 0.4f) * 4.0f * gravity, 0.0f);
             //velocity = new Vector3(-acceleration.x / 2, Mathf.Min(/*0.044f*/ 0.12f * 50.0f, Mathf.Max(/*-0.176f*/ -0.13fs * 50.0f, (angle.y - 0.63f) * /* 0.22f */ 0.26f * 50.0f)) - acceleration.y / 2 / t, trimmedSpeed * (1.0f + Mathf.Abs(horizontalAngle) * 0.01f)); // !!! not trigonometrical coeficient
             velocity = new Vector3(-acceleration.x / 2, Mathf.Min(0.049f * 50.0f, Mathf.Max(-0.19f * 50.0f, (angle.y - 0.63f) * 0.24f * 50.0f)) - acceleration.y / 2 * t, trimmedSpeed); // !!! not trigonometrical coeficient
@@ -510,6 +511,93 @@ public class Swipe : MonoBehaviour {
         //GameObject.Destroy(missileController.gameObject, 2.0f);
         return true;
     }
-    
+
+
+
+
+    public bool Throw2(PlayerController player, Vector2 angle, float torsion, float speed)
+    {
+        int i;
+        Vector3 position;
+        Vector3 acceleration;
+        Vector3 velocity;
+        Vector3 _torsion;
+        float zTorsionMin = -60.0f;
+        float zTorsionMax = 60.0f;
+
+        float distance = 50.0f;
+
+        if (float.IsNaN(torsion) || Mathf.Abs(torsion) < 0.001f)
+        {
+            torsion = 0.0f;
+        }
+
+        float gravity = -0.98f * 3.0f;
+
+        MissileController missileController;
+        float trimmedSpeed = Mathf.Min(1.0f, Mathf.Max(1.0f, speed)) * distance * 1.8f;
+        float realLength = 1.0f - Mathf.Abs(camera.transform.position.z - armedMissile.transform.position.z) / distance;
+        float horizontalAngle = angle.x; //Mathf.Min(10.0f, Mathf.Max(-10.0f, angle.x));
+        if (float.IsNaN(horizontalAngle))
+        {
+            horizontalAngle = 0.0f;
+        }
+        float t = distance * realLength / trimmedSpeed;
+
+        /*
+        if(swipeController.swipeType == 1)
+        {
+            trimmedSpeed = distance * 2.0f;
+            gravity = -0.98f * 2.0f;
+        }
+        else if(swipeController.swipeType == 3)
+        {
+            trimmedSpeed = distance * 1.6f;
+            gravity = -0.98f * 4.0f;
+        }
+        */
+
+        missileController = (Instantiate(missilePrefab)).GetComponent<MissileController>();
+        missileController.name = missilePrefab.name;
+        missileController.taskObject = taskObject;
+        position = player.transform.position + Vector3.up * 4.0f + Vector3.right * -1.0f;
+        if (angle.y < 0.0f)
+        {
+            angle.y = 1.0f;
+            t *= 0.5f;
+            acceleration = new Vector3(0.0f, (angle.y - 0.5f) * 2.0f * gravity * 2.0f, 0.0f);
+            velocity = new Vector3(0.0f, 0.44f, trimmedSpeed * 0.05f + Mathf.Abs(horizontalAngle) / 22.0f * 0.1f); // !!! not trigonometrical coeficient
+            velocity = Quaternion.Euler(0.0f, horizontalAngle + (1.0f + position.z / Mathf.Abs(position.z)) * 90.0f, 0.0f) * velocity;
+            _torsion = new Vector3(360.0f, Mathf.Min(90.0f, Mathf.Max(-90.0f, torsion)) - (angle.x - horizontalAngle) * 5.0f, UnityEngine.Random.Range(-180.0f, 180.0f));
+        }
+        else
+        {
+            acceleration = new Vector3(torsion * trimmedSpeed, (angle.y - 0.4f) * 4.0f * gravity, 0.0f);
+            //velocity = new Vector3(-acceleration.x / 2, Mathf.Min(/*0.044f*/ 0.12f * 50.0f, Mathf.Max(/*-0.176f*/ -0.13fs * 50.0f, (angle.y - 0.63f) * /* 0.22f */ 0.26f * 50.0f)) - acceleration.y / 2 / t, trimmedSpeed * (1.0f + Mathf.Abs(horizontalAngle) * 0.01f)); // !!! not trigonometrical coeficient
+            velocity = new Vector3(-acceleration.x / 2, Mathf.Min(0.049f * 50.0f, Mathf.Max(-0.19f * 50.0f, (angle.y - 0.63f) * 0.24f * 50.0f)) - acceleration.y / 2 * t, trimmedSpeed); // !!! not trigonometrical coeficient
+            velocity = Quaternion.Euler(0.0f, horizontalAngle + (1.0f + position.z / Mathf.Abs(position.z)) * 90.0f, 0.0f) * velocity;
+            if (torsion > 0.0f)
+            {
+                zTorsionMax = 0.0f;
+            }
+            else if (torsion < 0.0f)
+            {
+                zTorsionMin = 0.0f;
+            }
+            _torsion = new Vector3(0.0f, Mathf.Min(90.0f, Mathf.Max(-90.0f, torsion)) - (angle.x - horizontalAngle) * 5.0f, UnityEngine.Random.Range(zTorsionMin, zTorsionMax));
+            _torsion.z /= Mathf.Max(1.0f, torsion);
+        }
+
+        position += velocity * Time.deltaTime;
+
+        missileController.transform.Rotate(70.0f, 0.0f, 0.0f);
+        missileController.transform.position = position;
+        missileController.acceleration = acceleration;
+        missileController.velocity = velocity;
+        missileController.torsion = _torsion;
+        //GameObject.Destroy(missileController.gameObject, 2.0f);
+        return true;
+    }
+
 
 }

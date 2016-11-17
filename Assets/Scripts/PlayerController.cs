@@ -3,9 +3,10 @@ using System.Collections;
 
 public class PlayerController : MonoBehaviour {
 
-    public GameObject opponent;
+    public PlayerController opponent;
 
     public Tasks tasks;
+    public Swipe swipe;
 
     public WayPoint[] waypoints = new WayPoint[0];
 
@@ -19,6 +20,7 @@ public class PlayerController : MonoBehaviour {
     public float reverseCooldownMax = 1.5f;
     public float reverseTimeout = 0.0f;
     public float speed = 0.0f;
+    public float stamina = 0.0f;
     public bool runaway = false;
     public bool takeCover = false;
 
@@ -295,6 +297,19 @@ public class PlayerController : MonoBehaviour {
             lastWaypoint = waypoint;
             waypoint = newWaypoint;
 
+            if(lastWaypoint.waypointType == WayPoint.WaypointType.OPEN && tasks.players[1] == this)
+            {
+                float throwAngle = Vector3.Angle(opponent.transform.position + opponent.velocity * 0.4f - transform.position, new Vector3(0.0f, opponent.transform.position.y, -50.0f));
+                if(opponent.transform.position.x > transform.position.x)
+                {
+                    throwAngle *= -1.0f;
+                }
+                if (stamina > 0.33f)
+                {
+                    stamina -= 0.33f;
+                    swipe.Throw2(this, new Vector2(throwAngle + Random.Range(-0.5f, 0.5f), Random.Range(0.0f, 1.0f)), 0.0f, 1.0f);
+                }
+            }
 
             /*
             if (Random.Range(0.0f, 1.0f) > 0.5f || (!runaway && behaviorType == 3))
@@ -377,6 +392,12 @@ public class PlayerController : MonoBehaviour {
         //rigidbody.velocity = velocity;
         transform.position += velocity * Time.deltaTime;
         transform.position += Vector3.up * (basePositionY + marginY - transform.position.y) * Mathf.Min(1.0f, Time.deltaTime * 5.0f);
+
+        stamina += Time.deltaTime * 0.2f;
+        if(stamina > 1.0f)
+        {
+            stamina = 1.0f;
+        }
 
     }
 }

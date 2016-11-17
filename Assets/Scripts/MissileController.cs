@@ -94,14 +94,21 @@ public class MissileController : MonoBehaviour {
         rigidbody = null;
         Collider collider = GetComponent<SphereCollider>();
         Rigidbody.Destroy(collider);
-        if (collision.collider.name != "Ground")
+        if (collision.collider.tag == "Player")
         {
-            velocity = ((transform.position + collision.contacts[0].point) * 0.5f - transform.position) * 25.0f;
-            GameObject projector = (GameObject)GameObject.Instantiate(damagePrefab);
-            projector.transform.position = collision.contacts[0].point + collision.contacts[0].normal * 0.2f;
-            projector.transform.forward = transform.forward;
-            GameObject.Destroy(projector, 1.0f);
-            taskObject.Hit(transform.position.y);
+            if (collision.collider.transform.position.z > 0.0f)
+            {
+                velocity = ((transform.position + collision.contacts[0].point) * 0.5f - transform.position) * 25.0f;
+                GameObject projector = (GameObject)GameObject.Instantiate(damagePrefab);
+                projector.transform.position = collision.contacts[0].point + collision.contacts[0].normal * 0.2f;
+                projector.transform.forward = transform.forward;
+                GameObject.Destroy(projector, 1.0f);
+                taskObject.Hit(transform.position.y);
+            }
+            else
+            {
+                taskObject.HitMe();
+            }
         }
         GameObject.Destroy(gameObject, 1.0f);
     }

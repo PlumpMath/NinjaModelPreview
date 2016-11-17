@@ -7,6 +7,8 @@ public class Tasks : MonoBehaviour {
 
     public EventHandler<EventArgs> OnThrow;
 
+    public Image bloodScreen;
+    public Image staminaBar;
     public PlayerController[] players = new PlayerController[2];
     public GameObject[] obstructions = new GameObject[0];
 
@@ -21,6 +23,7 @@ public class Tasks : MonoBehaviour {
     public int hits = 0;
 
     private float lastFPS = 0.0f;
+    private float bloodCooldown = 0.0f;
 
     // Use this for initialization
     void Start () {
@@ -71,17 +74,46 @@ public class Tasks : MonoBehaviour {
             obj = obstructions[i];
             if (obj != null)
             {
-                dx = (obj.transform.position - me.transform.position).x;
-                if (dx > 20.0f)
+                if (obj.name == "Ground")
                 {
-                    obj.transform.position -= Vector3.right * 40.0f;
+                    dx = (obj.transform.position - me.transform.position).x;
+                    if (dx > 100.0f)
+                    {
+                        obj.transform.position -= Vector3.right * 200.0f;
+                    }
+                    if (dx < -100.0f)
+                    {
+                        obj.transform.position += Vector3.right * 200.0f;
+                    }
                 }
-                if (dx < -20.0f)
+                else
                 {
-                    obj.transform.position += Vector3.right * 40.0f;
+                    dx = (obj.transform.position - me.transform.position).x;
+                    if (dx > 20.0f)
+                    {
+                        obj.transform.position -= Vector3.right * 40.0f;
+                    }
+                    if (dx < -20.0f)
+                    {
+                        obj.transform.position += Vector3.right * 40.0f;
+                    }
                 }
             }
         }
+
+
+        if (bloodCooldown > 0.0f)
+        {
+            bloodCooldown -= Time.deltaTime;
+            if (bloodCooldown < 0.0f)
+            {
+                bloodCooldown = 0.0f;
+                bloodScreen.enabled = false;
+            }
+            bloodScreen.color = new Color(1.0f, 1.0f, 1.0f, (1.0f - Mathf.Abs(bloodCooldown - 0.125f) * 8.0f));
+        }
+
+        staminaBar.rectTransform.sizeDelta = new Vector2(players[0].stamina * Screen.width, staminaBar.rectTransform.sizeDelta.y);
 
     }
 
@@ -107,6 +139,13 @@ public class Tasks : MonoBehaviour {
         }
         uiProgressLabel.text = hits + " / 3";
         uiProgressLabel.rectTransform.localPosition = new Vector3(uiProgressLabel.rectTransform.localPosition.x, uiPositions[task], 0.0f);
+    }
+
+    public void HitMe()
+    {
+        bloodCooldown = 0.25f;
+        bloodScreen.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
+        bloodScreen.enabled = true;
     }
 
 }
