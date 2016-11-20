@@ -6,6 +6,7 @@ public class MissileController : MonoBehaviour {
     public Tasks taskObject;
 
     public GameObject meshObject;
+    public TrailRenderer[] trails = new TrailRenderer[4];
 
     public Vector3 velocity = Vector3.zero;
     public Vector3 acceleration = Vector3.zero;
@@ -21,7 +22,7 @@ public class MissileController : MonoBehaviour {
 
         name = "MissileObject";
         rigidbody = GetComponent<Rigidbody>();
-        GameObject.Destroy(gameObject, 10.0f);
+        GameObject.Destroy(gameObject, 20.0f);
 
     }
 
@@ -66,17 +67,18 @@ public class MissileController : MonoBehaviour {
     public void DestroyDelayed(Vector3 passiveVelocity)
     {
         velocity = passiveVelocity;
-        Destroy(gameObject, 1.0f);
+        //Destroy(gameObject, 1.0f);
     }
 
     public void DestroyImmediate()
     {
 
-        Destroy(gameObject, 0.2f);
+        //Destroy(gameObject, 0.2f);
     }
 
     void OnCollisionEnter(Collision collision)
     {
+        int i;
         if(collided)
         {
             return;
@@ -85,11 +87,16 @@ public class MissileController : MonoBehaviour {
         {
             return;
         }
+        if(collision.collider.tag == "Player" && ((transform.position.z < 0.0f && velocity.z > 0.0f) || (transform.position.z > 0.0f && velocity.z < 0.0f)))
+        {
+            return;
+        }
         collided = true;
         //transform.position = (transform.position + collision.contacts[0].point) * 0.5f;
         acceleration *= 0.0f;
         velocity *= 0.0f;
         transform.parent = collision.collider.transform;
+        transform.position = collision.contacts[0].point;
         Rigidbody.Destroy(rigidbody);
         rigidbody = null;
         Collider collider = GetComponent<SphereCollider>();
@@ -108,6 +115,14 @@ public class MissileController : MonoBehaviour {
             else
             {
                 taskObject.HitMe();
+                GameObject brokenGlass = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/BrokenGlass"));
+                brokenGlass.transform.position = transform.position;
+                brokenGlass.transform.parent = transform;
+                brokenGlass.transform.rotation = Quaternion.identity;
+            }
+            for (i = 0; i < trails.Length; i++)
+            {
+                GameObject.Destroy(trails[i].gameObject);
             }
         }
         GameObject.Destroy(gameObject, 1.0f);

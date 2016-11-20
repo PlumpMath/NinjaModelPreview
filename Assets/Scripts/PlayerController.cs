@@ -304,7 +304,7 @@ public class PlayerController : MonoBehaviour {
                 {
                     throwAngle *= -1.0f;
                 }
-                if (stamina > 0.33f)
+                if (stamina > 0.33f && Mathf.Abs(opponent.transform.position.x - transform.position.x) < 10.0f)
                 {
                     stamina -= 0.33f;
                     swipe.Throw2(this, new Vector2(throwAngle + Random.Range(-0.5f, 0.5f), Random.Range(0.0f, 1.0f)), 0.0f, 1.0f);

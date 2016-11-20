@@ -24,6 +24,7 @@ public class Tasks : MonoBehaviour {
 
     private float lastFPS = 0.0f;
     private float bloodCooldown = 0.0f;
+    private bool staminaInsufficient = false;
 
     // Use this for initialization
     void Start () {
@@ -110,10 +111,20 @@ public class Tasks : MonoBehaviour {
                 bloodCooldown = 0.0f;
                 bloodScreen.enabled = false;
             }
-            bloodScreen.color = new Color(1.0f, 1.0f, 1.0f, (1.0f - Mathf.Abs(bloodCooldown - 0.125f) * 8.0f));
+            bloodScreen.color = new Color(1.0f, 1.0f, 1.0f, (1.0f - Mathf.Abs(bloodCooldown - 0.25f) * 4.0f));
         }
 
         staminaBar.rectTransform.sizeDelta = new Vector2(players[0].stamina * Screen.width, staminaBar.rectTransform.sizeDelta.y);
+        if(!staminaInsufficient && players[0].stamina < 0.33f)
+        {
+            staminaInsufficient = true;
+            staminaBar.color = Color.red;
+        }
+        else if(staminaInsufficient && players[0].stamina >= 0.33f)
+        {
+            staminaInsufficient = false;
+            staminaBar.color = Color.white;
+        }
 
     }
 
@@ -143,7 +154,7 @@ public class Tasks : MonoBehaviour {
 
     public void HitMe()
     {
-        bloodCooldown = 0.25f;
+        bloodCooldown = 0.5f;
         bloodScreen.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
         bloodScreen.enabled = true;
     }

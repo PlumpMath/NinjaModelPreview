@@ -437,7 +437,7 @@ public class Swipe : MonoBehaviour {
         position = armedMissile.transform.position;
         if (angle.y < 0.0f || taskObject.players[0].stamina < 0.33f)
         {
-            taskObject.players[0].stamina = Mathf.Max(0.0f, taskObject.players[0].stamina - 0.1f);
+            //taskObject.players[0].stamina = Mathf.Max(0.0f, taskObject.players[0].stamina - 0.1f);
             angle.y = 1.0f;
             t *= 0.5f;
             acceleration = new Vector3(0.0f, (angle.y - 0.5f) * 2.0f * gravity * 2.0f, 0.0f);
@@ -587,6 +587,40 @@ public class Swipe : MonoBehaviour {
             _torsion = new Vector3(0.0f, Mathf.Min(90.0f, Mathf.Max(-90.0f, torsion)) - (angle.x - horizontalAngle) * 5.0f, UnityEngine.Random.Range(zTorsionMin, zTorsionMax));
             _torsion.z /= Mathf.Max(1.0f, torsion);
         }
+
+
+        Vector3 intersectionPosition = position + velocity * t + acceleration * Mathf.Pow(t, 2.0f) / 2.0f;
+
+        Vector3 lastPlayer2Position = taskObject.players[0].transform.position;
+        taskObject.players[0].transform.position += taskObject.players[0].velocity * t;
+        taskObject.players[0].rigidbody.position = taskObject.players[0].transform.position;
+        taskObject.players[0].rigidbody.velocity = taskObject.players[0].velocity;
+
+        //RaycastHit[] hits = Physics.SphereCastAll(new Ray(intersectionPosition - new Vector3(0.0f, 0.0f, 5.0f), new Vector3(0.0f, 0.0f, 1.0f)), 1.7f, 10.0f, 255, QueryTriggerInteraction.Collide);
+        RaycastHit[] hits = Physics.CapsuleCastAll(intersectionPosition - new Vector3(1.0f, 0.0f, 0.0f) - new Vector3(0.0f, 0.0f, 5.0f), intersectionPosition + new Vector3(1.0f, 0.0f, 0.0f) - new Vector3(0.0f, 0.0f, 5.0f), 0.1f, new Vector3(0.0f, 0.0f, 1.0f), 10.0f, 255, QueryTriggerInteraction.Collide);
+
+        RaycastHit hit;
+        Vector3 deltaVelocity = Vector3.zero;
+        float lastDistance = 1000.0f;
+        for (i = 0; i < hits.Length; i++)
+        {
+            hit = hits[i];
+            if (hit.collider.tag == "Player" && hit.point.magnitude > 0.01f && (intersectionPosition - hit.point).magnitude < lastDistance)
+            {
+                //Vector3 delta = (hit.point - intersectionPosition);
+                Vector3 delta = (new Vector3(taskObject.players[0].transform.position.x, 3.7f + 0.22f * hit.point.y, taskObject.players[0].transform.position.z) - intersectionPosition);
+                //Debug.Log("Delta[" + i + "]: " + delta);
+                lastDistance = delta.magnitude;
+                deltaVelocity.x = delta.x / (t * 0.9f);
+                deltaVelocity.y = delta.y / (t * 0.9f);
+            }
+        }
+        velocity.x += deltaVelocity.x;
+        velocity.y += deltaVelocity.y;
+
+        taskObject.players[0].transform.position = lastPlayer2Position;
+        taskObject.players[0].rigidbody.position = taskObject.players[0].transform.position;
+        taskObject.players[0].rigidbody.velocity = Vector3.zero;
 
         position += velocity * Time.deltaTime;
 
