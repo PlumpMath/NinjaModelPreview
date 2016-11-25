@@ -77,6 +77,16 @@ public class Swipe : MonoBehaviour {
         });
         OnSwipeTypeChanged();
 
+
+
+
+        touchedOnce = true;
+        startCameraPosition = new Vector3(transform.position.x, transform.position.y, transform.position.z);
+        startCameraRotation = new Quaternion(transform.rotation.x, transform.rotation.y, transform.rotation.z, transform.rotation.w);
+        startCameraFov = camera.fov;
+
+
+
     }
 
     public void OnSwipeTypeChanged()
@@ -612,7 +622,7 @@ public class Swipe : MonoBehaviour {
                 //Debug.Log("Delta[" + i + "]: " + delta);
                 lastDistance = delta.magnitude;
                 deltaVelocity.x = delta.x / (t * 0.9f);
-                deltaVelocity.y = delta.y / (t * 0.9f);
+                //deltaVelocity.y = delta.y / (t * 0.9f);
             }
         }
         velocity.x += deltaVelocity.x;

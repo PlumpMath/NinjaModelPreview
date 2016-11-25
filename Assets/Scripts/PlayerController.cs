@@ -21,6 +21,7 @@ public class PlayerController : MonoBehaviour {
     public float reverseTimeout = 0.0f;
     public float speed = 0.0f;
     public float stamina = 0.0f;
+    public float health = 1.0f;
     public bool runaway = false;
     public bool takeCover = false;
 
@@ -28,7 +29,9 @@ public class PlayerController : MonoBehaviour {
     public Vector3 velocity = Vector3.zero;
 
     public float basePositionY = 0.0f;
+    public float basePositionZ = 0.0f;
     public float marginY = 0.0f;
+    public float marginZ = 0.0f;
 
     private AnimationState animationWalk;
     private float animationTime = 0.0f;
@@ -73,13 +76,13 @@ public class PlayerController : MonoBehaviour {
             {
                 obj = waypoints[i];
                 dx = (obj.transform.position - me.transform.position).x;
-                if (dx > 20.0f)
+                if (dx > 40.0f)
                 {
-                    obj.transform.position -= Vector3.right * 40.0f;
+                    obj.transform.position -= Vector3.right * 80.0f;
                 }
-                if (dx < -20.0f)
+                if (dx < -40.0f)
                 {
-                    obj.transform.position += Vector3.right * 40.0f;
+                    obj.transform.position += Vector3.right * 80.0f;
                 }
             }
 
@@ -103,7 +106,7 @@ public class PlayerController : MonoBehaviour {
             */
 
             newWaypoint = waypoint;
-            runaway = (tasks.players[0] == this && tasks.hits <= 1) || (tasks.players[1] == this && tasks.hits > 1);
+            runaway = (health < opponent.health);
             if (runaway)
             {
                 if(takeCover)
@@ -151,26 +154,29 @@ public class PlayerController : MonoBehaviour {
                             reverseTimeout = 0.5f;
                         }
                     }
-                    if (newWaypoint.waypointType != WayPoint.WaypointType.COVER_DOWN)
+                    if (newWaypoint.waypointType != WayPoint.WaypointType.COVER_DOWN && newWaypoint.waypointType != WayPoint.WaypointType.COVER_FULL)
                     {
                         marginY = 0.0f;
+                        marginZ = 0.0f;
                     }
                 }
                 else
                 {
                     if(waypoint.waypointType == WayPoint.WaypointType.COVER_FULL /* || waypoint.waypointType == WayPoint.WaypointType.COVER_DOWN */)
                     {
-                        if (Random.Range(0.0f, 1.0f) > 0.5f)
+                        if (Random.Range(0.0f, 1.0f) > 0.2f)
                         {
                             takeCover = true;
+                            marginZ = -5.0f;
                         }
                     }
                     if (waypoint.waypointType == WayPoint.WaypointType.COVER_DOWN)
                     {
-                        if (Random.Range(0.0f, 1.0f) > 0.5f)
+                        if (Random.Range(0.0f, 1.0f) > 0.2f)
                         {
                             takeCover = true;
                             marginY = -2.0f;
+                            marginZ = -5.0f;
                         }
                     }
                     if (takeCover)
@@ -197,7 +203,7 @@ public class PlayerController : MonoBehaviour {
                             }
                             else
                             {
-                                reverseTimeout = 0.5f;
+                                reverseTimeout = 1.5f;
                             }
                         }
                     }
@@ -307,7 +313,7 @@ public class PlayerController : MonoBehaviour {
                 if (stamina > 0.33f && Mathf.Abs(opponent.transform.position.x - transform.position.x) < 10.0f)
                 {
                     stamina -= 0.33f;
-                    swipe.Throw2(this, new Vector2(throwAngle + Random.Range(-0.5f, 0.5f), Random.Range(0.0f, 1.0f)), 0.0f, 1.0f);
+                    swipe.Throw2(this, new Vector2(throwAngle + Random.Range(-0.75f, 0.75f), Random.Range(0.0f, 1.0f)), 0.0f, 1.0f);
                 }
             }
 
@@ -392,6 +398,7 @@ public class PlayerController : MonoBehaviour {
         //rigidbody.velocity = velocity;
         transform.position += velocity * Time.deltaTime;
         transform.position += Vector3.up * (basePositionY + marginY - transform.position.y) * Mathf.Min(1.0f, Time.deltaTime * 5.0f);
+        transform.position += Vector3.forward * (basePositionZ + (basePositionZ / Mathf.Abs(basePositionZ)) * marginZ - transform.position.z) * Mathf.Min(1.0f, Time.deltaTime * 5.0f);
 
         stamina += Time.deltaTime * 0.2f;
         if(stamina > 1.0f)

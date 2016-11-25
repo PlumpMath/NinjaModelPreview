@@ -8,9 +8,17 @@ public class Tasks : MonoBehaviour {
     public EventHandler<EventArgs> OnThrow;
 
     public Image bloodScreen;
+    public Image bloodScreenVeins;
     public Image staminaBar;
+    public Image staminaIcon;
+    public Text staminaLabel;
+    public Image healthBar;
+    public Image opponentHealthBar;
     public PlayerController[] players = new PlayerController[2];
     public GameObject[] obstructions = new GameObject[0];
+
+    public Image staminaBeacon1;
+    public Image staminaBeacon2;
 
     public Button uiFPSButton;
     public Text uiFPSLabel;
@@ -28,6 +36,9 @@ public class Tasks : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
+
+        staminaBeacon1.rectTransform.anchoredPosition = new Vector2(Screen.width / 3.0f, -2.0f);
+        staminaBeacon2.rectTransform.anchoredPosition = new Vector2(Screen.width / 3.0f * 2.0f, -2.0f);
 
         uiPositions[0] = -35.0f * 10.0f;
         uiPositions[1] = -9.0f * 10.0f;
@@ -60,6 +71,8 @@ public class Tasks : MonoBehaviour {
 
         int i;
         float dx;
+        float f;
+        float f2;
         PlayerController me;
         GameObject obj;
 
@@ -90,13 +103,13 @@ public class Tasks : MonoBehaviour {
                 else
                 {
                     dx = (obj.transform.position - me.transform.position).x;
-                    if (dx > 20.0f)
+                    if (dx > 40.0f)
                     {
-                        obj.transform.position -= Vector3.right * 40.0f;
+                        obj.transform.position -= Vector3.right * 80.0f;
                     }
-                    if (dx < -20.0f)
+                    if (dx < -40.0f)
                     {
-                        obj.transform.position += Vector3.right * 40.0f;
+                        obj.transform.position += Vector3.right * 80.0f;
                     }
                 }
             }
@@ -110,8 +123,20 @@ public class Tasks : MonoBehaviour {
             {
                 bloodCooldown = 0.0f;
                 bloodScreen.enabled = false;
+                bloodScreenVeins.enabled = false;
             }
-            bloodScreen.color = new Color(1.0f, 1.0f, 1.0f, (1.0f - Mathf.Abs(bloodCooldown - 0.25f) * 4.0f));
+            f2 = Mathf.Pow(Mathf.Max(0.0f, Mathf.Sin((Time.time - Mathf.Floor(Time.time)) * Mathf.PI)), 16.0f) + Mathf.Pow(Mathf.Max(0.0f, Mathf.Sin((Time.time - Mathf.Floor(Time.time) + 0.25f) * Mathf.PI)), 16.0f);
+            f = Mathf.Min(1.0f, (Mathf.Max(0.0f, Mathf.Min(1.0f, bloodCooldown * 2.0f - 3.5f)) + f2));
+            bloodScreen.color = new Color(f, f, f, Mathf.Pow(Mathf.Min(1.0f, Mathf.Max(0.0f, Mathf.Min(1.0f, bloodCooldown - 3.0f)) + (1.0f - bloodCooldown * 0.25f) * f2 * 0.3f), 2.0f));
+            if(!bloodScreen.enabled)
+            {
+                bloodScreen.enabled = true;
+            }
+            bloodScreenVeins.color = new Color(0.7f + f2 * 0.3f, f2 * 0.1f, f2 * 0.1f, Mathf.Max(0.0f, Mathf.Min(1.0f, (bloodCooldown * 0.5f - 1.0f) + f2 * 0.2f)));
+            if (!bloodScreenVeins.enabled)
+            {
+                bloodScreenVeins.enabled = true;
+            }
         }
 
         staminaBar.rectTransform.sizeDelta = new Vector2(players[0].stamina * Screen.width, staminaBar.rectTransform.sizeDelta.y);
@@ -119,12 +144,20 @@ public class Tasks : MonoBehaviour {
         {
             staminaInsufficient = true;
             staminaBar.color = Color.red;
+            staminaIcon.color = new Color(0.5f, 0.05f, 0.05f, 1.0f);
+            staminaLabel.color = new Color(0.5f, 0.05f, 0.05f, 1.0f);
         }
         else if(staminaInsufficient && players[0].stamina >= 0.33f)
         {
             staminaInsufficient = false;
             staminaBar.color = Color.white;
+            staminaIcon.color = Color.white;
+            staminaLabel.color = Color.white;
         }
+
+        healthBar.fillAmount = Mathf.Max(0.0f, Mathf.Min(1.0f, players[0].health));
+        opponentHealthBar.fillAmount = Mathf.Max(0.0f, Mathf.Min(1.0f, players[1].health));
+        staminaLabel.text = "x " + Mathf.Floor(players[0].stamina / 0.33f);
 
     }
 
@@ -150,13 +183,21 @@ public class Tasks : MonoBehaviour {
         }
         uiProgressLabel.text = hits + " / 3";
         uiProgressLabel.rectTransform.localPosition = new Vector3(uiProgressLabel.rectTransform.localPosition.x, uiPositions[task], 0.0f);
+        players[1].health -= UnityEngine.Random.Range(0.05f, 0.08f);
+        if(players[1].health <= 0.0f)
+        {
+            Application.LoadLevel("region");
+        }
     }
 
     public void HitMe()
     {
-        bloodCooldown = 0.5f;
-        bloodScreen.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
-        bloodScreen.enabled = true;
+        bloodCooldown = 4.0f;
+        players[0].health -= UnityEngine.Random.Range(0.05f, 0.08f);
+        if (players[0].health <= 0.0f)
+        {
+            Application.LoadLevel("region");
+        }
     }
 
 }
