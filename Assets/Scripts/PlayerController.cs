@@ -164,7 +164,7 @@ public class PlayerController : MonoBehaviour {
                 {
                     if(waypoint.waypointType == WayPoint.WaypointType.COVER_FULL /* || waypoint.waypointType == WayPoint.WaypointType.COVER_DOWN */)
                     {
-                        if (Random.Range(0.0f, 1.0f) > 0.2f)
+                        if (Random.Range(0.0f, 1.0f) > 0.0f)
                         {
                             takeCover = true;
                             marginZ = -5.0f;
@@ -172,7 +172,7 @@ public class PlayerController : MonoBehaviour {
                     }
                     if (waypoint.waypointType == WayPoint.WaypointType.COVER_DOWN)
                     {
-                        if (Random.Range(0.0f, 1.0f) > 0.2f)
+                        if (Random.Range(0.0f, 1.0f) > 0.0f)
                         {
                             takeCover = true;
                             marginY = -2.0f;

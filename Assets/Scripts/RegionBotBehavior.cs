@@ -3,6 +3,8 @@ using System.Collections;
 
 public class RegionBotBehavior : MonoBehaviour {
 
+    public GameObject playerIcon;
+
     public float speed = 2.0f;
 
     private Vector3 direction = Vector3.zero;
@@ -30,6 +32,7 @@ public class RegionBotBehavior : MonoBehaviour {
             }
         }
         transform.position += direction * speed * Time.deltaTime;
+        playerIcon.transform.localRotation = Quaternion.LookRotation(Vector3.right * direction.x + Vector3.up * direction.z, Vector3.forward);
         if (transform.position.x < -10.0f)
         {
             transform.position += Vector3.right * (-10.0f - transform.position.x);

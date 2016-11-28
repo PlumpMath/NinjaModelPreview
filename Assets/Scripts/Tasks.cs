@@ -13,7 +13,9 @@ public class Tasks : MonoBehaviour {
     public Image staminaIcon;
     public Text staminaLabel;
     public Image healthBar;
+    public Text healthBarLabel;
     public Image opponentHealthBar;
+    public Text opponentHealthBarLabel;
     public PlayerController[] players = new PlayerController[2];
     public GameObject[] obstructions = new GameObject[0];
 
@@ -156,7 +158,9 @@ public class Tasks : MonoBehaviour {
         }
 
         healthBar.fillAmount = Mathf.Max(0.0f, Mathf.Min(1.0f, players[0].health));
+        healthBarLabel.text = Mathf.Ceil(healthBar.fillAmount * 100.0f) + "";
         opponentHealthBar.fillAmount = Mathf.Max(0.0f, Mathf.Min(1.0f, players[1].health));
+        opponentHealthBarLabel.text = Mathf.Ceil(opponentHealthBar.fillAmount * 100.0f) + "";
         staminaLabel.text = "x " + Mathf.Floor(players[0].stamina / 0.33f);
 
     }
