@@ -4,8 +4,17 @@ using System.Collections;
 public class RegionBotBehavior : MonoBehaviour {
 
     public GameObject playerIcon;
+    public SpriteRenderer playerIconRenderer;
+    public SpriteRenderer playerFaceRenderer;
 
-    public float speed = 2.0f;
+    public RegionMap map = new RegionMap();
+    public RegionMapNode mapNode = null;
+
+    public int coverageType = 0;
+    public int lastCoverageType = 0;
+
+    public float speed = 1.0f;
+    public float visibleDistance = 2.7f;
 
     private Vector3 direction = Vector3.zero;
     private float cooldown = 0.1f;
@@ -48,6 +57,40 @@ public class RegionBotBehavior : MonoBehaviour {
         if (transform.position.z > 10.0f)
         {
             transform.position += Vector3.forward * (10.0f - transform.position.z);
+        }
+
+        mapNode = map.FindNode(transform.position.x, transform.position.z);
+        if (mapNode != null)
+        {
+            coverageType = mapNode.coverageType;
+        }
+        else
+        {
+            coverageType = 0;
+        }
+        if (coverageType != lastCoverageType)
+        {
+            lastCoverageType = coverageType;
+            Color newColor = new Color(1.0f, 0.5f, 0.5f, 1.0f);
+            if (coverageType == 2)
+            {
+                speed = 0.8f;
+                newColor.a = 0.5f;
+                visibleDistance = 1.8f;
+            }
+            else if (coverageType == 1)
+            {
+                speed = 1.2f;
+                newColor.a = 0.75f;
+                visibleDistance = 2.7f;
+            }
+            else
+            {
+                speed = 1.6f;
+                visibleDistance = 5.0f;
+            }
+            playerIconRenderer.color = newColor;
+            playerFaceRenderer.color = newColor;
         }
 
     }

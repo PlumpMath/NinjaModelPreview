@@ -558,3 +558,113 @@ public class SwipeController
     }
 
 }
+
+
+public class RegionMap
+{
+    public float scale = 2.0f / 6.4f;
+    public Vector2 size = new Vector2(64.0f, 64.0f);
+    public RegionMapNode nwNode = null;
+    public LinkedList<RegionBarrier> barriers = new LinkedList<RegionBarrier>();
+
+    public void Load(string name)
+    {
+        int i, j;
+        int sizeX, sizeY;
+        RegionMapNode currentNode;
+        RegionMapNode newNode;
+        RegionMapNode northNode;
+        sizeX = (int)size.x;
+        sizeY = (int)size.y;
+        TextAsset asset = Resources.Load<TextAsset>("Maps/" + name);
+        byte[] data = asset.bytes;
+        i = 0;
+        j = 0;
+        nwNode = new RegionMapNode();
+        RegionMapNode firstRowNode = nwNode;
+        currentNode = firstRowNode;
+        while (j < sizeY)
+        {
+            currentNode.position.x = ((float)i - ((float)sizeX) / 2.0f) * scale - scale * 0.5f;
+            currentNode.position.y = -((float)j - ((float)sizeY) / 2.0f) * scale - scale * 0.5f;
+            currentNode.coverageType = (int)data[j * sizeX + i];
+            i++;
+            while (i < sizeX)
+            {
+                newNode = new RegionMapNode();
+                newNode.west = currentNode;
+                currentNode.east = newNode;
+                if (currentNode.north != null && currentNode.north.east != null)
+                {
+                    northNode = currentNode.north.east;
+                    northNode.south = newNode;
+                    newNode.north = northNode;
+                }
+                currentNode = newNode;
+                currentNode.position.x = ((float)i - ((float)sizeX) / 2.0f) * scale - scale * 0.5f;
+                currentNode.position.y = -((float)j - ((float)sizeY) / 2.0f) * scale + scale * 0.5f;
+                currentNode.coverageType = (int)data[j * sizeX + i];
+                i++;
+            }
+            if (j < sizeY - 1)
+            {
+                firstRowNode.south = new RegionMapNode();
+                firstRowNode.south.north = firstRowNode;
+                firstRowNode = firstRowNode.south;
+                currentNode = firstRowNode;
+
+            }
+            i = 0;
+            j++;
+        }
+
+
+        RegionBarrier barrier;
+
+        barrier = new RegionBarrier();
+        barrier.start = new Vector2(-0.9f, 2.58f);
+        barrier.end = new Vector2(-1.1f, 4.83f);
+        barriers.AddLast(barrier);
+
+        barrier = new RegionBarrier();
+        barrier.start = new Vector2(0.55f, 5.14f);
+        barrier.end = new Vector2(0.71f, 2.7f);
+        barriers.AddLast(barrier);
+
+    }
+
+    public RegionMapNode FindNode(float x, float y)
+    {
+        RegionMapNode node = nwNode;
+        while(node != null && x > node.position.x)
+        {
+            node = node.east;
+        }
+        while (node != null && y < node.position.y)
+        {
+            node = node.south;
+        }
+        return node;
+    }
+}
+
+public class RegionMapNode
+{
+    public int coverageType = 0;
+    public Vector2 position = new Vector2();
+    public RegionMapNode west = null;
+    public RegionMapNode north = null;
+    public RegionMapNode east = null;
+    public RegionMapNode south = null;
+    
+
+}
+
+public class RegionBarrier
+{
+    public bool twoSided = false;
+    public Vector2 start = new Vector2();
+    public Vector2 end = new Vector2();
+}
+
+
