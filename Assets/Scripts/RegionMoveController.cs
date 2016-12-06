@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -15,6 +16,7 @@ public class RegionMoveController : MonoBehaviour {
     public Image joystickKey;
     public Image joystickFrame;
     public Button[] inputModeButtons = new Button[4];
+    public Button hookButton;
 
     public RegionMap map = new RegionMap();
     public RegionMapNode mapNode = null;
@@ -25,6 +27,8 @@ public class RegionMoveController : MonoBehaviour {
 
     public int inputMode = 3;
     public float inputCooldown = 0.0f;
+
+    public RegionHook hook = null;
 
     private Vector3 direction = Vector3.zero;
     private float battleCooldown = 0.0f;
@@ -76,6 +80,11 @@ public class RegionMoveController : MonoBehaviour {
         inputModeButtons[3].onClick.AddListener(delegate () {
             SwitchInputMode(3);
         });
+
+        hookButton.onClick.AddListener(delegate() {
+            ThrowHook();
+        });
+        hook.Hide();
 
         map.Load("map_01_areas");
         mapNode = map.FindNode(transform.position.x, transform.position.z);
@@ -138,19 +147,28 @@ public class RegionMoveController : MonoBehaviour {
             }
         }
 
+#if UNITY_EDITOR
         if (Input.GetMouseButton(0))
         {
-            posX = Input.mousePosition.x;
-            posY = Input.mousePosition.y;
-            touched = true;
+            if (!EventSystem.current.IsPointerOverGameObject())
+            {
+                posX = Input.mousePosition.x;
+                posY = Input.mousePosition.y;
+                touched = true;
+            }
         }
-        if (Input.touchCount > 0)
+#else
+        for (i = 0; i < Input.touchCount; i++)
         {
-            posX = Input.touches[0].position.x;
-            //posY = (float)Screen.height - Input.touches[0].position.y;
-            posY = Input.touches[0].position.y;
-            touched = true;
+            if (!EventSystem.current.IsPointerOverGameObject(Input.touches[i].fingerId) && Input.touches[i].phase == TouchPhase.Began)
+            {
+                posX = Input.touches[i].position.x;
+                //posY = (float)Screen.height - Input.touches[0].position.y;
+                posY = Input.touches[i].position.y;
+                touched = true;
+            }
         }
+#endif
 
         if (touched)
         {
@@ -282,7 +300,6 @@ public class RegionMoveController : MonoBehaviour {
                 inputCooldown *= speed / 1.6f;
                 speed = 1.6f;
             }
-            Debug.Log("dir.mag: " + direction.magnitude);
             hidden = direction.magnitude < 0.1f;
             if (hidden)
             {
@@ -311,15 +328,30 @@ public class RegionMoveController : MonoBehaviour {
         }
 
         RaycastHit hit;
-        if (Physics.SphereCast(transform.position - Vector3.up, 0.5f, Vector3.up, out hit, 2.0f, 255))
+        if (Physics.SphereCast(hook.hook.transform.position - Vector3.up, 0.3f, Vector3.up, out hit, 2.0f, 255))
         {
             if (hit.collider.tag == "Player")
             {
                 battleCooldown = 1.0f;
-                battleIcon.enabled = true;
                 GameObject.Destroy(hit.collider.gameObject.GetComponent<RegionBotBehavior>());
+                hook.hook.transform.position = hit.collider.transform.position;
+                battleIcon.transform.position = transform.position + (hit.collider.transform.position - transform.position).normalized * 0.5f + Vector3.up * 0.1f;
+                battleIcon.enabled = true;
+                hit.collider.transform.parent = hook.hook.transform;
+                hook.Rollback();
             }
         }
 
     }
+
+    public void ThrowHook()
+    {
+        if(!hook.enabled)
+        {
+            hook.transform.position = transform.position;
+            hook.velocity = playerIcon.transform.forward * 3.0f;
+            hook.Show();
+        }
+    }
+
 }

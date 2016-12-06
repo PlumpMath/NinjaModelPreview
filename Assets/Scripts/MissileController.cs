@@ -101,6 +101,19 @@ public class MissileController : MonoBehaviour {
         rigidbody = null;
         Collider collider = GetComponent<SphereCollider>();
         Rigidbody.Destroy(collider);
+        if (collision.collider.tag == "BonusHolder")
+        {
+            if(collision.collider.name != "Striked")
+            {
+                collision.collider.GetComponent<Animation>().Play("Strike1");
+                collision.collider.name = "Striked";
+            }
+            else
+            {
+                collision.collider.GetComponent<Animation>().Play("Strike2");
+                GameObject.Destroy(collision.collider);
+            }
+        }
         if (collision.collider.tag == "Player")
         {
             if (collision.collider.transform.position.z > 0.0f)

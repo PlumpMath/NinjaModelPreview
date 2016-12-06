@@ -76,18 +76,18 @@ public class RegionBotBehavior : MonoBehaviour {
             {
                 speed = 0.8f;
                 newColor.a = 0.5f;
-                visibleDistance = 1.8f;
+                visibleDistance = 3.0f;
             }
             else if (coverageType == 1)
             {
                 speed = 1.2f;
                 newColor.a = 0.75f;
-                visibleDistance = 2.7f;
+                visibleDistance = 5.0f;
             }
             else
             {
                 speed = 1.6f;
-                visibleDistance = 5.0f;
+                visibleDistance = 7.0f;
             }
             playerIconRenderer.color = newColor;
             playerFaceRenderer.color = newColor;
