@@ -27,6 +27,7 @@ public class RegionMoveController : MonoBehaviour {
 
     public int inputMode = 3;
     public float inputCooldown = 0.0f;
+    public int ignoreFinger = -1;
 
     public RegionHook hook = null;
 
@@ -160,7 +161,15 @@ public class RegionMoveController : MonoBehaviour {
 #else
         for (i = 0; i < Input.touchCount; i++)
         {
-            if (!EventSystem.current.IsPointerOverGameObject(Input.touches[i].fingerId) && Input.touches[i].phase == TouchPhase.Began)
+            if (EventSystem.current.IsPointerOverGameObject(Input.touches[i].fingerId) && Input.touches[i].phase == TouchPhase.Began)
+            {
+                ignoreFinger = Input.touches[i].fingerId;
+            }
+            if (ignoreFinger == Input.touches[i].fingerId && (Input.touches[i].phase == TouchPhase.Ended || Input.touches[i].phase == TouchPhase.Canceled))
+            {
+                ignoreFinger = -1;
+            }
+            if (ignoreFinger != Input.touches[i].fingerId)
             {
                 posX = Input.touches[i].position.x;
                 //posY = (float)Screen.height - Input.touches[0].position.y;

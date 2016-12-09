@@ -248,16 +248,25 @@ public class Swipe : MonoBehaviour {
 
             position = (camera.ScreenToWorldPoint(new Vector3(lastTouchX * (float)Screen.width, (1.0f - lastTouchY) * (float)Screen.height, 0.1f)) - camera.transform.position * 0.0001f);
             RaycastHit[] hits = Physics.RaycastAll(new Ray(camera.transform.position, (position - camera.transform.position).normalized), 100.0f, 255);
-            GameObject obj;
+            GameObject obj = null;
+            GameObject objBonus = null;
+            bool hasBonusHolder = false;
             for (i = 0; i < hits.Length; i++)
             {
                 obj = hits[i].collider.gameObject;
-                Debug.Log("Hit[" + obj.name + "]");
                 if (obj.tag == "Bonus")
                 {
-                    i = hits.Length;
-                    hook.Throw(obj);
+                    objBonus = obj;
                 }
+                if (obj.tag == "BonusHolder")
+                {
+                    hasBonusHolder = true;
+                }
+            }
+            if (objBonus != null && !hasBonusHolder)
+            {
+                i = hits.Length;
+                hook.Throw(objBonus);
             }
 
         }
@@ -296,15 +305,25 @@ public class Swipe : MonoBehaviour {
             }
             position = (camera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0.1f)) - camera.transform.position * 0.0001f);
             RaycastHit[] hits = Physics.RaycastAll(new Ray(camera.transform.position, (position - camera.transform.position).normalized), 100.0f, 255);
-            GameObject obj;
+            GameObject obj = null;
+            GameObject objBonus = null;
+            bool hasBonusHolder = false;
             for (i = 0; i < hits.Length; i++)
             {
                 obj = hits[i].collider.gameObject;
                 if (obj.tag == "Bonus")
                 {
-                    i = hits.Length;
-                    hook.Throw(obj);
+                    objBonus = obj;
                 }
+                if (obj.tag == "BonusHolder")
+                {
+                    hasBonusHolder = true;
+                }
+            }
+            if (objBonus != null && !hasBonusHolder)
+            {
+                i = hits.Length;
+                hook.Throw(objBonus);
             }
         }
         if ( Input.GetMouseButton(0))

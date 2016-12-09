@@ -59,12 +59,14 @@ public class RegionHook : MonoBehaviour {
     {
         enabled = false;
         hook.enabled = false;
+        hook.transform.position = new Vector3(hook.transform.position.x, 10.0f, hook.transform.position.z);
         chain.enabled = false;
         rollback = false;
     }
 
     public void Show()
     {
+        hook.transform.position = new Vector3(hook.transform.position.x, 0.0f, hook.transform.position.z);
         Update();
         enabled = true;
         hook.enabled = true;

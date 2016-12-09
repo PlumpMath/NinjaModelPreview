@@ -9,7 +9,7 @@ public class HookController : MonoBehaviour {
     public GameObject targetObject;
 
     private bool hooked = false;
-    private Vector3[] ropePositions = new Vector3[2];
+    private Vector3[] ropePositions = new Vector3[16];
     private Vector3 velocity = Vector3.zero;
 
 	// Use this for initialization
@@ -20,6 +20,8 @@ public class HookController : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
+        int i;
+        float f;
         float distance;
         if (hooked)
         {
@@ -36,20 +38,29 @@ public class HookController : MonoBehaviour {
         {
             transform.position += velocity * Time.deltaTime;
             distance = (targetObject.transform.position - transform.position).magnitude;
+            transform.position += Vector3.up * (anchor.transform.position.y + (12.0f - Mathf.Abs(distance - 12.0f)) / 12.0f * 2.0f - transform.position.y);
             if (distance < 1.0f || (targetObject.transform.position - anchor.transform.position).magnitude < (transform.position - anchor.transform.position).magnitude)
             {
                 targetObject.transform.parent = transform;
                 hooked = true;
             }
         }
-        ropePositions[0] = transform.position;
-        ropePositions[1] = anchor.transform.position;
+        for (i = 0; i < ropePositions.Length; i++)
+        {
+            f = (float)i / 6.0f;
+            ropePositions[i] = transform.position * (1.0f - f) + anchor.transform.position * f + Vector3.right * Mathf.Sin(f * Mathf.PI + Time.time * 15.0f) * (1.0f - Mathf.Abs(f - 0.5f) * 2.0f) * (12.0f - Mathf.Abs(distance - 12.0f)) / 12.0f * 2.0f;
+        }
         rope.SetPositions(ropePositions);
+        rope.material.SetTextureScale("_MainTex", new Vector2(((transform.position - anchor.transform.position).magnitude - 0.5f) * 5.0f, 1.0f));
 
-	}
+    }
 
     public void Throw (GameObject target)
     {
+        if(enabled)
+        {
+            return;
+        }
         Vector3 direction;
         targetObject = target;
         transform.position = anchor.transform.position;
