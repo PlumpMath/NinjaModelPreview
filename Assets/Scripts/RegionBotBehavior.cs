@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 public class RegionBotBehavior : MonoBehaviour {
@@ -6,6 +7,7 @@ public class RegionBotBehavior : MonoBehaviour {
     public GameObject playerIcon;
     public SpriteRenderer playerIconRenderer;
     public SpriteRenderer playerFaceRenderer;
+    public Image offscreenPointer;
 
     public RegionMap map = new RegionMap();
     public RegionMapNode mapNode = null;
@@ -14,7 +16,9 @@ public class RegionBotBehavior : MonoBehaviour {
     public int lastCoverageType = 0;
 
     public float speed = 1.0f;
-    public float visibleDistance = 2.7f;
+    public float visibleDistance = 7.0f;
+    public bool isVisible = true;
+    public bool isGoodVisible = true;
 
     private Vector3 direction = Vector3.zero;
     private float cooldown = 0.1f;

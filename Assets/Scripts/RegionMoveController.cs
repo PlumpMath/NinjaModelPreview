@@ -9,10 +9,18 @@ public class RegionMoveController : MonoBehaviour {
 
     public float speed = 1.0f;
     public Camera camera;
+    public Canvas mainCanvas;
     public GameObject playerIcon;
     public SpriteRenderer playerIconRenderer;
     public SpriteRenderer playerFaceRenderer;
     public SpriteRenderer battleIcon;
+    public Image discoveredFrame1;
+    public Image discoveredFrame2;
+    public Image discoveredIcon;
+    public Image taskPointer;
+    public SpriteRenderer taskTarget;
+    public Sprite someFoundSprite;
+    public Sprite taskCompleteSprite;
     public Image joystickKey;
     public Image joystickFrame;
     public Button[] inputModeButtons = new Button[4];
@@ -34,6 +42,8 @@ public class RegionMoveController : MonoBehaviour {
     private Vector3 direction = Vector3.zero;
     private float battleCooldown = 0.0f;
     private float botActionCooldown = 0.0f;
+    private float bushDistanceTraveled = 0.0f;
+    private float discoveredTimer = 0.0f;
 
     private RegionBotBehavior[] bots = new RegionBotBehavior[0];
 
@@ -98,6 +108,9 @@ public class RegionMoveController : MonoBehaviour {
             bots[i] = bot.GetComponent<RegionBotBehavior>();
             bots[i].map = map;
             bots[i].mapNode = map.FindNode(bots[i].transform.position.x, bots[i].transform.position.z);
+            bots[i].offscreenPointer = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/BotOffscreenPointer")).GetComponent<Image>();
+            bots[i].offscreenPointer.rectTransform.parent = mainCanvas.transform;
+            bots[i].offscreenPointer.rectTransform.anchoredPosition = new Vector2(-1000.0f, 0.0f);
         }
 
     }
@@ -130,26 +143,80 @@ public class RegionMoveController : MonoBehaviour {
             for(i = 0; i < bots.Length; i++)
             {
                 bot = bots[i];
-                if((bot.transform.position - transform.position).magnitude > 7.5f)
+                if((bot.transform.position - transform.position).magnitude > 9.0f)
                 {
                     bot.transform.position = transform.position + (new Vector3(Random.Range(-1.0f, 1.0f), 0.0f, Random.Range(-1.0f, 1.0f))).normalized * 5.0f;
                 }
                 v3 = bot.transform.position - transform.position;
                 if(v3.magnitude < bot.visibleDistance)
                 {
-                    bot.playerIconRenderer.enabled = true;
-                    bot.playerFaceRenderer.enabled = true;
+                    if (v3.magnitude < bot.visibleDistance * 0.75f)
+                    {
+                        if (!bot.isGoodVisible)
+                        {
+                            bot.isGoodVisible = true;
+                            bot.isVisible = true;
+                            bot.playerIconRenderer.enabled = true;
+                            bot.playerFaceRenderer.enabled = true;
+                            bot.playerIconRenderer.color = new Color(1.0f, 0.5f, 0.5f, 1.0f);
+                            bot.playerFaceRenderer.color = new Color(1.0f, 0.5f, 0.5f, 1.0f);
+                        }
+                    }
+                    else
+                    {
+                        if(!bot.isVisible || bot.isGoodVisible)
+                        {
+                            bot.isVisible = true;
+                            bot.isGoodVisible = false;
+                            bot.playerIconRenderer.enabled = true;
+                            bot.playerFaceRenderer.enabled = true;
+                            bot.playerIconRenderer.color = new Color(1.0f, 0.5f, 0.5f, 0.25f);
+                            bot.playerFaceRenderer.color = new Color(1.0f, 0.5f, 0.5f, 0.25f);
+                        }
+                    }
                 }
                 else
                 {
-                    bot.playerIconRenderer.enabled = false;
-                    bot.playerFaceRenderer.enabled = false;
+                    if (bot.isVisible)
+                    {
+                        bot.isVisible = false;
+                        bot.isGoodVisible = false;
+                        bot.playerIconRenderer.enabled = false;
+                        bot.playerFaceRenderer.enabled = false;
+                    }
+                }
+                if((v3.x > 2.7f || v3.x < -2.7f || v3.y > 5.0f || v3.y < -5.0f) && !bot.offscreenPointer.enabled && bot.isVisible)
+                {
+                    bot.offscreenPointer.enabled = true;
+                }
+                if (((v3.x <= 2.7f && v3.x >= -2.7f && v3.y <= 5.0f && v3.y >= -5.0f) && bot.offscreenPointer.enabled) || !bot.isVisible)
+                {
+                    bot.offscreenPointer.enabled = false;
+                }
+            }
+        }
+
+        for (i = 0; i < bots.Length; i++)
+        {
+            bot = bots[i];
+            if(bot.offscreenPointer.enabled)
+            {
+                v3 = bot.transform.position - transform.position;
+                v3.x /= 2.7f;
+                v3.z /= 5.0f;
+                if(Mathf.Abs(v3.x) > Mathf.Abs(v3.z))
+                {
+                    bot.offscreenPointer.rectTransform.anchoredPosition = new Vector2(v3.x / Mathf.Abs(v3.x) * (((float)Screen.width) / mainCanvas.scaleFactor - 24.0f) / 2.0f, v3.z * ((float)Screen.height) / mainCanvas.scaleFactor / 2.0f);
+                }
+                else
+                {
+                    bot.offscreenPointer.rectTransform.anchoredPosition = new Vector2(v3.x * (((float)Screen.width) / mainCanvas.scaleFactor - 24.0f) / 2.0f, v3.z / Mathf.Abs(v3.z) * ((float)Screen.height) / mainCanvas.scaleFactor / 2.0f);
                 }
             }
         }
 
 #if UNITY_EDITOR
-        if (Input.GetMouseButton(0))
+            if (Input.GetMouseButton(0))
         {
             if (!EventSystem.current.IsPointerOverGameObject())
             {
@@ -165,16 +232,16 @@ public class RegionMoveController : MonoBehaviour {
             {
                 ignoreFinger = Input.touches[i].fingerId;
             }
-            if (ignoreFinger == Input.touches[i].fingerId && (Input.touches[i].phase == TouchPhase.Ended || Input.touches[i].phase == TouchPhase.Canceled))
-            {
-                ignoreFinger = -1;
-            }
             if (ignoreFinger != Input.touches[i].fingerId)
             {
                 posX = Input.touches[i].position.x;
                 //posY = (float)Screen.height - Input.touches[0].position.y;
                 posY = Input.touches[i].position.y;
                 touched = true;
+            }
+            if (ignoreFinger == Input.touches[i].fingerId && (Input.touches[i].phase == TouchPhase.Ended || Input.touches[i].phase == TouchPhase.Canceled))
+            {
+                ignoreFinger = -1;
             }
         }
 #endif
@@ -254,6 +321,16 @@ public class RegionMoveController : MonoBehaviour {
                 }
             }
             barrierNode = barrierNode.Next;
+        }
+
+        if (mapNode.coverageType == 2)
+        {
+            bushDistanceTraveled += (new Vector3(newPosition2D.x, transform.position.y, newPosition2D.y) - transform.position).magnitude * Random.Range(0.0f, 1.0f);
+            if (bushDistanceTraveled > 2.0f)
+            {
+                bushDistanceTraveled = 0.0f;
+                ShowDiscovered(0);
+            }
         }
 
         transform.position = new Vector3(newPosition2D.x, transform.position.y, newPosition2D.y);
@@ -351,6 +428,61 @@ public class RegionMoveController : MonoBehaviour {
             }
         }
 
+        if(discoveredTimer > 0.0f)
+        {
+            discoveredTimer -= Time.deltaTime;
+            discoveredFrame1.rectTransform.anchoredPosition = new Vector2(0.0f, Mathf.Max(0.0f, Mathf.Abs(discoveredTimer * 2.0f - 2.0f) - 1.0f) * 144.0f);
+            discoveredFrame2.rectTransform.anchoredPosition = new Vector2(0.0f, Mathf.Max(0.0f, Mathf.Abs(discoveredTimer * 3.0f - 3.0f) - 1.0f) * 144.0f);
+            if (!discoveredFrame1.enabled)
+            {
+                discoveredFrame1.enabled = true;
+                discoveredFrame2.enabled = true;
+                discoveredIcon.enabled = true;
+            }
+            else if (discoveredTimer <= 0.0f)
+            {
+                discoveredFrame1.enabled = false;
+                discoveredFrame2.enabled = false;
+                discoveredIcon.enabled = false;
+            }
+        }
+
+        if (taskPointer.enabled)
+        {
+            v3 = taskTarget.transform.position - camera.transform.position;
+            v3.y = 0.0f;
+            if ((taskTarget.transform.position - transform.position).magnitude < 0.5f)
+            {
+                ShowDiscovered(1);
+                taskPointer.enabled = false;
+                taskTarget.enabled = false;
+            }
+            v3.x /= 2.7f;
+            v3.z /= 5.0f;
+            if (Mathf.Abs(v3.x) >= 1.0f || Mathf.Abs(v3.z) >= 1.0f)
+            {
+                if (Mathf.Abs(v3.x) > Mathf.Abs(v3.z))
+                {
+                    taskPointer.rectTransform.anchoredPosition = new Vector2(v3.x / Mathf.Abs(v3.x) * (((float)Screen.width) / mainCanvas.scaleFactor - 24.0f) / 2.0f, v3.z * ((float)Screen.height) / mainCanvas.scaleFactor / 2.0f);
+                }
+                else
+                {
+                    taskPointer.rectTransform.anchoredPosition = new Vector2(v3.x * (((float)Screen.width) / mainCanvas.scaleFactor - 24.0f) / 2.0f, v3.z / Mathf.Abs(v3.z) * ((float)Screen.height) / mainCanvas.scaleFactor / 2.0f);
+                }
+            }
+            else
+            {
+                if (Mathf.Abs(v3.x) > Mathf.Abs(v3.z))
+                {
+                    taskPointer.rectTransform.anchoredPosition = new Vector2(v3.x * (((float)Screen.width) / mainCanvas.scaleFactor - 24.0f) / 2.0f, v3.z * ((float)Screen.height) / mainCanvas.scaleFactor / 2.0f);
+                }
+                else
+                {
+                    taskPointer.rectTransform.anchoredPosition = new Vector2(v3.x * (((float)Screen.width) / mainCanvas.scaleFactor - 24.0f) / 2.0f, v3.z * ((float)Screen.height) / mainCanvas.scaleFactor / 2.0f);
+                }
+            }
+        }
+
     }
 
     public void ThrowHook()
@@ -361,6 +493,20 @@ public class RegionMoveController : MonoBehaviour {
             hook.velocity = playerIcon.transform.forward * 3.0f;
             hook.Show();
         }
+    }
+
+    public void ShowDiscovered(int iconId)
+    {
+        switch(iconId)
+        {
+            case 0:
+                discoveredIcon.sprite = someFoundSprite;
+                break;
+            case 1:
+                discoveredIcon.sprite = taskCompleteSprite;
+                break;
+        }
+        discoveredTimer = 2.0f;
     }
 
 }
