@@ -4,9 +4,12 @@ using System.Collections;
 
 public class RegionBotBehavior : MonoBehaviour {
 
+    public GameObject player;
+
     public GameObject playerIcon;
     public SpriteRenderer playerIconRenderer;
     public SpriteRenderer playerFaceRenderer;
+    public SpriteRenderer playerRankCircleRenderer;
     public Image offscreenPointer;
 
     public RegionMap map = new RegionMap();
@@ -15,20 +18,24 @@ public class RegionBotBehavior : MonoBehaviour {
     public int coverageType = 0;
     public int lastCoverageType = 0;
 
+    public float rankModifier = 0.0f;
+
     public float speed = 1.0f;
     public float visibleDistance = 7.0f;
     public bool isVisible = true;
     public bool isGoodVisible = true;
 
-    private Vector3 direction = Vector3.zero;
+    public Vector3 direction = Vector3.zero;
     private float cooldown = 0.1f;
 
     // Use this for initialization
     void Start () {
 
         transform.position = new Vector3(Random.Range(-9.0f, 9.0f), 0.0f, Random.Range(-9.0f, 9.0f));
+        rankModifier = Random.Range(-1.0f, 1.0f);
+        playerRankCircleRenderer.color = new Color(rankModifier * 0.5f + 0.5f, 0.75f - rankModifier * 0.25f, rankModifier * 0.5f + 0.5f, 1.0f);
 
-	}
+    }
 	
 	// Update is called once per frame
 	void Update () {
@@ -38,10 +45,26 @@ public class RegionBotBehavior : MonoBehaviour {
             cooldown -= Time.deltaTime;
             if(cooldown <= 0.0f)
             {
-                cooldown = 3.0f;
+                cooldown = 1.5f;
                 direction.x = Random.Range(-1.0f, 1.0f);
                 direction.z = Random.Range(-1.0f, 1.0f);
                 direction.Normalize();
+                if((player.transform.position - transform.position).magnitude < 3.5f)
+                {
+                    if(rankModifier > 0.0f)
+                    {
+                        direction = player.transform.position - transform.position;
+                    }
+                    else
+                    {
+                        direction = transform.position - player.transform.position;
+                    }
+                    direction.y = 0.0f;
+                    direction.Normalize();
+                    direction.x = Random.Range(-0.1f, 0.1f);
+                    direction.z = Random.Range(-0.1f, 0.1f);
+                    direction.Normalize();
+                }
             }
         }
         transform.position += direction * speed * Time.deltaTime;
@@ -95,6 +118,8 @@ public class RegionBotBehavior : MonoBehaviour {
             }
             playerIconRenderer.color = newColor;
             playerFaceRenderer.color = newColor;
+            newColor = new Color(rankModifier * 0.5f + 0.5f, 1.0f - rankModifier * 0.5f, 0.5f - rankModifier * 0.25f, newColor.a);
+            playerRankCircleRenderer.color = newColor;
         }
 
     }

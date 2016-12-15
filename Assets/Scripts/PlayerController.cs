@@ -13,6 +13,10 @@ public class PlayerController : MonoBehaviour {
     public WayPoint waypoint;
     public WayPoint lastWaypoint;
 
+    public AbilityButton ability1Button;
+
+    public float qualification = 1.0f;
+
     public float position = 0.0f;
 
     public float direction = 1.0f;
@@ -41,6 +45,7 @@ public class PlayerController : MonoBehaviour {
     private float walkSpeed = 2.0f;
     private float runSpeed = 4.0f;
 
+
     // Use this for initialization
     void Start () {
 
@@ -51,6 +56,8 @@ public class PlayerController : MonoBehaviour {
             animationWalk = animation["walk"];
             animationWalk.speed = 0.0f;
         }
+
+        qualification = PlayerPrefs.GetFloat("EnemyAdvantage", 1.0f);
 
     }
 
@@ -107,6 +114,10 @@ public class PlayerController : MonoBehaviour {
 
             newWaypoint = waypoint;
             runaway = (health < opponent.health);
+            if (health == opponent.health && swipe.gameObject == gameObject)
+            {
+                runaway = !runaway;
+            }
             if (runaway)
             {
                 if(takeCover)
@@ -313,7 +324,7 @@ public class PlayerController : MonoBehaviour {
                 if (stamina > 0.33f && Mathf.Abs(opponent.transform.position.x - transform.position.x) < 10.0f)
                 {
                     stamina -= 0.33f;
-                    swipe.Throw2(this, new Vector2(throwAngle + Random.Range(-0.75f, 0.75f), Random.Range(0.0f, 1.0f)), 0.0f, 1.0f);
+                    swipe.Throw2(this, new Vector2(throwAngle + Random.Range(-5.75f, 5.75f) * (1.0f - qualification), Random.Range(0.0f, 1.0f)), 0.0f, 1.0f);
                 }
             }
 

@@ -585,7 +585,7 @@ public class RegionMap
         currentNode = firstRowNode;
         while (j < sizeY)
         {
-            currentNode.position.x = ((float)i - ((float)sizeX) / 2.0f) * scale - scale * 0.5f;
+            currentNode.position.x = ((float)i - ((float)sizeX) / 2.0f) * scale + scale * 0.5f;
             currentNode.position.y = -((float)j - ((float)sizeY) / 2.0f) * scale - scale * 0.5f;
             currentNode.coverageType = (int)data[j * sizeX + i];
             i++;
@@ -601,8 +601,8 @@ public class RegionMap
                     newNode.north = northNode;
                 }
                 currentNode = newNode;
-                currentNode.position.x = ((float)i - ((float)sizeX) / 2.0f) * scale - scale * 0.5f;
-                currentNode.position.y = -((float)j - ((float)sizeY) / 2.0f) * scale + scale * 0.5f;
+                currentNode.position.x = ((float)i - ((float)sizeX) / 2.0f) * scale + scale * 0.5f;
+                currentNode.position.y = -((float)j - ((float)sizeY) / 2.0f) * scale - scale * 0.5f;
                 currentNode.coverageType = (int)data[j * sizeX + i];
                 i++;
             }
@@ -619,6 +619,7 @@ public class RegionMap
         }
 
 
+        /*
         RegionBarrier barrier;
 
         barrier = new RegionBarrier();
@@ -630,6 +631,7 @@ public class RegionMap
         barrier.start = new Vector2(0.55f, 5.14f);
         barrier.end = new Vector2(0.71f, 2.7f);
         barriers.AddLast(barrier);
+        */
 
     }
 

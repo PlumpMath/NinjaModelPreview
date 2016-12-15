@@ -6,6 +6,7 @@ public class RegionHook : MonoBehaviour {
     public MeshRenderer hook;
     public LineRenderer chain;
     public GameObject player;
+    public float targetRank = 0.0f;
 
     public bool rollback = false;
     public Vector3 velocity = new Vector3();

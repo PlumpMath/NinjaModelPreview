@@ -16,6 +16,7 @@ public class Tasks : MonoBehaviour {
     public Text healthBarLabel;
     public Image opponentHealthBar;
     public Text opponentHealthBarLabel;
+    public Image screenWave;
     public PlayerController[] players = new PlayerController[2];
     public GameObject[] obstructions = new GameObject[0];
 
@@ -35,6 +36,8 @@ public class Tasks : MonoBehaviour {
     private float lastFPS = 0.0f;
     private float bloodCooldown = 0.0f;
     private bool staminaInsufficient = false;
+
+    public float ability1Cooldown = 0.0f;
 
     // Use this for initialization
     void Start () {
@@ -163,6 +166,17 @@ public class Tasks : MonoBehaviour {
         opponentHealthBarLabel.text = Mathf.Ceil(opponentHealthBar.fillAmount * 100.0f) + "";
         staminaLabel.text = "x " + Mathf.Floor(players[0].stamina / 0.33f);
 
+        if(ability1Cooldown > 0.0f)
+        {
+            ability1Cooldown -= Time.deltaTime;
+            screenWave.rectTransform.localRotation = Quaternion.Euler(0.0f, 0.0f, ability1Cooldown * 90.0f - 45.0f);
+            if(ability1Cooldown <= 0.0f)
+            {
+                ability1Cooldown = 0.0f;
+                screenWave.enabled = false;
+            }
+        }
+
     }
 
     public void Hit (float y)
@@ -190,6 +204,7 @@ public class Tasks : MonoBehaviour {
         players[1].health -= UnityEngine.Random.Range(0.05f, 0.08f);
         if(players[1].health <= 0.0f)
         {
+            PlayerPrefs.SetInt("WinBattle", 1);
             Application.LoadLevel("region");
         }
     }
@@ -197,10 +212,18 @@ public class Tasks : MonoBehaviour {
     public void HitMe()
     {
         bloodCooldown = 4.0f;
-        players[0].health -= UnityEngine.Random.Range(0.05f, 0.08f);
+        if (players[0].ability1Button != null && players[0].ability1Button.progress < -25.0f)
+        {
+            players[0].health -= UnityEngine.Random.Range(0.02f, 0.04f);
+        }
+        else
+        {
+            players[0].health -= UnityEngine.Random.Range(0.05f, 0.08f);
+        }
         if (players[0].health <= 0.0f)
         {
-            Application.LoadLevel("region");
+            PlayerPrefs.SetInt("WinBattle", 0);
+            Application.LoadLevel("map");
         }
     }
 

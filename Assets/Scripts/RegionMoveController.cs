@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
 using System.Collections;
 using System.Collections.Generic;
@@ -14,17 +15,26 @@ public class RegionMoveController : MonoBehaviour {
     public SpriteRenderer playerIconRenderer;
     public SpriteRenderer playerFaceRenderer;
     public SpriteRenderer battleIcon;
+    public SpriteRenderer smileyBackground;
+    public SpriteRenderer smileyIcon;
     public Image discoveredFrame1;
     public Image discoveredFrame2;
     public Image discoveredIcon;
     public Image taskPointer;
-    public SpriteRenderer taskTarget;
+    public TaskTarget taskTarget;
+    public TaskTarget[] taskTargets = new TaskTarget[0];
     public Sprite someFoundSprite;
+    public Sprite itemFoundSprite;
     public Sprite taskCompleteSprite;
     public Image joystickKey;
     public Image joystickFrame;
     public Button[] inputModeButtons = new Button[4];
     public Button hookButton;
+    public Button smileyButton;
+    public SmileyButton[] smileyButtons = new SmileyButton[0];
+    public Button exitButton;
+    public Button leaveScreen;
+    public MeshRenderer[] mapQuads = new MeshRenderer[3];
 
     public RegionMap map = new RegionMap();
     public RegionMapNode mapNode = null;
@@ -44,6 +54,8 @@ public class RegionMoveController : MonoBehaviour {
     private float botActionCooldown = 0.0f;
     private float bushDistanceTraveled = 0.0f;
     private float discoveredTimer = 0.0f;
+    private float smileyCooldown = 0.0f;
+    private float leaveCooldown = 0.0f;
 
     private RegionBotBehavior[] bots = new RegionBotBehavior[0];
 
@@ -77,7 +89,14 @@ public class RegionMoveController : MonoBehaviour {
     // Use this for initialization
     void Start () {
 
+        bool b;
         int i;
+
+        string currentRegionId = PlayerPrefs.GetString("CurrentRegion", "01");
+        mapQuads[0].material = Resources.Load<Material>("Materials/RegionMap" + currentRegionId + "_1");
+        mapQuads[1].material = Resources.Load<Material>("Materials/RegionMap" + currentRegionId + "_2");
+        mapQuads[2].material = Resources.Load<Material>("Materials/RegionMap" + currentRegionId + "_3");
+
 
         inputModeButtons[0].onClick.AddListener(delegate() {
             SwitchInputMode(0);
@@ -97,21 +116,136 @@ public class RegionMoveController : MonoBehaviour {
         });
         hook.Hide();
 
+        exitButton.onClick.AddListener(delegate() {
+            leaveCooldown = 5.0f;
+            leaveScreen.image.rectTransform.anchoredPosition = new Vector2(0.0f, 0.0f);
+        });
+
+        leaveScreen.image.rectTransform.anchoredPosition = new Vector2(-1000.0f, 0.0f);
+
+        leaveScreen.onClick.AddListener(delegate() {
+            leaveCooldown = 0.01f;
+        });
+
+        smileyButton.onClick.AddListener(delegate () {
+            b = false;
+            if(!smileyButtons[0].button.enabled)
+            {
+                b = true;
+            }
+            for (i = 0; i < smileyButtons.Length; i++)
+            {
+                smileyButtons[i].button.enabled = b;
+                smileyButtons[i].button.image.enabled = b;
+                smileyButtons[i].icon.enabled = b;
+            }
+        });
+
+        smileyButtons[0].button.onClick.AddListener(delegate() {
+            smileyCooldown = 2.0f;
+            smileyIcon.sprite = smileyButtons[0].icon.sprite;
+            smileyBackground.enabled = true;
+            smileyIcon.enabled = true;
+            smileyButton.OnPointerClick(new PointerEventData(EventSystem.current));
+        });
+
+        smileyButtons[1].button.onClick.AddListener(delegate () {
+            smileyCooldown = 2.0f;
+            smileyIcon.sprite = smileyButtons[1].icon.sprite;
+            smileyBackground.enabled = true;
+            smileyIcon.enabled = true;
+            smileyButton.OnPointerClick(new PointerEventData(EventSystem.current));
+        });
+
+        b = false;
+        for (i = 0; i < smileyButtons.Length; i++)
+        {
+            smileyButtons[i].button.enabled = b;
+            smileyButtons[i].button.image.enabled = b;
+            smileyButtons[i].icon.enabled = b;
+        }
+
+        map.size = new Vector2(60.0f, 178.0f);
         map.Load("map_01_areas");
         mapNode = map.FindNode(transform.position.x, transform.position.z);
 
+        if (PlayerPrefs.GetInt("MapObjectState_" + currentRegionId + "_2", 0) == 1)
+        {
+            taskTargets[0].active = false;
+        }
+        if (PlayerPrefs.GetInt("MapObjectState_" + currentRegionId + "_3", 0) == 1)
+        {
+            taskTargets[2].active = false;
+        }
+        if (PlayerPrefs.GetInt("MapObjectState_" + currentRegionId + "_4", 0) == 1)
+        {
+            taskTargets[4].active = false;
+        }
+
+        string currentPointId = PlayerPrefs.GetString("CurrentPoint");
+        switch(currentPointId)
+        {
+            case "1":
+                transform.position = new Vector3(1.33f, 0.0f, -16.0f);
+                break;
+            case "2":
+                transform.position = taskTargets[0].transform.position;
+                break;
+            case "3":
+                transform.position = taskTargets[2].transform.position;
+                break;
+            case "4":
+                transform.position = taskTargets[4].transform.position;
+                break;
+            default:
+                transform.position = new Vector3(1.33f, 0.0f, -16.0f);
+                break;
+        }
+
+        if(PlayerPrefs.GetInt("WinBattle", 0) == 1)
+        {
+            PlayerPrefs.SetInt("WinBattle", 0);
+            transform.position = new Vector3(PlayerPrefs.GetFloat("RegionLastX", 0.0f), 0.0f, PlayerPrefs.GetFloat("RegionLastY", 0.0f));
+        }
+
         GameObject bot;
-        bots = new RegionBotBehavior[2];
+        bots = new RegionBotBehavior[3];
         for (i = 0; i < bots.Length; i++)
         {
             bot = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/Bot"));
             bots[i] = bot.GetComponent<RegionBotBehavior>();
+            bots[i].player = this.gameObject;
             bots[i].map = map;
             bots[i].mapNode = map.FindNode(bots[i].transform.position.x, bots[i].transform.position.z);
             bots[i].offscreenPointer = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/BotOffscreenPointer")).GetComponent<Image>();
             bots[i].offscreenPointer.rectTransform.parent = mainCanvas.transform;
             bots[i].offscreenPointer.rectTransform.anchoredPosition = new Vector2(-1000.0f, 0.0f);
         }
+
+    }
+
+    void OnGUI() {
+
+        int i, j;
+#if !UNITY_EDITOR
+        if(Input.touchCount > 0)
+        {
+            for(i = 0; i < Input.touchCount; i++)
+            {
+                if(Input.touches[i].phase == TouchPhase.Began && !EventSystem.current.IsPointerOverGameObject(Input.touches[i].fingerId) && smileyButtons[0].button.enabled)
+                {
+                    /*
+                    for(j = 0; j < smileyButtons.Length; j++)
+                    {
+                        smileyButtons[j].button.enabled = false;
+                        smileyButtons[j].button.image.enabled = false;
+                        smileyButtons[j].icon.enabled = false;
+                    }
+                    */
+                }
+            }
+        }
+#endif
 
     }
 
@@ -131,9 +265,21 @@ public class RegionMoveController : MonoBehaviour {
             battleCooldown -= Time.deltaTime;
             if (battleCooldown <= 0.0f)
             {
-                Application.LoadLevel("battle");
+                PlayerPrefs.SetFloat("RegionLastX", transform.position.x);
+                PlayerPrefs.SetFloat("RegionLastY", transform.position.z);
+                PlayerPrefs.SetFloat("EnemyAdvantage", hook.targetRank * 0.5f + 0.5f);
+                SceneManager.LoadScene("battle");
             }
             return;
+        }
+
+        if (leaveCooldown > 0.0f)
+        {
+            leaveCooldown -= Time.deltaTime;
+            if(leaveCooldown <= 0.0f)
+            {
+                SceneManager.LoadScene("map");
+            }
         }
 
         botActionCooldown -= Time.deltaTime;
@@ -146,6 +292,9 @@ public class RegionMoveController : MonoBehaviour {
                 if((bot.transform.position - transform.position).magnitude > 9.0f)
                 {
                     bot.transform.position = transform.position + (new Vector3(Random.Range(-1.0f, 1.0f), 0.0f, Random.Range(-1.0f, 1.0f))).normalized * 5.0f;
+                    bot.direction = transform.position - bot.transform.position;
+                    bot.direction.y = 0.0f;
+                    bot.direction.Normalize();
                 }
                 v3 = bot.transform.position - transform.position;
                 if(v3.magnitude < bot.visibleDistance)
@@ -212,6 +361,17 @@ public class RegionMoveController : MonoBehaviour {
                 {
                     bot.offscreenPointer.rectTransform.anchoredPosition = new Vector2(v3.x * (((float)Screen.width) / mainCanvas.scaleFactor - 24.0f) / 2.0f, v3.z / Mathf.Abs(v3.z) * ((float)Screen.height) / mainCanvas.scaleFactor / 2.0f);
                 }
+            }
+        }
+
+        if(smileyCooldown > 0.0f)
+        {
+            smileyCooldown -= Time.deltaTime;
+            if(smileyCooldown <= 0.0f)
+            {
+                smileyCooldown = 0.0f;
+                smileyIcon.enabled = false;
+                smileyBackground.enabled = false;
             }
         }
 
@@ -339,21 +499,21 @@ public class RegionMoveController : MonoBehaviour {
         {
             playerIcon.transform.localRotation = Quaternion.LookRotation(Vector3.right * direction.x + Vector3.up * direction.z, Vector3.forward);
         }
-        if (transform.position.x < -10.0f)
+        if (transform.position.x < -9.0f)
         {
-            transform.position += Vector3.right * (-10.0f - transform.position.x);
+            transform.position += Vector3.right * (-9.0f - transform.position.x);
         }
-        if (transform.position.x > 10.0f)
+        if (transform.position.x > 9.0f)
         {
-            transform.position += Vector3.right * (10.0f - transform.position.x);
+            transform.position += Vector3.right * (9.0f - transform.position.x);
         }
-        if (transform.position.z < -10.0f)
+        if (transform.position.z < -27.0f)
         {
-            transform.position += Vector3.forward * (-10.0f - transform.position.z);
+            transform.position += Vector3.forward * (-27.0f - transform.position.z);
         }
-        if (transform.position.z > 10.0f)
+        if (transform.position.z > 30.0f)
         {
-            transform.position += Vector3.forward * (10.0f - transform.position.z);
+            transform.position += Vector3.forward * (30.0f - transform.position.z);
         }
 
         mapNode = map.FindNode(transform.position.x, transform.position.z);
@@ -404,13 +564,30 @@ public class RegionMoveController : MonoBehaviour {
         {
             camera.transform.position += Vector3.right * (7.0f - camera.transform.position.x);
         }
-        if (camera.transform.position.z < -5.0f)
+        if (camera.transform.position.z < -25.0f)
         {
-            camera.transform.position += Vector3.forward * (-5.0f - camera.transform.position.z);
+            camera.transform.position += Vector3.forward * (-25.0f - camera.transform.position.z);
         }
-        if (camera.transform.position.z > 5.0f)
+        if (camera.transform.position.z > 25.0f)
         {
-            camera.transform.position += Vector3.forward * (5.0f - camera.transform.position.z);
+            camera.transform.position += Vector3.forward * (25.0f - camera.transform.position.z);
+        }
+
+        if (!exitButton.enabled)
+        {
+            if (transform.position.x < -8.0f || transform.position.x > 8.0f || transform.position.z < -26.0f || transform.position.z > 29.0f)
+            {
+                exitButton.enabled = true;
+                exitButton.image.enabled = true;
+            }
+        }
+        else
+        {
+            if (!(transform.position.x < -8.0f || transform.position.x > 8.0f || transform.position.z < -26.0f || transform.position.z > 29.0f))
+            {
+                exitButton.enabled = false;
+                exitButton.image.enabled = false;
+            }
         }
 
         RaycastHit hit;
@@ -419,6 +596,7 @@ public class RegionMoveController : MonoBehaviour {
             if (hit.collider.tag == "Player")
             {
                 battleCooldown = 1.0f;
+                hook.targetRank = hit.collider.gameObject.GetComponent<RegionBotBehavior>().rankModifier;
                 GameObject.Destroy(hit.collider.gameObject.GetComponent<RegionBotBehavior>());
                 hook.hook.transform.position = hit.collider.transform.position;
                 battleIcon.transform.position = transform.position + (hit.collider.transform.position - transform.position).normalized * 0.5f + Vector3.up * 0.1f;
@@ -428,7 +606,22 @@ public class RegionMoveController : MonoBehaviour {
             }
         }
 
-        if(discoveredTimer > 0.0f)
+        if (Physics.SphereCast(transform.position - Vector3.up, 0.3f, Vector3.up, out hit, 2.0f, 255))
+        {
+            if (hit.collider.tag == "Player")
+            {
+                battleCooldown = 1.0f;
+                hook.targetRank = hit.collider.gameObject.GetComponent<RegionBotBehavior>().rankModifier;
+                GameObject.Destroy(hit.collider.gameObject.GetComponent<RegionBotBehavior>());
+                hook.hook.transform.position = hit.collider.transform.position;
+                battleIcon.transform.position = transform.position + (hit.collider.transform.position - transform.position).normalized * 0.5f + Vector3.up * 0.1f;
+                battleIcon.enabled = true;
+                hit.collider.transform.parent = hook.hook.transform;
+                hook.Rollback();
+            }
+        }
+
+        if (discoveredTimer > 0.0f)
         {
             discoveredTimer -= Time.deltaTime;
             discoveredFrame1.rectTransform.anchoredPosition = new Vector2(0.0f, Mathf.Max(0.0f, Mathf.Abs(discoveredTimer * 2.0f - 2.0f) - 1.0f) * 144.0f);
@@ -447,16 +640,26 @@ public class RegionMoveController : MonoBehaviour {
             }
         }
 
+        if (direction.magnitude > 0.75f)
+        {
+            for (i = 0; i < taskTargets.Length; i++)
+            {
+                taskTargets[i].Process(this);
+            }
+        }
+
         if (taskPointer.enabled)
         {
             v3 = taskTarget.transform.position - camera.transform.position;
             v3.y = 0.0f;
+            /*
             if ((taskTarget.transform.position - transform.position).magnitude < 0.5f)
             {
                 ShowDiscovered(1);
                 taskPointer.enabled = false;
                 taskTarget.enabled = false;
             }
+            */
             v3.x /= 2.7f;
             v3.z /= 5.0f;
             if (Mathf.Abs(v3.x) >= 1.0f || Mathf.Abs(v3.z) >= 1.0f)
@@ -504,6 +707,9 @@ public class RegionMoveController : MonoBehaviour {
                 break;
             case 1:
                 discoveredIcon.sprite = taskCompleteSprite;
+                break;
+            case 2:
+                discoveredIcon.sprite = itemFoundSprite;
                 break;
         }
         discoveredTimer = 2.0f;
