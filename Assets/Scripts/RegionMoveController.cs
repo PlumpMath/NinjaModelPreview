@@ -34,6 +34,7 @@ public class RegionMoveController : MonoBehaviour {
     public SmileyButton[] smileyButtons = new SmileyButton[0];
     public Button exitButton;
     public Button leaveScreen;
+    public Text statusBar;
     public MeshRenderer[] mapQuads = new MeshRenderer[3];
 
     public RegionMap map = new RegionMap();
@@ -117,15 +118,15 @@ public class RegionMoveController : MonoBehaviour {
         hook.Hide();
 
         exitButton.onClick.AddListener(delegate() {
-            leaveCooldown = 5.0f;
-            leaveScreen.image.rectTransform.anchoredPosition = new Vector2(0.0f, 0.0f);
+            //leaveCooldown = 5.0f;
+            //leaveScreen.image.rectTransform.anchoredPosition = new Vector2(0.0f, 0.0f);
         });
 
         leaveScreen.image.rectTransform.anchoredPosition = new Vector2(-1000.0f, 0.0f);
 
-        leaveScreen.onClick.AddListener(delegate() {
-            leaveCooldown = 0.01f;
-        });
+        //leaveScreen.onClick.AddListener(delegate() {
+        //    leaveCooldown = 0.01f;
+        //});
 
         smileyButton.onClick.AddListener(delegate () {
             b = false;
@@ -220,6 +221,15 @@ public class RegionMoveController : MonoBehaviour {
             bots[i].offscreenPointer = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/BotOffscreenPointer")).GetComponent<Image>();
             bots[i].offscreenPointer.rectTransform.parent = mainCanvas.transform;
             bots[i].offscreenPointer.rectTransform.anchoredPosition = new Vector2(-1000.0f, 0.0f);
+        }
+
+        if(currentRegionId == "01")
+        {
+            statusBar.text = "Долина змеиной головы";
+        }
+        if (currentRegionId == "02")
+        {
+            statusBar.text = "Ущелье холодных вершин";
         }
 
     }
@@ -577,6 +587,8 @@ public class RegionMoveController : MonoBehaviour {
         {
             if (transform.position.x < -8.0f || transform.position.x > 8.0f || transform.position.z < -26.0f || transform.position.z > 29.0f)
             {
+                leaveCooldown = 5.0f;
+                statusBar.text = "Переход через 5 секунд";
                 exitButton.enabled = true;
                 exitButton.image.enabled = true;
             }
@@ -585,8 +597,17 @@ public class RegionMoveController : MonoBehaviour {
         {
             if (!(transform.position.x < -8.0f || transform.position.x > 8.0f || transform.position.z < -26.0f || transform.position.z > 29.0f))
             {
+                leaveCooldown = 0.0f;
+                statusBar.text = "";
                 exitButton.enabled = false;
                 exitButton.image.enabled = false;
+            }
+            else if(leaveCooldown > 0.0f)
+            {
+                if (leaveCooldown + Time.deltaTime > Mathf.Ceil(leaveCooldown))
+                {
+                    statusBar.text = "Переход через " + Mathf.Ceil(leaveCooldown) + " секунд";
+                }
             }
         }
 

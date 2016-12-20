@@ -40,8 +40,8 @@
 			fixed4 frag(v2f i) : SV_Target
 			{
 				fixed4 col = fixed4(0.0f, 0.0f, 0.0f, 1.0f);
-				col.r = i.coord.z / 100.0f;
-				col.g = i.coord.y / 6.0f;
+				col.r = i.coord.z / 200.0f + 0.135f;
+				col.g = 1.0f - i.coord.y / 10.0f;
 				col.b = i.coord.x / 100.0f + 0.5f;
 				return col;
 			}

@@ -8,7 +8,17 @@ Shader "Fog/FogEffect"
 		_Depth ("Depth (RGB)", 2D) = "white" {}
 		_FogTex("Fog Texture", 2D) = "white" {}
 		_FogColor("Fog Color", Color) = (1.0, 1.0, 1.0, 1.0)
-		_Blend ("Intensity", Range(0.0, 1.0)) = 0.5
+		_NearFogColor("Near Fog Color", Color) = (1.0, 1.0, 1.0, 1.0)
+		_FarFogColor("Far Fog Color", Color) = (1.0, 1.0, 1.0, 1.0)
+		_NearFactor("Near Factor", Range(0.25, 16.0)) = 1
+		_FarFactor("Far Factor", Range(0.25, 16.0)) = 1
+		_Sharpness("Sharpness", Range(0.25, 16.0)) = 1.0
+		_Height("Height", Range(0.0, 2.0)) = 0.0
+		_NearHeight("Near Height", Range(0.0, 2.0)) = 0.3
+		_FarHeight("Far Height", Range(0.0, 2.0)) = 0.3
+
+		_YOrientation("Y Orientation", Range(0.0, 1.0)) = 1.0
+
 	}
 	SubShader
 	{
@@ -17,7 +27,7 @@ Shader "Fog/FogEffect"
 		Cull Off
 		ZWrite Off
 		Fog { Mode Off }
-		LOD 100
+		LOD 200
 
 		Pass
 		{
@@ -41,12 +51,21 @@ Shader "Fog/FogEffect"
 			};
 
 			sampler2D _MainTex;
-			sampler2D _FogTex;
 			sampler2D _Depth;
+			sampler2D _FogTex;
 			float4 _MainTex_ST;
-			float4 _FogTex_ST;
 			float4 _Depth_ST;
+			float4 _FogTex_ST;
 			float4 _FogColor;
+			float4 _NearFogColor;
+			float4 _FarFogColor;
+			float _NearFactor;
+			float _FarFactor;
+			float _Sharpness;
+			float _Height;
+			float _NearHeight;
+			float _FarHeight;
+			float _YOrientation;
 
 			v2f vert (appdata v)
 			{
@@ -58,18 +77,30 @@ Shader "Fog/FogEffect"
 			
 			fixed4 frag (v2f i) : SV_Target
 			{
-				// sample the texture
 				fixed4 col = tex2D(_MainTex, i.uv);
 				float uvY = i.uv.y;
-#if defined(INVERT_Y)
-				//uvY = 1.0f - uvY;
-#endif
+//#if defined(INVERT_Y)
+				uvY = uvY * _YOrientation + (1.0f - uvY) * (1.0f - _YOrientation);
+//#endif
 				fixed4 depth = tex2D(_Depth, float2(i.uv.x, uvY));
-				fixed4 fogColor = tex2D(_FogTex, float2(/*i.uv.x +*/ depth.b * 2.0f, uvY * 1.0f + depth.g * 0.5f + depth.r)) *_FogColor;
-				col.a = 1.0f;
-				float a = max(0.0f, min(1.0f, pow(depth.g + 0.4f, (depth.r + 0.15f) * 3.0f) * (1.0f - fogColor.a * 0.5f)));
+
+				fixed middleFactor = max(0.0, (1.0 - abs(depth.r - 0.25) * 5.0) * 0.5f);
+				fixed nearFactor = pow(min(1.0, max(0.0, 1.0 - depth.r / 0.25)), _NearFactor);
+				fixed farFactor = pow(min(1.0, max(0.0, depth.r - 0.25) / 0.25), _FarFactor);
+				fixed sumFactor = middleFactor + nearFactor + farFactor;
+				fixed factor = (middleFactor + nearFactor + farFactor) / sumFactor;
+
+				fixed4 fogColor = tex2D(_FogTex, float2(depth.b * _FogTex_ST.x, uvY + depth.g * 0.5f + depth.r * _FogTex_ST.y));
+
+				fogColor *= (_FogColor * middleFactor + _NearFogColor * nearFactor + _FarFogColor * farFactor) / sumFactor;
+
+				//fogColor.a = min(1.0f, fogColor.a * 2.0f);
+
+				//col.a = 1.0f;
+				fixed height = (_Height * middleFactor + _NearHeight * nearFactor + _FarHeight * farFactor) / sumFactor;
+				float a = max(0.0f, min(1.0f, pow(depth.g, _Sharpness) + height)) * fogColor.a;
 				fogColor.a = 1.0f;
-				col.rgb = col.rgb * a + fogColor.rgb * (1.0f - a);
+				col.rgb = col.rgb * (1.0f - a) + fogColor.rgb * a;
 				return col;
 			}
 			ENDCG
