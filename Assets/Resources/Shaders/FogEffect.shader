@@ -16,6 +16,8 @@ Shader "Fog/FogEffect"
 		_Height("Height", Range(0.0, 2.0)) = 0.0
 		_NearHeight("Near Height", Range(0.0, 2.0)) = 0.3
 		_FarHeight("Far Height", Range(0.0, 2.0)) = 0.3
+		_MiddlePlaneDistance("Middle Plane Distance", Range(0.001, 1.0)) = 0.2
+		_MiddlePlaneRange("Middle Plane Range", Range(0.001, 1.0)) = 0.5
 
 		_YOrientation("Y Orientation", Range(0.0, 1.0)) = 1.0
 
@@ -65,6 +67,8 @@ Shader "Fog/FogEffect"
 			float _Height;
 			float _NearHeight;
 			float _FarHeight;
+			float _MiddlePlaneDistance;
+			float _MiddlePlaneRange;
 			float _YOrientation;
 
 			v2f vert (appdata v)
@@ -84,9 +88,9 @@ Shader "Fog/FogEffect"
 //#endif
 				fixed4 depth = tex2D(_Depth, float2(i.uv.x, uvY));
 
-				fixed middleFactor = max(0.0, (1.0 - abs(depth.r - 0.25) * 5.0) * 0.5f);
-				fixed nearFactor = pow(min(1.0, max(0.0, 1.0 - depth.r / 0.25)), _NearFactor);
-				fixed farFactor = pow(min(1.0, max(0.0, depth.r - 0.25) / 0.25), _FarFactor);
+				fixed middleFactor = min(1.0, max(0.0, (1.0 - abs(depth.r - _MiddlePlaneDistance) * 6.0) * _MiddlePlaneRange));
+				fixed nearFactor = pow(min(1.0, max(0.0, 1.0 - depth.r / _MiddlePlaneDistance)), _NearFactor);
+				fixed farFactor = pow(min(1.0, max(0.0, depth.r - _MiddlePlaneDistance) / _MiddlePlaneDistance), _FarFactor);
 				fixed sumFactor = middleFactor + nearFactor + farFactor;
 				fixed factor = (middleFactor + nearFactor + farFactor) / sumFactor;
 
