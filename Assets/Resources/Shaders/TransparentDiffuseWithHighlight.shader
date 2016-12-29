@@ -11,6 +11,7 @@ Shader "Custom/Transparent/Textured Multiply Highlighted"
 		_BumpMap("Normal Map", 2D) = "bump" {}
 		_MatCap("MatCap (RGB)", 2D) = "white" {}
 		_HighlightTex("Highlight (RGB)", 2D) = "black" {}
+		_LightmapTex("Lightmap (RGB)", 2D) = "black" {}
 		[Toggle(MATCAP_ACCURATE)] _MatCapAccurate("Accurate Calculation", Int) = 0
 	}
 
@@ -76,13 +77,14 @@ Shader "Custom/Transparent/Textured Multiply Highlighted"
 				o.c1 = mul(rotation, normalize(UNITY_MATRIX_IT_MV[1].xyz));
 		#endif
 
-				o.uv_light = v.texcoord1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+				o.uv_light = v.texcoord1.xy; //v.texcoord1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
 				return o;
 			}
 
 			uniform sampler2D _MainTex;
 			uniform sampler2D _BumpMap;
 			uniform sampler2D _MatCap;
+			uniform sampler2D _LightmapTex;
 			// uniform sampler2D unity_Lightmap;
 
 			fixed4 frag(v2f i) : COLOR
@@ -104,7 +106,7 @@ Shader "Custom/Transparent/Textured Multiply Highlighted"
 			#endif
 
 				float4 o = float4(tex.rgb * mc.rgb * 2.0, tex.a);
-				o.rgb *= DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv_light));
+				o.rgb *= (tex2D(_LightmapTex, i.uv_light).rgb + 0.75f);
 
 				return o;
 			}
