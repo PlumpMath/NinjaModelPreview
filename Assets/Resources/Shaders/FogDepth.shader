@@ -1,4 +1,4 @@
-﻿Shader "Fog/FogDepth"
+﻿Shader "Posteffects/FogDepth"
 {
 	Properties
 	{

@@ -122,6 +122,7 @@ public class MissileController : MonoBehaviour {
                 GameObject projector = (GameObject)GameObject.Instantiate(damagePrefab);
                 projector.transform.position = collision.contacts[0].point + collision.contacts[0].normal * 0.2f;
                 projector.transform.forward = transform.forward;
+                projector.transform.parent = collision.collider.transform;
                 GameObject.Destroy(projector, 1.0f);
                 taskObject.Hit(transform.position.y);
             }

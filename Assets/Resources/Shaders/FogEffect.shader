@@ -1,6 +1,6 @@
 ﻿// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
 
-Shader "Fog/FogEffect"
+Shader "Posteffects/FogEffect"
 {
 	Properties
 	{
@@ -36,7 +36,7 @@ Shader "Fog/FogEffect"
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
-			#pragma multi_compile INVERT_Y
+			//#pragma multi_compile INVERT_Y
 			
 			#include "UnityCG.cginc"
 

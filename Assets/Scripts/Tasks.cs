@@ -204,8 +204,15 @@ public class Tasks : MonoBehaviour {
         players[1].health -= UnityEngine.Random.Range(0.05f, 0.08f);
         if(players[1].health <= 0.0f)
         {
-            PlayerPrefs.SetInt("WinBattle", 1);
-            Application.LoadLevel("region");
+            if (PlayerPrefs.GetFloat("RegionLastX") <= -32000.0f)
+            {
+                Application.LoadLevel("map");
+            }
+            else
+            {
+                PlayerPrefs.SetInt("WinBattle", 1);
+                Application.LoadLevel("region");
+            }
         }
     }
 

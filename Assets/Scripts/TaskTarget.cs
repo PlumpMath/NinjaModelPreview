@@ -5,6 +5,7 @@ public class TaskTarget : MonoBehaviour {
 
     public TaskTarget next;
     public SpriteRenderer icon;
+    public SpriteRenderer area;
 
     public bool active = true;
     public int type = 0;
@@ -56,13 +57,17 @@ public class TaskTarget : MonoBehaviour {
                 iconCooldown = 1.0f;
                 icon.transform.position = transform.position + Vector3.right * Random.Range(-activeRadius * 0.5f, activeRadius * 0.5f) + Vector3.forward * Random.Range(-activeRadius * 0.5f, activeRadius * 0.5f);
                 icon.enabled = true;
+                area.color = new Color(0.0f, 1.0f, 0.0f, progress * 0.00125f);
+                area.enabled = true;
             }
             if(progress >= 100.0f && type == 0)
             {
                 next.active = true;
+                area.enabled = false;
                 invoker.taskTarget = next;
                 invoker.taskPointer.enabled = true;
                 invoker.ShowDiscovered(2);
+                invoker.statusBar.text = "Обнаружен предмет";
                 active = false;
             }
             if(progress >= 0.0f && type == 1)
@@ -70,6 +75,7 @@ public class TaskTarget : MonoBehaviour {
                 invoker.taskTarget = null;
                 invoker.taskPointer.enabled = false;
                 invoker.ShowDiscovered(1);
+                invoker.statusBar.text = "";
                 active = false;
                 if(unlockPoint != "")
                 {

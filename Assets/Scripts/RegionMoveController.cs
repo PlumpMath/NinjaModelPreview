@@ -23,6 +23,7 @@ public class RegionMoveController : MonoBehaviour {
     public Image taskPointer;
     public TaskTarget taskTarget;
     public TaskTarget[] taskTargets = new TaskTarget[0];
+    public TaskTarget[] enteringPoints = new TaskTarget[0];
     public Sprite someFoundSprite;
     public Sprite itemFoundSprite;
     public Sprite taskCompleteSprite;
@@ -51,7 +52,7 @@ public class RegionMoveController : MonoBehaviour {
     public RegionHook hook = null;
 
     private Vector3 direction = Vector3.zero;
-    private float battleCooldown = 0.0f;
+    public float battleCooldown = 0.0f;
     private float botActionCooldown = 0.0f;
     private float bushDistanceTraveled = 0.0f;
     private float discoveredTimer = 0.0f;
@@ -145,6 +146,7 @@ public class RegionMoveController : MonoBehaviour {
         smileyButtons[0].button.onClick.AddListener(delegate() {
             smileyCooldown = 2.0f;
             smileyIcon.sprite = smileyButtons[0].icon.sprite;
+            smileyIcon.transform.localScale = Vector3.one * 1.5f;
             smileyBackground.enabled = true;
             smileyIcon.enabled = true;
             smileyButton.OnPointerClick(new PointerEventData(EventSystem.current));
@@ -153,6 +155,7 @@ public class RegionMoveController : MonoBehaviour {
         smileyButtons[1].button.onClick.AddListener(delegate () {
             smileyCooldown = 2.0f;
             smileyIcon.sprite = smileyButtons[1].icon.sprite;
+            smileyIcon.transform.localScale = Vector3.one * 1.5f;
             smileyBackground.enabled = true;
             smileyIcon.enabled = true;
             smileyButton.OnPointerClick(new PointerEventData(EventSystem.current));
@@ -184,6 +187,14 @@ public class RegionMoveController : MonoBehaviour {
         }
 
         string currentPointId = PlayerPrefs.GetString("CurrentPoint");
+        for(i = 0; i < enteringPoints.Length; i++)
+        {
+            if(enteringPoints[i].unlockPoint == currentPointId)
+            {
+                transform.position = enteringPoints[i].transform.position;
+            }
+        }
+        /*
         switch(currentPointId)
         {
             case "1":
@@ -202,6 +213,7 @@ public class RegionMoveController : MonoBehaviour {
                 transform.position = new Vector3(1.33f, 0.0f, -16.0f);
                 break;
         }
+        */
 
         if(PlayerPrefs.GetInt("WinBattle", 0) == 1)
         {
@@ -230,6 +242,10 @@ public class RegionMoveController : MonoBehaviour {
         if (currentRegionId == "02")
         {
             statusBar.text = "Ущелье холодных вершин";
+        }
+        if (currentRegionId == "03")
+        {
+            statusBar.text = "Пустошь дырявых штанов";
         }
 
     }
@@ -288,6 +304,22 @@ public class RegionMoveController : MonoBehaviour {
             leaveCooldown -= Time.deltaTime;
             if(leaveCooldown <= 0.0f)
             {
+                if(transform.position.x < -8.0f)
+                {
+                    PlayerPrefs.SetString("CurrentPoint", "E");
+                }
+                else if(transform.position.x > 8.0f)
+                {
+                    PlayerPrefs.SetString("CurrentPoint", "W");
+                }
+                else if (transform.position.y < -26.0f)
+                {
+                    PlayerPrefs.SetString("CurrentPoint", "S");
+                }
+                else if (transform.position.y > 27.0f)
+                {
+                    PlayerPrefs.SetString("CurrentPoint", "N");
+                }
                 SceneManager.LoadScene("map");
             }
         }
@@ -347,6 +379,10 @@ public class RegionMoveController : MonoBehaviour {
                 if((v3.x > 2.7f || v3.x < -2.7f || v3.y > 5.0f || v3.y < -5.0f) && !bot.offscreenPointer.enabled && bot.isVisible)
                 {
                     bot.offscreenPointer.enabled = true;
+                }
+                if(bot.offscreenPointer.enabled)
+                {
+                    bot.offscreenPointer.color = new Color(1.0f, 0.5f, 0.5f, Mathf.Max(0.0f, Mathf.Min(1.0f, 1.0f - (v3.magnitude - 2.7f) / (bot.visibleDistance - 2.7f))));
                 }
                 if (((v3.x <= 2.7f && v3.x >= -2.7f && v3.y <= 5.0f && v3.y >= -5.0f) && bot.offscreenPointer.enabled) || !bot.isVisible)
                 {
@@ -496,7 +532,7 @@ public class RegionMoveController : MonoBehaviour {
         if (mapNode.coverageType == 2)
         {
             bushDistanceTraveled += (new Vector3(newPosition2D.x, transform.position.y, newPosition2D.y) - transform.position).magnitude * Random.Range(0.0f, 1.0f);
-            if (bushDistanceTraveled > 2.0f)
+            if (bushDistanceTraveled > 5.0f)
             {
                 bushDistanceTraveled = 0.0f;
                 ShowDiscovered(0);
@@ -541,8 +577,8 @@ public class RegionMoveController : MonoBehaviour {
             Color newColor = new Color(1.0f, 1.0f, 1.0f, 1.0f);
             if(coverageType == 2)
             {
-                inputCooldown *= speed / 0.8f;
-                speed = 0.8f;
+                inputCooldown *= speed / 1.2f; // 0.8f
+                speed = 1.2f; // 0.8f
                 newColor.a = 0.5f;
             }
             else if (coverageType == 1)
@@ -585,7 +621,7 @@ public class RegionMoveController : MonoBehaviour {
 
         if (!exitButton.enabled)
         {
-            if (transform.position.x < -8.0f || transform.position.x > 8.0f || transform.position.z < -26.0f || transform.position.z > 29.0f)
+            if (transform.position.x < -8.0f || transform.position.x > 8.0f || transform.position.z < -26.0f || transform.position.z > 27.0f)
             {
                 leaveCooldown = 5.0f;
                 statusBar.text = "Переход через 5 секунд";
@@ -595,7 +631,7 @@ public class RegionMoveController : MonoBehaviour {
         }
         else
         {
-            if (!(transform.position.x < -8.0f || transform.position.x > 8.0f || transform.position.z < -26.0f || transform.position.z > 29.0f))
+            if (!(transform.position.x < -8.0f || transform.position.x > 8.0f || transform.position.z < -26.0f || transform.position.z > 27.0f))
             {
                 leaveCooldown = 0.0f;
                 statusBar.text = "";
@@ -614,7 +650,7 @@ public class RegionMoveController : MonoBehaviour {
         RaycastHit hit;
         if (Physics.SphereCast(hook.hook.transform.position - Vector3.up, 0.3f, Vector3.up, out hit, 2.0f, 255))
         {
-            if (hit.collider.tag == "Player")
+            if (hit.collider.tag == "Enemy")
             {
                 battleCooldown = 1.0f;
                 hook.targetRank = hit.collider.gameObject.GetComponent<RegionBotBehavior>().rankModifier;
@@ -629,7 +665,7 @@ public class RegionMoveController : MonoBehaviour {
 
         if (Physics.SphereCast(transform.position - Vector3.up, 0.3f, Vector3.up, out hit, 2.0f, 255))
         {
-            if (hit.collider.tag == "Player")
+            if (hit.collider.tag == "Enemy")
             {
                 battleCooldown = 1.0f;
                 hook.targetRank = hit.collider.gameObject.GetComponent<RegionBotBehavior>().rankModifier;
@@ -721,19 +757,22 @@ public class RegionMoveController : MonoBehaviour {
 
     public void ShowDiscovered(int iconId)
     {
-        switch(iconId)
+        switch (iconId)
         {
             case 0:
-                discoveredIcon.sprite = someFoundSprite;
+                smileyIcon.sprite = someFoundSprite;
                 break;
             case 1:
-                discoveredIcon.sprite = taskCompleteSprite;
+                smileyIcon.sprite = taskCompleteSprite;
                 break;
             case 2:
-                discoveredIcon.sprite = itemFoundSprite;
+                smileyIcon.sprite = itemFoundSprite;
                 break;
         }
-        discoveredTimer = 2.0f;
+        smileyIcon.transform.localScale = Vector3.one * 0.5f;
+        smileyCooldown = 2.0f;
+        smileyBackground.enabled = true;
+        smileyIcon.enabled = true;
     }
 
 }
