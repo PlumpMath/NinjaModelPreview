@@ -6,10 +6,45 @@ ModelImporter:
   serializedVersion: 19
   fileIDToRecycleName:
     100000: //RootNode
+    100002: Char_box
+    100004: FloorPlane
+    100006: forest_vase
+    100008: hill_low001
+    100010: tree_lowpoly_004
+    100012: tree_lowpoly_3
+    100014: wood_1
     400000: //RootNode
+    400002: Char_box
+    400004: FloorPlane
+    400006: forest_vase
+    400008: hill_low001
+    400010: tree_lowpoly_004
+    400012: tree_lowpoly_3
+    400014: wood_1
     2300000: //RootNode
+    2300002: Char_box
+    2300004: FloorPlane
+    2300006: forest_vase
+    2300008: hill_low001
+    2300010: tree_lowpoly_004
+    2300012: tree_lowpoly_3
+    2300014: wood_1
     3300000: //RootNode
+    3300002: Char_box
+    3300004: FloorPlane
+    3300006: forest_vase
+    3300008: hill_low001
+    3300010: tree_lowpoly_004
+    3300012: tree_lowpoly_3
+    3300014: wood_1
     4300000: forest_vase
+    4300002: FloorPlane
+    4300004: wood_1
+    4300006: tree_lowpoly_3
+    4300008: Char_box
+    4300010: tree_lowpoly_004
+    4300012: hill_low001
+    7400000: Take 001
     9500000: //RootNode
   materials:
     importMaterials: 1
