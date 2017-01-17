@@ -14,6 +14,8 @@ public class MissileController : MonoBehaviour {
     public float passiveRotation = 360.0f;
 
     public GameObject damagePrefab;
+    public MissileObject obj;
+    public GameNetwork gameNetwork;
 
     private Rigidbody rigidbody;
     private bool collided = false;

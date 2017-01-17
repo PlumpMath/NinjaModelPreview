@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using System;
 using System.Collections;
@@ -206,12 +207,15 @@ public class Tasks : MonoBehaviour {
         {
             if (PlayerPrefs.GetFloat("RegionLastX") <= -32000.0f)
             {
-                Application.LoadLevel("map");
+                GameObject.Find("GameNetwork").GetComponent<GameMatchMaker>().Disconnect();
+                SceneManager.LoadScene("map");
             }
             else
             {
                 PlayerPrefs.SetInt("WinBattle", 1);
-                Application.LoadLevel("region");
+                GameObject.Find("GameNetwork").GetComponent<GameMatchMaker>().targetRoom = "region01";
+                GameObject.Find("GameNetwork").GetComponent<GameMatchMaker>().LeaveRoom();
+                SceneManager.LoadScene("region");
             }
         }
     }
@@ -230,7 +234,8 @@ public class Tasks : MonoBehaviour {
         if (players[0].health <= 0.0f)
         {
             PlayerPrefs.SetInt("WinBattle", 0);
-            Application.LoadLevel("map");
+            GameObject.Find("GameNetwork").GetComponent<GameMatchMaker>().Disconnect();
+            SceneManager.LoadScene("map");
         }
     }
 

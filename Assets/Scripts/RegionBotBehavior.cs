@@ -11,11 +11,15 @@ public class RegionBotBehavior : MonoBehaviour {
     public SpriteRenderer playerFaceRenderer;
     public SpriteRenderer playerRankCircleRenderer;
     public Image offscreenPointer;
+    public SpriteRenderer smileyBackground;
+    public SpriteRenderer smileyIcon;
 
     public RegionMap map = new RegionMap();
     public RegionMapNode mapNode = null;
 
     public RegionHook hook = null;
+
+    public string playerId = "";
 
     public int coverageType = 0;
     public int lastCoverageType = 0;
@@ -28,13 +32,14 @@ public class RegionBotBehavior : MonoBehaviour {
     public bool isGoodVisible = true;
 
     public Vector3 direction = Vector3.zero;
-    private float cooldown = 0.1f;
+    public float cooldown = 0.1f;
     private float cooldown2 = 0.1f;
+    private float smileyCooldown = 0.0f;
 
     // Use this for initialization
     void Start () {
 
-        transform.position = new Vector3(Random.Range(-9.0f, 9.0f), 0.0f, Random.Range(-9.0f, 9.0f));
+        //transform.position = new Vector3(Random.Range(-9.0f, 9.0f), 0.0f, Random.Range(-9.0f, 9.0f));
         rankModifier = Random.Range(-1.0f, 1.0f);
         playerRankCircleRenderer.color = new Color(rankModifier * 0.5f + 0.5f, 0.75f - rankModifier * 0.25f, rankModifier * 0.5f + 0.5f, 1.0f);
         hook.transform.parent = null;
@@ -51,6 +56,7 @@ public class RegionBotBehavior : MonoBehaviour {
             if(cooldown2 <= 0.0f)
             {
                 cooldown2 = 0.1f;
+                /*
                 RaycastHit hit;
                 if (Physics.SphereCast(hook.hook.transform.position - Vector3.up, 0.3f, Vector3.up, out hit, 2.0f, 255))
                 {
@@ -68,6 +74,7 @@ public class RegionBotBehavior : MonoBehaviour {
                         hook.Rollback();
                     }
                 }
+                */
             }
         }
         if(cooldown > 0.0f)
@@ -75,12 +82,15 @@ public class RegionBotBehavior : MonoBehaviour {
             cooldown -= Time.deltaTime;
             if(cooldown <= 0.0f)
             {
+                cooldown = 0.0f;
+                /*
                 cooldown = 0.7f;
                 direction.x = Random.Range(-1.0f, 1.0f);
                 direction.z = Random.Range(-1.0f, 1.0f);
                 direction.Normalize();
                 if((player.transform.position - transform.position).magnitude < 2.7f)
                 {
+                    *//*
                     if(rankModifier > 0.0f)
                     {
                         direction = player.transform.position - transform.position;
@@ -89,15 +99,28 @@ public class RegionBotBehavior : MonoBehaviour {
                     {
                         direction = transform.position - player.transform.position;
                     }
+                    *//*
                     direction.y = 0.0f;
                     direction.Normalize();
                     direction.x += Random.Range(-0.1f, 0.1f);
                     direction.z += Random.Range(-0.1f, 0.1f);
                     direction.Normalize();
                 }
+                */
+            }
+            transform.position += direction * speed * Time.deltaTime;
+        }
+        if (smileyCooldown > 0.0f)
+        {
+            smileyCooldown -= Time.deltaTime;
+            if (smileyCooldown <= 0.0f)
+            {
+                smileyCooldown = 0.0f;
+                smileyIcon.enabled = false;
+                smileyBackground.enabled = false;
             }
         }
-        transform.position += direction * speed * Time.deltaTime;
+        //transform.position += direction * speed * Time.deltaTime;
         playerIcon.transform.localRotation = Quaternion.LookRotation(Vector3.right * direction.x + Vector3.up * direction.z, Vector3.forward);
         if (transform.position.x < -9.0f)
         {
@@ -152,12 +175,51 @@ public class RegionBotBehavior : MonoBehaviour {
             playerRankCircleRenderer.color = newColor;
         }
 
+        /*
         if (!hook.enabled && rankModifier > 0.0f)
         {
             hook.transform.position = transform.position;
             hook.velocity = playerIcon.transform.forward * 3.0f;
             hook.Show();
         }
+        */
 
     }
+
+    public void SetState(Vector2 destination, float moveTime)
+    {
+        direction = new Vector3(destination.x, transform.position.y, destination.y) - transform.position;
+        cooldown = moveTime;
+        if (moveTime == 0.0f)
+        {
+            transform.position = new Vector3(destination.x, transform.position.y, destination.y);
+            speed = 0.0f;
+        }
+        else
+        {
+            speed = direction.magnitude / cooldown;
+        }
+        direction.Normalize();
+    }
+
+    public void ThrowHook(Vector2 destination, float moveTime)
+    {
+        if (!hook.enabled && rankModifier > 0.0f)
+        {
+            hook.transform.position = transform.position;
+            hook.velocity = new Vector3(destination.x, transform.position.y, destination.y) - transform.position;
+            hook.velocity = hook.velocity.normalized * 3.0f;
+            hook.Show();
+        }
+    }
+
+    public void ShowChat(int iconId)
+    {
+        smileyCooldown = 2.0f;
+        smileyIcon.sprite = player.GetComponent<RegionMoveController>().smileyButtons[iconId].icon.sprite;
+        smileyIcon.transform.localScale = Vector3.one * 1.5f;
+        smileyBackground.enabled = true;
+        smileyIcon.enabled = true;
+    }
+
 }

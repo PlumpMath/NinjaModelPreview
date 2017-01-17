@@ -3,6 +3,10 @@ using System.Collections;
 
 public class PlayerController : MonoBehaviour {
 
+    public GameMatchMaker matchMaker;
+    public GameNetwork gameNetwork;
+    public PlayerObject obj;
+
     public PlayerController opponent;
 
     public Tasks tasks;
@@ -48,6 +52,9 @@ public class PlayerController : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
+
+        matchMaker = GameObject.Find("GameNetwork").GetComponent<GameMatchMaker>();
+        matchMaker.playerController = this;
 
         rigidbody = GetComponent<Rigidbody>();
         Animation animation = GetComponent<Animation>();
@@ -321,11 +328,13 @@ public class PlayerController : MonoBehaviour {
                 {
                     throwAngle *= -1.0f;
                 }
+                /*
                 if (stamina > 0.33f && Mathf.Abs(opponent.transform.position.x - transform.position.x) < 10.0f)
                 {
                     stamina -= 0.33f;
                     swipe.Throw2(this, new Vector2(throwAngle + Random.Range(-5.75f, 5.75f) * (1.0f - qualification), Random.Range(0.0f, 1.0f)), 0.0f, 1.0f);
                 }
+                */
             }
 
             /*
@@ -418,4 +427,15 @@ public class PlayerController : MonoBehaviour {
         }
 
     }
+
+    public void Animate(int id)
+    {
+
+    }
+
+    public void Flash()
+    {
+
+    }
+
 }

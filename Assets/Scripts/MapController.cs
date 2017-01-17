@@ -1,11 +1,18 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI.Extensions;
+using UnityEngine.SceneManagement;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
+using System.Net;
+using System.Net.Sockets;
 
 public class MapController : MonoBehaviour {
+
+    public GameMatchMaker matchMaker;
+    public LoginController loginController;
 
     public Button settingsButton;
     public Button playerObject;
@@ -20,6 +27,15 @@ public class MapController : MonoBehaviour {
     public MapRoute movingRoute;
     public float movingCooldown = 0.0f;
 
+    private TcpClient mapSocket = null;
+    private byte[] socketBuffer;
+    private LinkedList<ByteArrayContainer> messageQueue = new LinkedList<ByteArrayContainer>();
+
+    private string authToken = "";
+    private string storedHost = "";
+    private int storedPort = 0;
+
+
     // Use this for initialization
     void Start () {
 
@@ -28,6 +44,9 @@ public class MapController : MonoBehaviour {
         string enteringPoint = PlayerPrefs.GetString("CurrentPoint", "S");
         string[] playerPoint;// = PlayerPrefs.GetString("MapPlayerPoint", "01_03").Split('_');
         string[] mapPointName;
+
+        matchMaker = GameObject.Find("GameNetwork").GetComponent<GameMatchMaker>();
+        loginController = matchMaker.loginController;
 
         PlayerPrefs.SetInt("MapObjectState_01_1", 1);
 
@@ -46,6 +65,7 @@ public class MapController : MonoBehaviour {
                     PlayerPrefs.SetInt("MapObjectState_02_" + (i - 3), 0);
                 }
             }
+            /*
             for (i = 0; i < mapPoints.Length; i++)
             {
                 mapPointName = mapPoints[i].name.Split('_');
@@ -54,6 +74,7 @@ public class MapController : MonoBehaviour {
                     playerObject.image.rectTransform.anchoredPosition = mapPoints[i].rectTransform.anchoredPosition;
                 }
             }
+            */
             for (i = 0; i < mapObjects.Length; i++)
             {
                 string[] strArr = mapObjects[i].name.Split('_');
@@ -66,6 +87,8 @@ public class MapController : MonoBehaviour {
                     mapObjects[i].enabled = false;
                 }
             }
+            PlayerPrefs.SetString("CredentialsKey", "");
+            PlayerPrefs.SetString("CredentialsSecret", "");
         });
 
         for (i = 0; i < mapPoints.Length; i++)
@@ -90,33 +113,134 @@ public class MapController : MonoBehaviour {
         }
 
         mapRegions[0].onClick.AddListener(delegate () {
-            MoveToRegion("01");
+            TapToRegion("01");
             //PlayerPrefs.SetString("CurrentRegion", "01");
             //PlayerPrefs.SetString("CurrentPoint", "1");
             //SceneManager.LoadScene("region");
         });
         mapRegions[1].onClick.AddListener(delegate () {
-            MoveToRegion("02");
+            TapToRegion("02");
         });
         mapRegions[2].onClick.AddListener(delegate () {
-            MoveToRegion("03");
+            TapToRegion("03");
         });
 
 
         playerObject.onClick.AddListener(delegate() {
-            SceneManager.LoadScene("region");
+            //SceneManager.LoadScene("region");
         });
         
     }
-	
-	// Update is called once per frame
-	void Update () {
+
+    public void Connect(string host, int port, string token)
+    {
+        storedHost = host;
+        storedPort = port;
+        authToken = token;
+        mapSocket = new TcpClient();
+        mapSocket.BeginConnect(storedHost, storedPort, new AsyncCallback(ConnectCallback), mapSocket);
+    }
+
+    void ConnectCallback(IAsyncResult result)
+    {
+        Debug.Log("Connected!");
+        int i;
+        int dataLength = 0;
+        mapSocket.Client.EndConnect(result);
+        Debug.Log("End connect");
+        socketBuffer = new byte[4096];
+        Debug.Log("Authenticate with token");
+        byte[] tokenData = Encoding.UTF8.GetBytes(authToken);
+        dataLength = 2 + 2 + tokenData.Length;
+        i = 0;
+        Buffer.BlockCopy(BitConverter.GetBytes((short)1001), 0, socketBuffer, i, 2); // Auth method: token
+        i += 2;
+        Buffer.BlockCopy(BitConverter.GetBytes((short)tokenData.Length), 0, socketBuffer, i, 2); // Token length
+        i += 2;
+        Buffer.BlockCopy(tokenData, 0, socketBuffer, i, tokenData.Length); // Token data
+        Debug.Log("Prepare to send: " + dataLength);
+        mapSocket.Client.BeginSend(socketBuffer, 0, dataLength, SocketFlags.None, new AsyncCallback(SendCallback), null);
+        Debug.Log("Sending...");
+    }
+
+    void SendCallback(IAsyncResult result)
+    {
+        mapSocket.Client.EndSend(result);
+        mapSocket.Client.BeginReceive(socketBuffer, 2048, 2048, SocketFlags.None, new AsyncCallback(ReceiveCallback), socketBuffer);
+    }
+
+    void ReceiveCallback(IAsyncResult result)
+    {
+        byte[] rawData;
+        mapSocket.Client.EndReceive(result);
+        rawData = new byte[2048];
+        Buffer.BlockCopy(socketBuffer, 2048, rawData, 0, 2048);
+        messageQueue.AddLast(new ByteArrayContainer(rawData));
+    }
+
+    public void AddMessage(ByteArrayContainer data)
+    {
+        messageQueue.AddLast(data);
+    }
+
+    // Update is called once per frame
+    void Update () {
 
         int i;
         int l;
+        byte[] data;
+        string regionId;
+        string currentRegion;
+        string enteringPoint;
+        string[] mapPointName;
         Vector2[] points;
         MapPoint point;
         LinkedListNode<MapPoint> pointNode;
+        LinkedListNode<ByteArrayContainer> byteArrayNode;
+
+        byteArrayNode = messageQueue.First;
+        while(byteArrayNode != null)
+        {
+            data = byteArrayNode.Value.value;
+            i = 0;
+            short messageCode = BitConverter.ToInt16(data, i);
+            i += 2;
+            Debug.Log("Message code: " + messageCode);
+            switch (messageCode)
+            {
+                case 1001: // Initial message. Coordinates and global variables received
+                    currentRegion = Encoding.UTF8.GetString(data, i, 2);
+                    i += 2;
+                    enteringPoint = Encoding.UTF8.GetString(data, i, 1);
+                    Debug.Log("currentRegion: " + currentRegion + " ; enteringPoint: " + enteringPoint);
+                    for (i = 0; i < mapPoints.Length; i++)
+                    {
+                        mapPointName = mapPoints[i].name.Split('_');
+                        if ((mapPointName[1] == currentRegion && mapPointName[3] == enteringPoint) || (mapPointName[2] == currentRegion && mapPointName[4] == enteringPoint))
+                        {
+                            playerObject.image.rectTransform.anchoredPosition = mapPoints[i].rectTransform.anchoredPosition;
+                        }
+                    }
+                    break;
+                case 1002: // Route
+                    regionId = Encoding.UTF8.GetString(data, i, 2);
+                    Debug.Log("Target regionId: " + regionId);
+                    MoveToRegion(regionId);
+                    break;
+                case 1003: // Move to game server
+                    if (data.Length >= i + 64)
+                    {
+                        string enteringToken = Encoding.UTF8.GetString(data, i, 64);
+                        loginController.statusCanvas.enabled = true;
+                        matchMaker.ConnectWithToken(enteringToken);
+                    }
+                    break;
+            }
+            byteArrayNode = byteArrayNode.Next;
+            messageQueue.RemoveFirst();
+        }
+
+
         if (movingCooldown > 0.0f)
         {
             movingCooldown -= Time.deltaTime * 0.2f;
@@ -125,7 +249,7 @@ public class MapController : MonoBehaviour {
                 movingRoute.route.RemoveFirst();
                 if(movingRoute.route.Count < 2)
                 {
-                    string[] mapPointName = movingRoute.route.Last.Value.name.Split('_');
+                    mapPointName = movingRoute.route.Last.Value.name.Split('_');
                     PlayerPrefs.SetString("CurrentRegion", movingRoute.targetRegion);
                     if(mapPointName[1] == movingRoute.targetRegion)
                     {
@@ -166,11 +290,11 @@ public class MapController : MonoBehaviour {
 
                 if (movingCooldown < 0.5f && movingCooldown + Time.deltaTime * 0.2f >= 0.5f)
                 {
-                    if(Random.Range(0.0f, 1.0f) > 0.5f)
+                    if(UnityEngine.Random.Range(0.0f, 1.0f) > 0.5f)
                     {
                         PlayerPrefs.SetFloat("RegionLastX", -32000.0f);
                         PlayerPrefs.SetFloat("RegionLastY", 0.0f);
-                        PlayerPrefs.SetFloat("EnemyAdvantage", Random.Range(0.0f, 1.0f));
+                        PlayerPrefs.SetFloat("EnemyAdvantage", UnityEngine.Random.Range(0.0f, 1.0f));
                         SceneManager.LoadScene("battle");
                     }
                 }
@@ -179,6 +303,11 @@ public class MapController : MonoBehaviour {
         }
 
 	}
+
+    public void TapToRegion (string regionId)
+    {
+        loginController.TapToRegion(regionId);
+    }
 
     public void MoveToRegion (string regionId)
     {

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 
 public class RegionMoveController : MonoBehaviour {
 
+    public GameMatchMaker matchMaker = null;
 
     public float speed = 1.0f;
     public Camera camera;
@@ -47,6 +48,7 @@ public class RegionMoveController : MonoBehaviour {
 
     public int inputMode = 3;
     public float inputCooldown = 0.0f;
+    public float inputTimeout = 0.0f;
     public int ignoreFinger = -1;
 
     public RegionHook hook = null;
@@ -59,7 +61,7 @@ public class RegionMoveController : MonoBehaviour {
     private float smileyCooldown = 0.0f;
     private float leaveCooldown = 0.0f;
 
-    private RegionBotBehavior[] bots = new RegionBotBehavior[0];
+    private LinkedList<RegionBotBehavior> bots = new LinkedList<RegionBotBehavior>();
 
     public void SwitchInputMode(int mode)
     {
@@ -150,6 +152,10 @@ public class RegionMoveController : MonoBehaviour {
             smileyBackground.enabled = true;
             smileyIcon.enabled = true;
             smileyButton.OnPointerClick(new PointerEventData(EventSystem.current));
+
+            RegionChatMessage regionChatMessage = new RegionChatMessage();
+            regionChatMessage.iconId = 0;
+            PhotonNetwork.networkingPeer.OpCustom((byte)4, new Dictionary<byte, object> { { 245, regionChatMessage.Pack() } }, true);
         });
 
         smileyButtons[1].button.onClick.AddListener(delegate () {
@@ -159,6 +165,10 @@ public class RegionMoveController : MonoBehaviour {
             smileyBackground.enabled = true;
             smileyIcon.enabled = true;
             smileyButton.OnPointerClick(new PointerEventData(EventSystem.current));
+
+            RegionChatMessage regionChatMessage = new RegionChatMessage();
+            regionChatMessage.iconId = 1;
+            PhotonNetwork.networkingPeer.OpCustom((byte)4, new Dictionary<byte, object> { { 245, regionChatMessage.Pack() } }, true);
         });
 
         b = false;
@@ -221,8 +231,9 @@ public class RegionMoveController : MonoBehaviour {
             transform.position = new Vector3(PlayerPrefs.GetFloat("RegionLastX", 0.0f), 0.0f, PlayerPrefs.GetFloat("RegionLastY", 0.0f));
         }
 
+        /*
         GameObject bot;
-        bots = new RegionBotBehavior[3];
+        bots = new RegionBotBehavior[1];
         for (i = 0; i < bots.Length; i++)
         {
             bot = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/Bot"));
@@ -234,6 +245,7 @@ public class RegionMoveController : MonoBehaviour {
             bots[i].offscreenPointer.rectTransform.parent = mainCanvas.transform;
             bots[i].offscreenPointer.rectTransform.anchoredPosition = new Vector2(-1000.0f, 0.0f);
         }
+        */
 
         if(currentRegionId == "01")
         {
@@ -247,6 +259,9 @@ public class RegionMoveController : MonoBehaviour {
         {
             statusBar.text = "Пустошь дырявых штанов";
         }
+
+        matchMaker = GameObject.Find("GameNetwork").GetComponent<GameMatchMaker>();
+        matchMaker.regionMoveController = this;
 
     }
 
@@ -284,6 +299,7 @@ public class RegionMoveController : MonoBehaviour {
         float posX = 0.0f;
         float posY = 0.0f;
         RegionBotBehavior bot;
+        LinkedListNode<RegionBotBehavior> botNode;
         Vector3 v3;
 
         if (battleCooldown > 0.0f)
@@ -320,7 +336,19 @@ public class RegionMoveController : MonoBehaviour {
                 {
                     PlayerPrefs.SetString("CurrentPoint", "N");
                 }
+                matchMaker.targetRoom = "";
+                matchMaker.LeaveRoom();
+                //matchMaker.Disconnect();
                 SceneManager.LoadScene("map");
+            }
+        }
+
+        if(inputTimeout > 0.0f)
+        {
+            inputTimeout -= Time.deltaTime;
+            if(inputTimeout < 0.0f)
+            {
+                inputTimeout = 0.0f;
             }
         }
 
@@ -328,16 +356,19 @@ public class RegionMoveController : MonoBehaviour {
         if (botActionCooldown < 0.0f)
         {
             botActionCooldown = 0.1f;
-            for(i = 0; i < bots.Length; i++)
+            botNode = bots.First;
+            while (botNode != null)
             {
-                bot = bots[i];
-                if((bot.transform.position - transform.position).magnitude > 9.0f)
+                bot = botNode.Value;
+                /*
+                if ((bot.transform.position - transform.position).magnitude > 9.0f)
                 {
                     bot.transform.position = transform.position + (new Vector3(Random.Range(-1.0f, 1.0f), 0.0f, Random.Range(-1.0f, 1.0f))).normalized * 5.0f;
                     bot.direction = transform.position - bot.transform.position;
                     bot.direction.y = 0.0f;
                     bot.direction.Normalize();
                 }
+                */
                 v3 = bot.transform.position - transform.position;
                 if(v3.magnitude < bot.visibleDistance)
                 {
@@ -388,13 +419,15 @@ public class RegionMoveController : MonoBehaviour {
                 {
                     bot.offscreenPointer.enabled = false;
                 }
+                botNode = botNode.Next;
             }
         }
 
-        for (i = 0; i < bots.Length; i++)
+        botNode = bots.First;
+        while (botNode != null)
         {
-            bot = bots[i];
-            if(bot.offscreenPointer.enabled)
+            bot = botNode.Value;
+            if (bot.offscreenPointer.enabled)
             {
                 v3 = bot.transform.position - transform.position;
                 v3.x /= 2.7f;
@@ -408,6 +441,7 @@ public class RegionMoveController : MonoBehaviour {
                     bot.offscreenPointer.rectTransform.anchoredPosition = new Vector2(v3.x * (((float)Screen.width) / mainCanvas.scaleFactor - 24.0f) / 2.0f, v3.z / Mathf.Abs(v3.z) * ((float)Screen.height) / mainCanvas.scaleFactor / 2.0f);
                 }
             }
+            botNode = botNode.Next;
         }
 
         if(smileyCooldown > 0.0f)
@@ -506,6 +540,15 @@ public class RegionMoveController : MonoBehaviour {
         Vector2 position2D = new Vector2(transform.position.x, transform.position.z);
         Vector2 direction2D = new Vector2(direction.x, direction.z);
         Vector2 newPosition2D = position2D + direction2D * speed * Time.deltaTime;
+
+        if (inputTimeout <= 0.0f)
+        {
+            inputTimeout = 0.1f;
+            RegionMoveMessage regionMoveMessage = new RegionMoveMessage();
+            regionMoveMessage.destination = position2D + direction2D * speed * inputCooldown;
+            regionMoveMessage.moveTimemark = inputCooldown;
+            PhotonNetwork.networkingPeer.OpCustom((byte)2, new Dictionary<byte, object> { { 245, regionMoveMessage.Pack() } }, true);
+        }
 
         RegionBarrier barrier;
         LinkedListNode<RegionBarrier> barrierNode = map.barriers.First;
@@ -647,6 +690,32 @@ public class RegionMoveController : MonoBehaviour {
             }
         }
 
+        /*
+        Vector2 v1 = direction2D.normalized * speed;
+        float x01 = transform.position.x;
+        float y01 = transform.position.y;
+        float vx1 = v1.x;
+        float vy1 = v1.y;
+
+        Vector2 v2 = (new Vector2(bots[0].direction.x, bots[0].direction.z)).normalized * speed;
+        float x02 = bots[0].transform.position.x;
+        float y02 = bots[0].transform.position.y;
+        float vx2 = v2.x;
+        float vy2 = v2.y;
+
+        float tx = (x02 - x01) / (vx1 - vx2);
+        float ty = (y02 - y01) / (vy1 - vy2);
+        if (Mathf.Abs(tx - ty) < 0.5f)
+        {
+            if ((tx + ty) / 2.0f <= inputCooldown)
+            {
+                //Debug.LogWarning("!!!");
+            }
+        }
+        //Debug.Log("D: " + Mathf.Abs(tx - ty) + " ; TX: " + tx + " ; TY: " + ty);
+        */
+
+        /*
         RaycastHit hit;
         if (Physics.SphereCast(hook.hook.transform.position - Vector3.up, 0.3f, Vector3.up, out hit, 2.0f, 255))
         {
@@ -677,6 +746,7 @@ public class RegionMoveController : MonoBehaviour {
                 hook.Rollback();
             }
         }
+        */
 
         if (discoveredTimer > 0.0f)
         {
@@ -745,6 +815,67 @@ public class RegionMoveController : MonoBehaviour {
 
     }
 
+    public void SetOpponentState(string id, Vector2 destination, float moveTime)
+    {
+        int i;
+        RegionBotBehavior bot;
+        LinkedListNode<RegionBotBehavior> botNode = bots.First;
+        while(botNode != null)
+        {
+            bot = botNode.Value;
+            if(bot.playerId == id)
+            {
+                bot.SetState(destination, moveTime);
+                return;
+            }
+            botNode = botNode.Next;
+        }
+        bot = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/Bot")).GetComponent<RegionBotBehavior>();
+        bot.player = this.gameObject;
+        bot.playerId = id;
+        bot.map = map;
+        bot.mapNode = map.FindNode(bot.transform.position.x, bot.transform.position.z);
+        bot.offscreenPointer = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/BotOffscreenPointer")).GetComponent<Image>();
+        bot.offscreenPointer.rectTransform.parent = mainCanvas.transform;
+        bot.offscreenPointer.rectTransform.anchoredPosition = new Vector2(-1000.0f, 0.0f);
+        bots.AddLast(bot);
+        bot.SetState(destination, moveTime);
+    }
+
+    public void ThrowOpponentHook(string id, Vector2 destination, float moveTime)
+    {
+        int i;
+        RegionBotBehavior bot;
+        LinkedListNode<RegionBotBehavior> botNode = bots.First;
+        while (botNode != null)
+        {
+            bot = botNode.Value;
+            if (bot.playerId == id)
+            {
+                bot.ThrowHook(destination, moveTime);
+                return;
+            }
+            botNode = botNode.Next;
+        }
+    }
+
+    public void ShowOpponentChat(string id, int iconId)
+    {
+        int i;
+        RegionBotBehavior bot;
+        LinkedListNode<RegionBotBehavior> botNode = bots.First;
+        while (botNode != null)
+        {
+            bot = botNode.Value;
+            if (bot.playerId == id)
+            {
+                bot.ShowChat(iconId);
+                return;
+            }
+            botNode = botNode.Next;
+        }
+    }
+
     public void ThrowHook()
     {
         if(!hook.enabled)
@@ -752,6 +883,12 @@ public class RegionMoveController : MonoBehaviour {
             hook.transform.position = transform.position;
             hook.velocity = playerIcon.transform.forward * 3.0f;
             hook.Show();
+            RegionThrowMessage regionThrowMessage = new RegionThrowMessage();
+            Vector2 position2D = new Vector2(transform.position.x, transform.position.z);
+            Vector2 direction2D = new Vector2(hook.velocity.x, hook.velocity.z);
+            regionThrowMessage.throwTimemark = 1.5f;
+            regionThrowMessage.destination = position2D + direction2D * regionThrowMessage.throwTimemark;
+            PhotonNetwork.networkingPeer.OpCustom((byte)3, new Dictionary<byte, object> { { 245, regionThrowMessage.Pack() } }, true);
         }
     }
 

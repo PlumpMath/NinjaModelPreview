@@ -378,6 +378,14 @@ public class Swipe : MonoBehaviour {
         {
             DrawSwipe();
             Throw(e.angle, e.torsion, e.speed);
+
+            ThrowMessage throwMessage = new ThrowMessage();
+            throwMessage.angleX = e.angle.x;
+            throwMessage.angleY = e.angle.y;
+            throwMessage.speed = e.speed;
+            throwMessage.torsion = e.torsion;
+            PhotonNetwork.networkingPeer.OpCustom((byte)2, new Dictionary<byte, object> { { 245, throwMessage.Pack() } }, true);
+
             throwState = ThrowState.NONE;
         }
     }
