@@ -149,9 +149,9 @@ internal class PhotonHandler : Photon.MonoBehaviour
         while (PhotonNetwork.isMessageQueueRunning && doDispatch)
         {
             // DispatchIncomingCommands() returns true of it found any command to dispatch (event, result or state change)
-            Profiler.BeginSample("DispatchIncomingCommands");
+            //Profiler.BeginSample("DispatchIncomingCommands");
             doDispatch = PhotonNetwork.networkingPeer.DispatchIncomingCommands();
-            Profiler.EndSample();
+            //Profiler.EndSample();
         }
 
         int currentMsSinceStart = (int)(Time.realtimeSinceStartup * 1000);  // avoiding Environment.TickCount, which could be negative on long-running platforms
@@ -169,9 +169,9 @@ internal class PhotonHandler : Photon.MonoBehaviour
             while (PhotonNetwork.isMessageQueueRunning && doSend)
             {
                 // Send all outgoing commands
-                Profiler.BeginSample("SendOutgoingCommands");
+                //Profiler.BeginSample("SendOutgoingCommands");
                 doSend = PhotonNetwork.networkingPeer.SendOutgoingCommands();
-                Profiler.EndSample();
+                //Profiler.EndSample();
             }
 
             this.nextSendTickCount = currentMsSinceStart + this.updateInterval;
