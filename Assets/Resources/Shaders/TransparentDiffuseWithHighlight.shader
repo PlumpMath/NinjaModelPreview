@@ -106,7 +106,7 @@ Shader "Custom/Transparent/Textured Multiply Highlighted"
 			#endif
 
 				float4 o = float4(tex.rgb * mc.rgb * 2.0, tex.a);
-				o.rgb *= (tex2D(_LightmapTex, i.uv_light).rgb);
+				o.rgb *= tex2D(_LightmapTex, i.uv_light).rgb * 1.0f;
 				
 				return o;
 			}
