@@ -121,7 +121,10 @@ public class RegionBotBehavior : MonoBehaviour {
             }
         }
         //transform.position += direction * speed * Time.deltaTime;
-        playerIcon.transform.localRotation = Quaternion.LookRotation(Vector3.right * direction.x + Vector3.up * direction.z, Vector3.forward);
+        if (direction.magnitude > 0.0f)
+        {
+            playerIcon.transform.localRotation = Quaternion.LookRotation(Vector3.right * direction.x + Vector3.up * direction.z, Vector3.forward);
+        }
         if (transform.position.x < -9.0f)
         {
             transform.position += Vector3.right * (-9.0f - transform.position.x);
@@ -204,7 +207,7 @@ public class RegionBotBehavior : MonoBehaviour {
 
     public void ThrowHook(Vector2 destination, float moveTime)
     {
-        if (!hook.enabled && rankModifier > 0.0f)
+        if (!hook.enabled /* && rankModifier > 0.0f */)
         {
             hook.transform.position = transform.position;
             hook.velocity = new Vector3(destination.x, transform.position.y, destination.y) - transform.position;

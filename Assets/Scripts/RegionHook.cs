@@ -11,6 +11,10 @@ public class RegionHook : MonoBehaviour {
     public bool rollback = false;
     public Vector3 velocity = new Vector3();
 
+    public float destinationTimemark = 0.0f;
+    public float rollbackTimemark = 0.0f;
+    public float cooldown = 0.0f;
+
 	// Use this for initialization
 	void Start () {
 	
@@ -21,14 +25,23 @@ public class RegionHook : MonoBehaviour {
 
         float a;
         Vector3 direction;
-        Vector3[] points = new Vector3[2];
+        Vector3[] points = new Vector3[3];
 
         direction = player.transform.position - hook.transform.position;
 
-        if (direction.magnitude > 3.0f && !rollback)
+        if(destinationTimemark > 0.0f)
         {
-            Rollback();
+            destinationTimemark -= Time.deltaTime;
+            if (destinationTimemark <= 0.0f)
+            {
+                destinationTimemark = 0.0f;
+                if (!rollback)
+                {
+                    Rollback();
+                }
+            }
         }
+
 
         if (direction.magnitude < 0.5f && rollback)
         {
@@ -44,7 +57,8 @@ public class RegionHook : MonoBehaviour {
         transform.position += velocity * Time.deltaTime;
 
         points[0] = hook.transform.position - Vector3.up * 0.1f + direction.normalized * 0.2f;
-        points[1] = player.transform.position - Vector3.up * 0.1f - direction.normalized * 0.3f;
+        points[1] = (hook.transform.position + player.transform.position - direction.normalized * (0.2f * direction.magnitude + 0.1f)) * 0.5f - Vector3.up * 0.1f - velocity.normalized * 0.2f * direction.magnitude;
+        points[2] = player.transform.position - Vector3.up * 0.1f - direction.normalized * 0.3f;
         chain.SetPositions(points);
         chain.material.SetTextureScale("_MainTex", new Vector2((direction.magnitude - 0.5f) * 5.0f, 1.0f));
         a = Vector3.Angle(Vector3.forward, direction);

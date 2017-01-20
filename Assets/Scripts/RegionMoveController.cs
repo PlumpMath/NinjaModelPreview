@@ -49,6 +49,7 @@ public class RegionMoveController : MonoBehaviour {
     public int inputMode = 3;
     public float inputCooldown = 0.0f;
     public float inputTimeout = 0.0f;
+    public float blockInput = 0.0f;
     public int ignoreFinger = -1;
 
     public RegionHook hook = null;
@@ -343,6 +344,15 @@ public class RegionMoveController : MonoBehaviour {
             }
         }
 
+        if(blockInput > 0.0f)
+        {
+            blockInput -= Time.deltaTime;
+            if(blockInput < 0.0f)
+            {
+                blockInput = 0.0f;
+            }
+        }
+
         if(inputTimeout > 0.0f)
         {
             inputTimeout -= Time.deltaTime;
@@ -486,7 +496,7 @@ public class RegionMoveController : MonoBehaviour {
         }
 #endif
 
-        if (touched)
+        if (touched && blockInput <= 0.0f)
         {
             switch (inputMode)
             {
@@ -815,6 +825,23 @@ public class RegionMoveController : MonoBehaviour {
 
     }
 
+    public void SetState(Vector2 destination, float moveTime)
+    {
+        if (moveTime == 0.0f)
+        {
+            transform.position = new Vector3(destination.x, transform.position.y, destination.y);
+        }
+        else
+        {
+            direction = new Vector3(destination.x, 0.0f, destination.y) - transform.position;
+            inputCooldown = moveTime;
+            speed = direction.magnitude / inputCooldown;
+            direction.Normalize();
+
+            blockInput = inputCooldown;
+        }
+    }
+
     public void SetOpponentState(string id, Vector2 destination, float moveTime)
     {
         int i;
@@ -876,20 +903,28 @@ public class RegionMoveController : MonoBehaviour {
         }
     }
 
-    public void ThrowHook()
+    public void ThrowHook(Vector2 destination, float time)
     {
+        Vector3 v;
         if(!hook.enabled)
         {
             hook.transform.position = transform.position;
-            hook.velocity = playerIcon.transform.forward * 3.0f;
+            v = (new Vector3(destination.x, hook.transform.position.y, destination.y) - hook.transform.position);
+            hook.velocity = v.normalized * (v.magnitude / time);
+            hook.destinationTimemark = time;
             hook.Show();
-            RegionThrowMessage regionThrowMessage = new RegionThrowMessage();
-            Vector2 position2D = new Vector2(transform.position.x, transform.position.z);
-            Vector2 direction2D = new Vector2(hook.velocity.x, hook.velocity.z);
-            regionThrowMessage.throwTimemark = 1.5f;
-            regionThrowMessage.destination = position2D + direction2D * regionThrowMessage.throwTimemark;
-            PhotonNetwork.networkingPeer.OpCustom((byte)3, new Dictionary<byte, object> { { 245, regionThrowMessage.Pack() } }, true);
         }
+    }
+
+    public void ThrowHook()
+    {
+        Vector3 v = playerIcon.transform.forward * 6.0f;
+        RegionThrowMessage regionThrowMessage = new RegionThrowMessage();
+        Vector2 position2D = new Vector2(transform.position.x, transform.position.z);
+        Vector2 direction2D = new Vector2(v.x, v.z);
+        regionThrowMessage.throwTimemark = 1.5f;
+        regionThrowMessage.destination = position2D + direction2D * regionThrowMessage.throwTimemark;
+        PhotonNetwork.networkingPeer.OpCustom((byte)3, new Dictionary<byte, object> { { 245, regionThrowMessage.Pack() } }, true);
     }
 
     public void ShowDiscovered(int iconId)

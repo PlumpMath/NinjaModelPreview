@@ -215,6 +215,8 @@ public class GameMatchMaker : Photon.PunBehaviour
                 Debug.Log("REGION LOADED!!!");
                 gameMode = 2;
                 loginController.statusCanvas.enabled = false;
+                InitializeMessage initializeMessage = new InitializeMessage();
+                PhotonNetwork.networkingPeer.OpCustom((byte)1, new Dictionary<byte, object> { { 245, initializeMessage.Pack() } }, true);
                 break;
             case "battle":
                 Debug.Log("DUEL LOADED!!!");
@@ -340,7 +342,7 @@ public class GameMatchMaker : Photon.PunBehaviour
         BaseObjectMessage baseObjectMessage;
         PlayerObject playerObject = null;
         //PlayerController playerController = null;
-        Debug.Log("RECEIVE EVENT[" + eventCode + "] from [" + senderId + "]");
+        //Debug.Log("RECEIVE EVENT[" + eventCode + "] from [" + senderId + "]");
         switch (eventCode)
         {
             case 1:
@@ -357,12 +359,27 @@ public class GameMatchMaker : Photon.PunBehaviour
                 RegionMoveMessage moveMessage = new RegionMoveMessage();
                 moveMessage.Unpack((byte[])content);
                 Debug.Log("OBJECT [" + moveMessage.userId + "] MOVE TO: " + moveMessage.destination + " IN " + moveMessage.moveTimemark + " SEC");
-                regionMoveController.SetOpponentState(moveMessage.userId, moveMessage.destination, moveMessage.moveTimemark);
+                if (moveMessage.userId == "")
+                {
+                    regionMoveController.SetState(moveMessage.destination, moveMessage.moveTimemark);
+                }
+                else
+                {
+                    regionMoveController.SetOpponentState(moveMessage.userId, moveMessage.destination, moveMessage.moveTimemark);
+                }
                 break;
             case 3:
                 RegionThrowMessage throwMessage = new RegionThrowMessage();
                 throwMessage.Unpack((byte[])content);
-                regionMoveController.ThrowOpponentHook(throwMessage.userId, throwMessage.destination, throwMessage.throwTimemark);
+                Debug.Log("PLAYER [" + throwMessage.userId + "] THROW HOOK distance: " + (throwMessage.destination - new Vector2(regionMoveController.transform.position.x, regionMoveController.transform.position.z)).magnitude + " ; time: " + throwMessage.throwTimemark);
+                if(throwMessage.userId == "")
+                {
+                    regionMoveController.ThrowHook(throwMessage.destination, throwMessage.throwTimemark);
+                }
+                else
+                {
+                    regionMoveController.ThrowOpponentHook(throwMessage.userId, throwMessage.destination, throwMessage.throwTimemark);
+                }
                 break;
             case 4:
                 RegionChatMessage chatMessage = new RegionChatMessage();
@@ -556,7 +573,7 @@ public class GameMatchMaker : Photon.PunBehaviour
             case 15:
                 ThrowMessage throwMessage = new ThrowMessage();
                 throwMessage.Unpack((byte[])content);
-                if(playerController.opponent.stamina > 0.33f)
+                if(playerController != null && playerController.opponent != null && playerController.opponent.stamina > 0.33f)
                 {
                     playerController.swipe.Throw2(playerController, new Vector2(throwMessage.angleX, throwMessage.angleY), throwMessage.torsion, throwMessage.speed);
                 }
