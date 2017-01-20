@@ -212,6 +212,9 @@ public class RegionBotBehavior : MonoBehaviour {
             hook.transform.position = transform.position;
             hook.velocity = new Vector3(destination.x, transform.position.y, destination.y) - transform.position;
             hook.velocity = hook.velocity.normalized * 3.0f;
+            hook.destinationTimemark = moveTime;
+            hook.cooldown = 3.0f;
+            hook.rollbackTimemark = 2.5f;
             hook.Show();
         }
     }

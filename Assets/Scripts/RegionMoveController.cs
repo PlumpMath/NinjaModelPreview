@@ -529,6 +529,7 @@ public class RegionMoveController : MonoBehaviour {
                     cameraShift.x /= 2.7f * 2.0f;
                     cameraShift.z /= 2.7f * 2.0f;
                     direction += cameraShift;
+                    speed = 1.6f;
                     inputCooldown = direction.magnitude * 5.3f / speed;
                     direction.Normalize();
                     break;
@@ -912,6 +913,8 @@ public class RegionMoveController : MonoBehaviour {
             v = (new Vector3(destination.x, hook.transform.position.y, destination.y) - hook.transform.position);
             hook.velocity = v.normalized * (v.magnitude / time);
             hook.destinationTimemark = time;
+            hook.cooldown = 3.0f;
+            hook.rollbackTimemark = 2.5f;
             hook.Show();
         }
     }
