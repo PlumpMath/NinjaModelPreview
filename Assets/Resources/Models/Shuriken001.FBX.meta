@@ -10,6 +10,9 @@ ModelImporter:
     2300000: //RootNode
     3300000: //RootNode
     4300000: Shuriken001
+    4300002: Shuriken_low1
+    4300004: sur
+    7400000: Take 001
     9500000: //RootNode
   materials:
     importMaterials: 1
