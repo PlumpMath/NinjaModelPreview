@@ -51,7 +51,7 @@ public class RegionHook : MonoBehaviour {
 
         if(rollback)
         {
-            velocity = direction.normalized * 6.0f;
+            velocity = direction.normalized * velocity.magnitude;
         }
 
         transform.position += velocity * Time.deltaTime;
@@ -90,6 +90,9 @@ public class RegionHook : MonoBehaviour {
 
     public void Rollback()
     {
+        Vector3 direction3D = player.transform.position - hook.transform.position;
+        Vector2 direction = new Vector2(direction3D.x, direction3D.z);
+        velocity = direction.normalized * direction.magnitude / 1.5f;
         rollback = true;
     }
 

@@ -33,6 +33,7 @@ public class ArmedMissileController : MonoBehaviour {
         ResetAnchor();
         transform.localPosition += (anchor + Vector3.up * margin - transform.localPosition);
         transform.localRotation = Quaternion.identity;
+        transform.Rotate(40.0f, 0.0f, 0.0f);
     }
 
     public void SetAnchor(Vector2 position, float time)

@@ -710,10 +710,10 @@ public class Location
 
     public static float gravity = -0.25f; //-0.098f;
 
-    private GameNetwork network;
+    private DuelController network;
     private LinkedList<LocationObject> objects = new LinkedList<LocationObject>();
 
-    public void SetNetworkBehavior(GameNetwork pointer)
+    public void SetNetworkBehavior(DuelController pointer)
     {
         network = pointer;
     }
@@ -813,7 +813,9 @@ public class Location
                             }
                             playerObject.visualObject.transform.position += v3Delta * Mathf.Min(1.0f, deltaTime * 15.0f);
                             */
-                            playerObject.visualObject.transform.position = playerObject.position * 100.0f;
+                            playerObject.visualObject.transform.position = playerObject.position * 50.0f;
+                            playerObject.visualObject.direction = playerObject.velocity.normalized.x;
+                            /*
                             if ((playerObject.velocity.x > 0.0f && playerObject.position.z < 0.0f) || (playerObject.velocity.x < 0.0f && playerObject.position.z > 0.0f))
                             {
                                 playerObject.visualObject.Animate(1);
@@ -822,6 +824,7 @@ public class Location
                             {
                                 playerObject.visualObject.Animate(0);
                             }
+                            */
                         }
                         else
                         {
@@ -841,29 +844,32 @@ public class Location
                             }
                             network.camera.transform.position += v3Delta * Mathf.Min(1.0f, deltaTime * 15.0f);
                             */
-                            network.camera.transform.position = playerObject.position * 100.0f + Vector3.up * 20.0f;
+                            network.camera.transform.position = playerObject.position * 50.0f + Vector3.up * 5.4f;
                         }
                         if (playerObject.id == network.playerId)
                         {
-                            network.healthBarSelf.text = Mathf.Floor(playerObject.health) + "";
-                            network.staminaBar.rectTransform.sizeDelta = new Vector2(network.staminaBar.rectTransform.sizeDelta.x + (network.gameMatchMaker.canvasPlay.pixelRect.width * playerObject.stamina / 100.0f - network.staminaBar.rectTransform.sizeDelta.x) * Mathf.Min(1.0f, Time.deltaTime * 15.0f), network.staminaBar.rectTransform.sizeDelta.y);
+                            network.duelUI.SetSelfHealth(playerObject.health);
+                            network.duelUI.SetStamina(playerObject.stamina);
+                            //network.healthBarSelf.text = Mathf.Floor(playerObject.health) + "";
+                            //network.staminaBar.rectTransform.sizeDelta = new Vector2(network.staminaBar.rectTransform.sizeDelta.x + (network.gameMatchMaker.canvasPlay.pixelRect.width * playerObject.stamina / 100.0f - network.staminaBar.rectTransform.sizeDelta.x) * Mathf.Min(1.0f, Time.deltaTime * 15.0f), network.staminaBar.rectTransform.sizeDelta.y);
                         }
                         else
                         {
-                            network.healthBarEnemy.text = Mathf.Floor(playerObject.health) + "";
+                            network.duelUI.SetOpponentHealth(playerObject.health);
+                            //network.healthBarEnemy.text = Mathf.Floor(playerObject.health) + "";
                         }
                         break;
                     case ObjectType.OBSTRUCTION:
                         obstructionObject = (ObstructionObject)objNode.Value;
-                        if (Mathf.Abs(network.camera.transform.position.x - obstructionObject.visualObject.transform.position.x) > 3.0f * 100.0f)
+                        if (Mathf.Abs(network.camera.transform.position.x - obstructionObject.visualObject.transform.position.x) > 3.0f * 50.0f)
                         {
                             if (network.camera.transform.position.x - obstructionObject.visualObject.transform.position.x > 0.0f)
                             {
-                                obstructionObject.visualObject.transform.position += Vector3.right * 6.0f * 100.0f;
+                                obstructionObject.visualObject.transform.position += Vector3.right * 6.0f * 50.0f;
                             }
                             else
                             {
-                                obstructionObject.visualObject.transform.position += Vector3.right * -6.0f * 100.0f;
+                                obstructionObject.visualObject.transform.position += Vector3.right * -6.0f * 50.0f;
                             }
                         }
                         break;
@@ -874,7 +880,7 @@ public class Location
                         {
                             //v3Delta = missileObject.position * 10.0f - missileObject.visualObject.transform.position;
                             //missileObject.visualObject.transform.position += v3Delta * Mathf.Min(1.0f, deltaTime * 15.0f);
-                            missileObject.visualObject.transform.position = missileObject.position * 100.0f;
+                            missileObject.visualObject.transform.position = missileObject.position * 50.0f;
                             //scale = 1.0f - (missileObject.position.y + 1.0f) * 0.3f;
                             //missileObject.visualObject.transform.localScale = new Vector3(scale, Mathf.Pow(scale, 1.5f), 1.0f);
                         }
@@ -891,7 +897,7 @@ public class Location
             }
             objNode = objNodeNext;
         }
-        network.armedMissile.transform.position += Vector3.right * (network.camera.transform.position.x - network.armedMissile.transform.position.x);
+        //network.armedMissile.transform.position += Vector3.right * (network.camera.transform.position.x - network.armedMissile.transform.position.x);
     }
 
     public void PhysicCycle(float deltaTime)
@@ -1864,6 +1870,7 @@ public class UpdatePlayerMessage : BaseObjectMessage
 public class SetAbilityMessage : BaseObjectMessage
 {
 
+    public int place;
     public int value;
 
     public SetAbilityMessage() : base()
@@ -1877,8 +1884,9 @@ public class SetAbilityMessage : BaseObjectMessage
     public override byte[] Pack()
     {
         int index = 0;
-        byte[] data = new byte[4 * 4];
+        byte[] data = new byte[4 * 5];
         PackBase(ref data, ref index);
+        PutInt(data, place, ref index);
         PutInt(data, value, ref index);
         return data;
     }
@@ -1887,6 +1895,7 @@ public class SetAbilityMessage : BaseObjectMessage
     {
         int index = 0;
         UnpackBase(ref data, ref index);
+        place = GetInt(data, ref index);
         value = GetInt(data, ref index);
     }
 
@@ -1981,9 +1990,12 @@ public class ThrowMessage : BaseObjectMessage
 public class InitializeMessage : BaseObjectMessage
 {
 
+    public int locationId = -1;
+    public int skinId = -1;
     public int abilityFirstId = -1;
     public int abilitySecondId = -1;
     public int missileId = -1;
+    public int missileSkinId = -1;
     public int venomId = -1;
 
     public InitializeMessage() : base()
@@ -1997,11 +2009,14 @@ public class InitializeMessage : BaseObjectMessage
     public override byte[] Pack()
     {
         int index = 0;
-        byte[] data = new byte[4 * 7];
+        byte[] data = new byte[4 * 10];
         PackBase(ref data, ref index);
+        PutInt(data, locationId, ref index);
+        PutInt(data, skinId, ref index);
         PutInt(data, abilityFirstId, ref index);
         PutInt(data, abilitySecondId, ref index);
         PutInt(data, missileId, ref index);
+        PutInt(data, missileSkinId, ref index);
         PutInt(data, venomId, ref index);
         return data;
     }
@@ -2010,10 +2025,44 @@ public class InitializeMessage : BaseObjectMessage
     {
         int index = 0;
         UnpackBase(ref data, ref index);
+        locationId = GetInt(data, ref index);
+        skinId = GetInt(data, ref index);
         abilityFirstId = GetInt(data, ref index);
         abilitySecondId = GetInt(data, ref index);
         missileId = GetInt(data, ref index);
+        missileSkinId = GetInt(data, ref index);
         venomId = GetInt(data, ref index);
+    }
+
+}
+
+public class HelloDuelMessage : BaseObjectMessage
+{
+
+    public string token = "";
+
+    public HelloDuelMessage() : base()
+    {
+    }
+
+    public HelloDuelMessage(float currentTimestamp, float targetTimemark) : base(currentTimestamp, targetTimemark)
+    {
+    }
+
+    public override byte[] Pack()
+    {
+        int index = 0;
+        byte[] data = new byte[4 * 4 + Encoding.UTF8.GetBytes(token).Length];
+        PackBase(ref data, ref index);
+        PutString(data, token, ref index);
+        return data;
+    }
+
+    public override void Unpack(byte[] data)
+    {
+        int index = 0;
+        UnpackBase(ref data, ref index);
+        token = GetString(data, ref index);
     }
 
 }

@@ -16,7 +16,8 @@ public class Swipe : MonoBehaviour {
     }
 
 
-    public Tasks taskObject;
+    public DuelController duelController;
+
     public HookController hook;
 
     public GameObject swipeTrailPrefab;
@@ -81,8 +82,8 @@ public class Swipe : MonoBehaviour {
 
 
         touchedOnce = true;
-        startCameraPosition = new Vector3(transform.position.x, transform.position.y, transform.position.z);
-        startCameraRotation = new Quaternion(transform.rotation.x, transform.rotation.y, transform.rotation.z, transform.rotation.w);
+        //startCameraPosition = new Vector3(transform.position.x, transform.position.y, transform.position.z);
+        //startCameraRotation = new Quaternion(transform.rotation.x, transform.rotation.y, transform.rotation.z, transform.rotation.w);
         startCameraFov = camera.fov;
 
 
@@ -155,8 +156,8 @@ public class Swipe : MonoBehaviour {
         //taskObject.players[0].globalSpeed = 2.0f;
         //taskObject.players[1].globalSpeed = 2.0f;
         //swipeController.swipeType = swipeType;
-        taskObject.players[0].behaviorType = behaviorType;
-        taskObject.players[1].behaviorType = behaviorType;
+        //taskObject.players[0].behaviorType = behaviorType;
+        //taskObject.players[1].behaviorType = behaviorType;
     }
 
     private Vector3 startCameraPosition = new Vector3();
@@ -192,18 +193,18 @@ public class Swipe : MonoBehaviour {
             {
                 f = 0.0f;
             }
-            transform.position = normalCameraPosition * (1.0f - f) + startCameraPosition * f;
-            transform.rotation = Quaternion.Lerp(normalCameraRotation, startCameraRotation, f);
+            //transform.position = normalCameraPosition * (1.0f - f) + startCameraPosition * f;
+            //transform.rotation = Quaternion.Lerp(normalCameraRotation, startCameraRotation, f);
             camera.fov = normalCameraFov * (1.0f - f) + startCameraFov * f;
             if (normalCameraCooldown <= 0.0f)
             {
                 normalCameraCooldown = 0.0f;
-                transform.position = normalCameraPosition;
-                transform.rotation = normalCameraRotation;
+                //transform.position = normalCameraPosition;
+                //transform.rotation = normalCameraRotation;
                 camera.fov = normalCameraFov;
-                taskObject.players[0].enabled = true;
-                taskObject.players[1].enabled = true;
-                taskObject.players[1].GetComponent<Animation>().Play();
+                //taskObject.players[0].enabled = true;
+                //taskObject.players[1].enabled = true;
+                //taskObject.players[1].GetComponent<Animation>().Play();
             }
         }
 
@@ -360,7 +361,7 @@ public class Swipe : MonoBehaviour {
         {
             touchTime += Time.deltaTime;
             //armedMissile.transform.localRotation = Quaternion.AngleAxis(Mathf.Min(60.0f, transform.localRotation.eulerAngles.x + touchTime * 180.0f), Vector3.right);
-            armedMissile.transform.localRotation = Quaternion.AngleAxis(Mathf.Min(15.0f, transform.localRotation.eulerAngles.x + touchTime * 180.0f), Vector3.right);
+            armedMissile.transform.localRotation = Quaternion.AngleAxis(Mathf.Min(65.0f, transform.localRotation.eulerAngles.x + (touchTime + 0.11f)  * 90.0f), Vector3.right);
         }
         else
         {
@@ -470,9 +471,9 @@ public class Swipe : MonoBehaviour {
 
         missileController = (Instantiate(missilePrefab)).GetComponent<MissileController>();
         missileController.name = missilePrefab.name;
-        missileController.taskObject = taskObject;
+        //missileController.taskObject = taskObject;
         position = armedMissile.transform.position;
-        if (angle.y < 0.0f || taskObject.players[0].stamina < 0.33f)
+        if (angle.y < 0.0f || ((PlayerObject)duelController.location.GetObject(0)).stamina < 0.33f)
         {
             //taskObject.players[0].stamina = Mathf.Max(0.0f, taskObject.players[0].stamina - 0.1f);
             angle.y = 1.0f;
@@ -484,7 +485,7 @@ public class Swipe : MonoBehaviour {
         }
         else
         {
-            taskObject.players[0].stamina -= 0.33f;
+            //taskObject.players[0].stamina -= 0.33f;
             acceleration = new Vector3(torsion * trimmedSpeed, (angle.y - 0.4f) * 4.0f * gravity, 0.0f);
             //velocity = new Vector3(-acceleration.x / 2, Mathf.Min(/*0.044f*/ 0.12f * 50.0f, Mathf.Max(/*-0.176f*/ -0.13fs * 50.0f, (angle.y - 0.63f) * /* 0.22f */ 0.26f * 50.0f)) - acceleration.y / 2 / t, trimmedSpeed * (1.0f + Mathf.Abs(horizontalAngle) * 0.01f)); // !!! not trigonometrical coeficient
             velocity = new Vector3(-acceleration.x / 2, Mathf.Min(0.049f * 50.0f, Mathf.Max(-0.19f * 50.0f, (angle.y - 0.63f) * 0.24f * 50.0f)) - acceleration.y / 2 * t, trimmedSpeed); // !!! not trigonometrical coeficient
@@ -503,19 +504,32 @@ public class Swipe : MonoBehaviour {
 
         //velocity.x += taskObject.players[0].rigidbody.velocity.x;
 
+        PlayerController player1Controller;
+        PlayerController player2Controller;
+        if (duelController.playerId == 0)
+        {
+            player1Controller = ((PlayerObject)duelController.location.GetObject(0)).visualObject;
+            player2Controller = ((PlayerObject)duelController.location.GetObject(1)).visualObject;
+        }
+        else
+        {
+            player1Controller = ((PlayerObject)duelController.location.GetObject(1)).visualObject;
+            player2Controller = ((PlayerObject)duelController.location.GetObject(0)).visualObject;
+        }
+
         Vector3 intersectionPosition = position + velocity * t + acceleration * Mathf.Pow(t, 2.0f) / 2.0f;
 
-        Vector3 lastPlayer2Position = taskObject.players[1].transform.position;
-        taskObject.players[1].transform.position += taskObject.players[1].velocity * t;
-        taskObject.players[1].rigidbody.position = taskObject.players[1].transform.position;
-        taskObject.players[1].rigidbody.velocity = taskObject.players[1].velocity;
+        Vector3 lastPlayer2Position = player2Controller.transform.position;
+        player2Controller.transform.position += player2Controller.velocity * t;
+        player2Controller.rigidbody.position = player2Controller.transform.position;
+        player2Controller.rigidbody.velocity = player2Controller.velocity;
 
         //RaycastHit[] hits = Physics.SphereCastAll(new Ray(intersectionPosition - new Vector3(0.0f, 0.0f, 5.0f), new Vector3(0.0f, 0.0f, 1.0f)), 1.7f, 10.0f, 255, QueryTriggerInteraction.Collide);
         RaycastHit[] hits = Physics.CapsuleCastAll(intersectionPosition - new Vector3(1.0f, 0.0f, 0.0f) - new Vector3(0.0f, 0.0f, 5.0f), intersectionPosition + new Vector3(1.0f, 0.0f, 0.0f) - new Vector3(0.0f, 0.0f, 5.0f), 0.1f, new Vector3(0.0f, 0.0f, 1.0f), 10.0f, 255, QueryTriggerInteraction.Collide);
 
-        taskObject.players[1].transform.position = lastPlayer2Position;
-        taskObject.players[1].rigidbody.position = taskObject.players[1].transform.position;
-        taskObject.players[1].rigidbody.velocity = Vector3.zero;
+        player2Controller.transform.position = lastPlayer2Position;
+        player2Controller.rigidbody.position = player2Controller.transform.position;
+        player2Controller.rigidbody.velocity = Vector3.zero;
 
         //Debug.Log("Throw");
 
@@ -551,7 +565,7 @@ public class Swipe : MonoBehaviour {
 
 
 
-
+    /*
     public bool Throw2(PlayerController player, Vector2 angle, float torsion, float speed)
     {
         int i;
@@ -581,22 +595,9 @@ public class Swipe : MonoBehaviour {
         }
         float t = distance * realLength / trimmedSpeed;
 
-        /*
-        if(swipeController.swipeType == 1)
-        {
-            trimmedSpeed = distance * 2.0f;
-            gravity = -0.98f * 2.0f;
-        }
-        else if(swipeController.swipeType == 3)
-        {
-            trimmedSpeed = distance * 1.6f;
-            gravity = -0.98f * 4.0f;
-        }
-        */
-
         missileController = (Instantiate(missilePrefab)).GetComponent<MissileController>();
         missileController.name = missilePrefab.name;
-        missileController.taskObject = taskObject;
+        //missileController.taskObject = taskObject;
         position = player.transform.position + Vector3.up * 4.0f + Vector3.right * -1.0f;
         if (angle.y < 0.0f)
         {
@@ -610,7 +611,7 @@ public class Swipe : MonoBehaviour {
         else
         {
             acceleration = new Vector3(torsion * trimmedSpeed, (angle.y - 0.4f) * 4.0f * gravity, 0.0f);
-            //velocity = new Vector3(-acceleration.x / 2, Mathf.Min(/*0.044f*/ 0.12f * 50.0f, Mathf.Max(/*-0.176f*/ -0.13fs * 50.0f, (angle.y - 0.63f) * /* 0.22f */ 0.26f * 50.0f)) - acceleration.y / 2 / t, trimmedSpeed * (1.0f + Mathf.Abs(horizontalAngle) * 0.01f)); // !!! not trigonometrical coeficient
+            //velocity = new Vector3(-acceleration.x / 2, Mathf.Min(0.12f * 50.0f, Mathf.Max(-0.13fs * 50.0f, (angle.y - 0.63f) * 0.26f * 50.0f)) - acceleration.y / 2 / t, trimmedSpeed * (1.0f + Mathf.Abs(horizontalAngle) * 0.01f)); // !!! not trigonometrical coeficient
             velocity = new Vector3(-acceleration.x / 2, Mathf.Min(0.049f * 50.0f, Mathf.Max(-0.19f * 50.0f, (angle.y - 0.63f) * 0.24f * 50.0f)) - acceleration.y / 2 * t, trimmedSpeed); // !!! not trigonometrical coeficient
             velocity = Quaternion.Euler(0.0f, horizontalAngle + (1.0f + position.z / Mathf.Abs(position.z)) * 90.0f, 0.0f) * velocity;
             if (torsion > 0.0f)
@@ -669,6 +670,7 @@ public class Swipe : MonoBehaviour {
         //GameObject.Destroy(missileController.gameObject, 2.0f);
         return true;
     }
+    */
 
 
 }

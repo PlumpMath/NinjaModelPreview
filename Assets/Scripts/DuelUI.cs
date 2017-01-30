@@ -4,7 +4,7 @@ using UnityEngine.UI;
 using System;
 using System.Collections;
 
-public class Tasks : MonoBehaviour {
+public class DuelUI : MonoBehaviour {
 
     public EventHandler<EventArgs> OnThrow;
 
@@ -144,7 +144,7 @@ public class Tasks : MonoBehaviour {
                 bloodScreenVeins.enabled = true;
             }
         }
-
+        /*
         staminaBar.rectTransform.sizeDelta = new Vector2(players[0].stamina * Screen.width, staminaBar.rectTransform.sizeDelta.y);
         if(!staminaInsufficient && players[0].stamina < 0.33f)
         {
@@ -166,7 +166,7 @@ public class Tasks : MonoBehaviour {
         opponentHealthBar.fillAmount = Mathf.Max(0.0f, Mathf.Min(1.0f, players[1].health));
         opponentHealthBarLabel.text = Mathf.Ceil(opponentHealthBar.fillAmount * 100.0f) + "";
         staminaLabel.text = "x " + Mathf.Floor(players[0].stamina / 0.33f);
-
+        */
         if(ability1Cooldown > 0.0f)
         {
             ability1Cooldown -= Time.deltaTime;
@@ -178,6 +178,38 @@ public class Tasks : MonoBehaviour {
             }
         }
 
+    }
+
+    public void SetSelfHealth(float health)
+    {
+        healthBar.fillAmount = Mathf.Max(0.0f, Mathf.Min(1.0f, health / 100.0f));
+        healthBarLabel.text = Mathf.Ceil(healthBar.fillAmount * 100.0f) + "";
+    }
+
+    public void SetOpponentHealth(float health)
+    {
+        opponentHealthBar.fillAmount = Mathf.Max(0.0f, Mathf.Min(1.0f, health / 100.0f));
+        opponentHealthBarLabel.text = Mathf.Ceil(opponentHealthBar.fillAmount * 100.0f) + "";
+    }
+
+    public void SetStamina(float stamina)
+    {
+        staminaBar.rectTransform.sizeDelta = new Vector2(stamina / 100.0f * Screen.width, staminaBar.rectTransform.sizeDelta.y);
+        if (!staminaInsufficient && stamina < 33.0f)
+        {
+            staminaInsufficient = true;
+            staminaBar.color = Color.red;
+            staminaIcon.color = new Color(0.5f, 0.05f, 0.05f, 1.0f);
+            staminaLabel.color = new Color(0.5f, 0.05f, 0.05f, 1.0f);
+        }
+        else if (staminaInsufficient && stamina >=33.0f)
+        {
+            staminaInsufficient = false;
+            staminaBar.color = Color.white;
+            staminaIcon.color = Color.white;
+            staminaLabel.color = Color.white;
+        }
+        staminaLabel.text = "x " + Mathf.Floor(stamina / 33.0f);
     }
 
     public void Hit (float y)
@@ -218,6 +250,11 @@ public class Tasks : MonoBehaviour {
                 SceneManager.LoadScene("region");
             }
         }
+    }
+
+    public void ShowBloodScreen()
+    {
+        bloodCooldown = 4.0f;
     }
 
     public void HitMe()

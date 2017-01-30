@@ -3,7 +3,7 @@ using System.Collections;
 
 public class ObstructionController : MonoBehaviour {
 
-    public GameNetwork gameNetwork;
+    public DuelController duelController;
     public ObstructionObject obj;
     public SpriteRenderer spriteRenderer;
 

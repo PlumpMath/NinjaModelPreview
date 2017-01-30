@@ -146,10 +146,11 @@
     <Compile Include="Assets\Photon Unity Networking\UtilityScripts\TimeKeeper.cs" />
     <Compile Include="Assets\Scripts\AbilityButton.cs" />
     <Compile Include="Assets\Scripts\ArmedMissileController.cs" />
+    <Compile Include="Assets\Scripts\DuelController.cs" />
+    <Compile Include="Assets\Scripts\DuelUI.cs" />
     <Compile Include="Assets\Scripts\FixedNotifyController.cs" />
     <Compile Include="Assets\Scripts\FloatingNotifyController.cs" />
     <Compile Include="Assets\Scripts\GameMatchMaker.cs" />
-    <Compile Include="Assets\Scripts\GameNetwork.cs" />
     <Compile Include="Assets\Scripts\HookController.cs" />
     <Compile Include="Assets\Scripts\LoginController.cs" />
     <Compile Include="Assets\Scripts\MapController.cs" />
@@ -169,7 +170,6 @@
     <Compile Include="Assets\Scripts\Swipe.cs" />
     <Compile Include="Assets\Scripts\SwipeTrailController.cs" />
     <Compile Include="Assets\Scripts\TaskTarget.cs" />
-    <Compile Include="Assets\Scripts\Tasks.cs" />
     <Compile Include="Assets\Scripts\UI\SetPropertyUtility.cs" />
     <Compile Include="Assets\Scripts\UI\UILineTextureRenderer.cs" />
     <Compile Include="Assets\Scripts\UI\UIPrimitiveBase.cs" />

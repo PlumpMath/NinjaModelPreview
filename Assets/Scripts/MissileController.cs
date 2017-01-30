@@ -1,9 +1,8 @@
 using UnityEngine;
+using System;
 using System.Collections;
 
 public class MissileController : MonoBehaviour {
-
-    public Tasks taskObject;
 
     public GameObject meshObject;
     public TrailRenderer[] trails = new TrailRenderer[4];
@@ -15,7 +14,9 @@ public class MissileController : MonoBehaviour {
 
     public GameObject damagePrefab;
     public MissileObject obj;
-    public GameNetwork gameNetwork;
+    public DuelController duelController;
+
+    public EventHandler OnHit;
 
     private Rigidbody rigidbody;
     private bool collided = false;
@@ -126,11 +127,16 @@ public class MissileController : MonoBehaviour {
                 projector.transform.forward = transform.forward;
                 projector.transform.parent = collision.collider.transform;
                 GameObject.Destroy(projector, 1.0f);
-                taskObject.Hit(transform.position.y);
+                //taskObject.Hit(transform.position.y);
+                if(OnHit != null)
+                {
+                    EventArgs e = new EventArgs();
+                    OnHit(this, e);
+                }
             }
             else
             {
-                taskObject.HitMe();
+                //taskObject.HitMe();
                 GameObject brokenGlass = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/BrokenGlass"));
                 brokenGlass.transform.position = transform.position;
                 brokenGlass.transform.parent = transform;

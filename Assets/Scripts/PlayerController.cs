@@ -4,12 +4,12 @@ using System.Collections;
 public class PlayerController : MonoBehaviour {
 
     public GameMatchMaker matchMaker;
-    public GameNetwork gameNetwork;
+    public DuelController duelController;
     public PlayerObject obj;
 
     public PlayerController opponent;
 
-    public Tasks tasks;
+    //public Tasks tasks;
     public Swipe swipe;
 
     public WayPoint[] waypoints = new WayPoint[0];
@@ -61,7 +61,7 @@ public class PlayerController : MonoBehaviour {
         if (animation != null)
         {
             animationWalk = animation["walk"];
-            animationWalk.speed = 0.0f;
+            //animationWalk.speed = 0.0f;
         }
 
         qualification = PlayerPrefs.GetFloat("EnemyAdvantage", 1.0f);
@@ -80,11 +80,11 @@ public class PlayerController : MonoBehaviour {
         WayPoint newWaypoint = null;
         WayPoint obj;
 
-        reverseTimeout -= Time.deltaTime;
-        if (reverseTimeout <= 0.0f)
-        {
+        //reverseTimeout -= Time.deltaTime;
+        //if (reverseTimeout <= 0.0f)
+        //{
 
-
+            /*
             me = this;
             for (i = 0; i < waypoints.Length; i++)
             {
@@ -99,7 +99,7 @@ public class PlayerController : MonoBehaviour {
                     obj.transform.position += Vector3.right * 80.0f;
                 }
             }
-
+            */
 
             /*
             reverseTimeout = Random.Range(reverseCooldownMin, reverseCooldownMax);
@@ -119,6 +119,7 @@ public class PlayerController : MonoBehaviour {
             }
             */
 
+            /*
             newWaypoint = waypoint;
             runaway = (health < opponent.health);
             if (health == opponent.health && swipe.gameObject == gameObject)
@@ -134,12 +135,12 @@ public class PlayerController : MonoBehaviour {
                         if(lastWaypoint == waypoint)
                         {
                             takeCover = false;
-                            if(waypoint.leftNode.waypointType == WayPoint.WaypointType.COVER_FULL /* || waypoint.leftNode.waypointType == WayPoint.WaypointType.COVER_DOWN */)
+                            if(waypoint.leftNode.waypointType == WayPoint.WaypointType.COVER_FULL)
                             {
                                 newWaypoint = waypoint.leftNode;
                                 speed = runSpeed;
                             }
-                            else if(waypoint.rightNode.waypointType == WayPoint.WaypointType.COVER_FULL /* || waypoint.rightNode.waypointType == WayPoint.WaypointType.COVER_DOWN */)
+                            else if(waypoint.rightNode.waypointType == WayPoint.WaypointType.COVER_FULL)
                             {
                                 newWaypoint = waypoint.rightNode;
                                 speed = runSpeed;
@@ -180,7 +181,7 @@ public class PlayerController : MonoBehaviour {
                 }
                 else
                 {
-                    if(waypoint.waypointType == WayPoint.WaypointType.COVER_FULL /* || waypoint.waypointType == WayPoint.WaypointType.COVER_DOWN */)
+                    if(waypoint.waypointType == WayPoint.WaypointType.COVER_FULL)
                     {
                         if (Random.Range(0.0f, 1.0f) > 0.8f)
                         {
@@ -276,16 +277,14 @@ public class PlayerController : MonoBehaviour {
                     else
                     {
                         speed = walkSpeed;
-                        /*
-                        if (waypoint.leftNode == newWaypoint)
-                        {
-                            newWaypoint = waypoint.rightNode;
-                        }
-                        else
-                        {
-                            newWaypoint = waypoint.leftNode;
-                        }
-                        */
+                        //if (waypoint.leftNode == newWaypoint)
+                        //{
+                        //    newWaypoint = waypoint.rightNode;
+                        //}
+                        //else
+                        //{
+                        //    newWaypoint = waypoint.leftNode;
+                        //}
                     }
                 }
             }
@@ -328,14 +327,13 @@ public class PlayerController : MonoBehaviour {
                 {
                     throwAngle *= -1.0f;
                 }
-                /*
-                if (stamina > 0.33f && Mathf.Abs(opponent.transform.position.x - transform.position.x) < 10.0f)
-                {
-                    stamina -= 0.33f;
-                    swipe.Throw2(this, new Vector2(throwAngle + Random.Range(-5.75f, 5.75f) * (1.0f - qualification), Random.Range(0.0f, 1.0f)), 0.0f, 1.0f);
-                }
-                */
+                //if (stamina > 0.33f && Mathf.Abs(opponent.transform.position.x - transform.position.x) < 10.0f)
+                //{
+                //    stamina -= 0.33f;
+                //    swipe.Throw2(this, new Vector2(throwAngle + Random.Range(-5.75f, 5.75f) * (1.0f - qualification), Random.Range(0.0f, 1.0f)), 0.0f, 1.0f);
+                //}
             }
+            */
 
             /*
             if (Random.Range(0.0f, 1.0f) > 0.5f || (!runaway && behaviorType == 3))
@@ -388,7 +386,7 @@ public class PlayerController : MonoBehaviour {
                 lastWaypoint = waypoint;
             }
             */
-        }
+        //}
         float d = 0.0f;
         if (speed == runSpeed)
         {
@@ -414,6 +412,7 @@ public class PlayerController : MonoBehaviour {
         {
             animationWalk.time = animationTime;
         }
+        /*
         velocity = Vector3.right * direction * speed;
         //rigidbody.velocity = velocity;
         transform.position += velocity * Time.deltaTime;
@@ -425,6 +424,7 @@ public class PlayerController : MonoBehaviour {
         {
             stamina = 1.0f;
         }
+        */
 
     }
 

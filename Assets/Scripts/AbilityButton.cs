@@ -1,15 +1,16 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using System;
 using System.Collections;
 
 public class AbilityButton : MonoBehaviour {
-
-    public Tasks tasks;
 
     public Button button;
     public Image icon;
 
     public float progress = 0.0f;
+
+    public EventHandler OnActivate;
 
 	// Use this for initialization
 	void Start () {
@@ -79,8 +80,11 @@ public class AbilityButton : MonoBehaviour {
     }
 
     public void Activate() {
-        tasks.screenWave.enabled = true;
-        tasks.ability1Cooldown = 1.0f;
+        if(OnActivate != null)
+        {
+            EventArgs e = new EventArgs();
+            OnActivate(this, e);
+        }
     }
 
 }

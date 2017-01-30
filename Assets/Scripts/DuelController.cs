@@ -11,7 +11,7 @@ using ExitGames;
 using ExitGames.Client;
 using ExitGames.Client.Photon;
 
-public class GameNetwork : MonoBehaviour {
+public class DuelController : MonoBehaviour {
 
     public enum ClientEvent
     {
@@ -42,9 +42,7 @@ public class GameNetwork : MonoBehaviour {
     public AbilityButton abilityPassiveButton;
     //public AbilityTargetController abilityTarget;
     public Button switchSwipeTypeButton;
-    public Image staminaBar;
-    public Text healthBarSelf;
-    public Text healthBarEnemy;
+    public DuelUI duelUI;
     public Camera camera;
     public Location location;
     public SwipeController swipeController = new SwipeController();
@@ -93,6 +91,7 @@ public class GameNetwork : MonoBehaviour {
         MissileObject missileObject = null;
         if (!isServer)
         {
+            newPosition.y *= 0.5f;
             //Debug.Log("RpcSpawnObject [CLIENT]: " + id + "; " + newPosition);
             switch (objectType)
             {
@@ -110,22 +109,27 @@ public class GameNetwork : MonoBehaviour {
                     if (id != playerId && playerId != -1 && playerObject.visualObject == null)
                     {
                         playerController = (Instantiate(bodyPrefabs[0])).GetComponent<PlayerController>();
-                        playerController.gameNetwork = this;
+                        playerController.duelController = this;
                         playerController.obj = playerObject;
                         playerObject.visualObject = playerController;
-                        playerController.transform.position = playerObject.position * 100.0f;
+                        playerController.transform.position = playerObject.position * 50.0f;
                         //playerController.transform.localScale *= 20.0f;
                         if (playerObject.position.z < 0.0f)
                         {
                             playerObject.visualObject.transform.Rotate(0.0f, 180.0f, 0.0f);
                         }
+                        playerController.enabled = true;
                     }
                     if (id == playerId && playerId != -1)
                     {
-                        camera.transform.position = playerObject.position * 100.0f + Vector3.up * 20.0f;
-                        if (playerId == 1)
+                        camera = (Camera)GameObject.Find("Main Camera").GetComponent<Camera>();
+                        camera.transform.position = playerObject.position * 50.0f + Vector3.up * 5.4f;
+                        camera.transform.rotation = Quaternion.Euler(10.0f, 0.0f, 0.0f);
+                        if (id == 1)
                         {
-                            camera.transform.eulerAngles = new Vector3(camera.transform.eulerAngles.x, 180.0f, camera.transform.eulerAngles.z);
+                            float angleX = camera.transform.eulerAngles.x;
+                            camera.transform.rotation = Quaternion.Euler(10.0f, 180.0f, 0.0f);
+                            GameObject.Find("Ground").transform.Rotate(0.0f, 180.0f, 0.0f);
                         }
                     }
                     /* */
@@ -141,8 +145,8 @@ public class GameNetwork : MonoBehaviour {
                     obstructionController = (Instantiate(obstructionPrefabs[obstructionObject.visualId])).GetComponent<ObstructionController>();
                     obstructionController.obj = obstructionObject;
                     obstructionObject.visualObject = obstructionController;
-                    obstructionController.transform.position = obstructionObject.position * 100.0f;
-                    obstructionController.transform.localScale *= 30.0f;
+                    obstructionController.transform.position = obstructionObject.position * 50.0f;
+                    //obstructionController.transform.localScale *= 30.0f;
                     location.AddObject(obstructionObject);
                     break;
                 case Location.ObjectType.MISSILE:
@@ -167,12 +171,12 @@ public class GameNetwork : MonoBehaviour {
                         missileObject.acceleration = newAcceleration;
                         missileObject.torsion = newTorsion;
                         missileObject.scale = newFloat;
-                        missileController = (Instantiate(missilePrefabs[opponentMissileId])).GetComponent<MissileController>();
+                        missileController = (Instantiate(missilePrefabs[0])).GetComponent<MissileController>(); //visualId
                         missileController.obj = missileObject;
                         missileController.torsion = new Vector3(0.0f, newFloat, 0.0f);
                         missileObject.visualObject = missileController;
-                        missileController.transform.position = missileObject.position * 100.0f;
-                        missileController.transform.localScale *= 30.0f;
+                        missileController.transform.position = missileObject.position * 50.0f;
+                        //missileController.transform.localScale *= 30.0f;
                         location.AddObject(missileObject);
                     }
                     //if (Mathf.Abs(newPosition.z) < 0.1f)
@@ -232,7 +236,7 @@ public class GameNetwork : MonoBehaviour {
     {
         if (!isServer)
         {
-            //Debug.Log("RpcMoveObject [CLIENT]: " + id + "; " + newPosition);
+            Debug.Log("RpcMoveObject [CLIENT]: " + id + "; " + newPosition);
             //transform.position += Vector3.right * (newPosition.x - transform.position.x);
             LocationObject obj = GetLocationObject(id);
             if (obj != null)
@@ -244,6 +248,7 @@ public class GameNetwork : MonoBehaviour {
                     //obj.lastPosition = newPosition;
                     //obj.lastRemoteTimestamp = messageTimestamp;
                 }
+                newPosition.y *= 0.5f;
                 obj.position = newPosition;
                 obj.velocity = newVelocity;
                 obj.acceleration = newAcceleration;
@@ -407,8 +412,8 @@ public class GameNetwork : MonoBehaviour {
                                 {
                                     floatingNotify.transform.Rotate(0.0f, 180.0f, 0.0f);
                                 }
-                                floatingNotify.transform.localScale = Vector3.one * Mathf.Pow(Mathf.Abs(playerObject.visualObject.transform.position.z), 0.5f) * 8.0f;
-                                floatingNotify.transform.position = playerObject.visualObject.transform.position + floatingNotify.transform.right * 3.0f + floatingNotify.transform.forward * 2.0f + Vector3.up * (7.5f - 4.0f * locationObject.floatingNotifyOffset);
+                                floatingNotify.transform.localScale = Vector3.one * Mathf.Pow(Mathf.Abs(playerObject.visualObject.transform.position.z), 0.5f) * 0.1f;
+                                floatingNotify.transform.position = playerObject.visualObject.transform.position + floatingNotify.transform.right * 1.5f + floatingNotify.transform.forward * 2.0f + Vector3.up * (3.5f - 1.0f * locationObject.floatingNotifyOffset);
                             }
                             else // (target == playerId)
                             {
@@ -417,8 +422,8 @@ public class GameNetwork : MonoBehaviour {
                             break;
                         case Location.ObjectType.OBSTRUCTION:
                             ObstructionObject obstructionObject = (ObstructionObject)locationObject;
-                            floatingNotify.transform.localScale = Vector3.one * Mathf.Pow(Mathf.Abs(obstructionObject.visualObject.transform.position.z), 0.5f) * 8.0f;
-                            floatingNotify.transform.position = obstructionObject.visualObject.transform.position + floatingNotify.transform.right * 3.0f + floatingNotify.transform.forward * 2.0f + Vector3.up * (7.5f - 4.0f * locationObject.floatingNotifyOffset);
+                            floatingNotify.transform.localScale = Vector3.one * Mathf.Pow(Mathf.Abs(obstructionObject.visualObject.transform.position.z), 0.5f) * 0.1f;
+                            floatingNotify.transform.position = obstructionObject.visualObject.transform.position + floatingNotify.transform.right * 1.5f + floatingNotify.transform.forward * 2.0f + Vector3.up * (3.5f - 1.0f * locationObject.floatingNotifyOffset);
                             break;
                     }
                 }
@@ -536,34 +541,38 @@ public class GameNetwork : MonoBehaviour {
         switch (effect)
         {
             case Location.VisualEffects.HIT:
-                locationObject = location.GetObject(targetId);
-                if (locationObject != null)
+                if (location != null)
                 {
-                    switch (locationObject.objectType)
+                    locationObject = location.GetObject(targetId);
+                    if (locationObject != null)
                     {
-                        case Location.ObjectType.PLAYER:
-                            playerObject = (PlayerObject)locationObject;
-                            if (playerObject.visualObject != null)
-                            {
-                                playerObject.visualObject.Flash();
-                            }
-                            else
-                            {
-                                screenEffects.RedFlash();
-                            }
-                            break;
-                        case Location.ObjectType.OBSTRUCTION:
-                            obstructionObject = (ObstructionObject)locationObject;
-                            if (obstructionObject.visualObject != null)
-                            {
-                                obstructionObject.visualObject.Flash();
-                            }
-                            break;
+                        switch (locationObject.objectType)
+                        {
+                            case Location.ObjectType.PLAYER:
+                                playerObject = (PlayerObject)locationObject;
+                                if (playerObject.visualObject != null)
+                                {
+                                    playerObject.visualObject.Flash();
+                                }
+                                else
+                                {
+                                    //screenEffects.RedFlash();
+                                    duelUI.ShowBloodScreen();
+                                }
+                                break;
+                            case Location.ObjectType.OBSTRUCTION:
+                                obstructionObject = (ObstructionObject)locationObject;
+                                if (obstructionObject.visualObject != null)
+                                {
+                                    obstructionObject.visualObject.Flash();
+                                }
+                                break;
+                        }
                     }
                 }
                 break;
             case Location.VisualEffects.SPARKS:
-                SparksController spark = ((GameObject)GameObject.Instantiate(sparkPrefab, targetPosition * 100.0f, camera.transform.rotation)).GetComponent<SparksController>();
+                //!!! SparksController spark = ((GameObject)GameObject.Instantiate(sparkPrefab, targetPosition * 50.0f, camera.transform.rotation)).GetComponent<SparksController>();
                 break;
             case Location.VisualEffects.RED_SCREEN:
                 screenEffects.RedFlash();
@@ -590,7 +599,10 @@ public class GameNetwork : MonoBehaviour {
 
     public void GameOver(int winner, float time, float damage, float wound)
     {
-        location.Cleanup();
+        if (location != null)
+        {
+            location.Cleanup();
+        }
         if (isServer)
         {
             if (!isLocal)
@@ -604,6 +616,8 @@ public class GameNetwork : MonoBehaviour {
         {
             //NetManager.singleton.StopClient();
         }
+        gameMatchMaker.canvasPlay.enabled = false;
+        /*
         gameMatchMaker.LeaveRoom();
         LocationObject.lastObjectId = 0;
         gameMatchMaker.canvasPlay.enabled = false;
@@ -632,10 +646,12 @@ public class GameNetwork : MonoBehaviour {
         //{
         Destroy(gameObject);
         //}
+        */
     }
 
     void Start()
     {
+        /*
         location = new Location();
         location.SetNetworkBehavior(this);
         //Debug.Log("Start SERVER=" + isServer);
@@ -646,9 +662,10 @@ public class GameNetwork : MonoBehaviour {
         }
         armedMissile = GameObject.Find("ArmedMissile").GetComponent<ArmedMissileController>();
         screenEffects = GameObject.Find("ScreenEffects").GetComponent<ScreenEffectsController>();
-        staminaBar = GameObject.Find("StaminaBar").GetComponent<Image>();
-        healthBarSelf = GameObject.Find("HealthValueSelf").GetComponent<Text>();
-        healthBarEnemy = GameObject.Find("HealthValueEnemy").GetComponent<Text>();
+        */
+        //staminaBar = GameObject.Find("StaminaBar").GetComponent<Image>();
+        //healthBarSelf = GameObject.Find("HealthValueSelf").GetComponent<Text>();
+        //healthBarEnemy = GameObject.Find("HealthValueEnemy").GetComponent<Text>();
         /*
         abilityActiveButton = GameObject.Find("AbilityActiveButton").GetComponent<AbilityButtonController>();
         abilityPassiveButton = GameObject.Find("AbilityPassiveButton").GetComponent<AbilityButtonController>();
@@ -665,6 +682,8 @@ public class GameNetwork : MonoBehaviour {
             switchSwipeTypeButton.GetComponentInChildren<Text>().text = "РЕЖИМ\nСВАЙПА\n#" + swipeController.swipeType;
         });
         */
+
+        /*
         swipeController.OnInvokeAction += OnThrow;
         if (!isServer)
         {
@@ -683,6 +702,7 @@ public class GameNetwork : MonoBehaviour {
             gameMatchMaker.canvasSettings.enabled = false;
             gameMatchMaker.canvasPlay.enabled = true;
         }
+        */
     }
 
     public void ClientInit()
@@ -939,6 +959,7 @@ public class GameNetwork : MonoBehaviour {
     void OnGUI ()
     {
         */
+        /*
         float angle = 0.0f;
         float power = 0.0f;
         float mouseX = Input.mousePosition.x / (float)Screen.width;
@@ -1049,6 +1070,7 @@ public class GameNetwork : MonoBehaviour {
                 }
             }
         }
+        */
     }
 
     public void OnThrow(object sender, SwipeEventArgs e)
@@ -1099,7 +1121,7 @@ public class GameNetwork : MonoBehaviour {
             {
                 playerObject.stamina -= staminaConsumption;
                 missileController = (Instantiate(missilePrefabs[myMissileId])).GetComponent<MissileController>();
-                missileController.gameNetwork = this;
+                missileController.duelController = this;
                 missileObject = new MissileObject();
                 //missileObject.position = new Vector3(playerLocationObject.position.x, 0.2f + angle.y * 0.2f, 0.1f);
                 //missileObject.direction = (new Vector3(0.0f, Mathf.Min(1.0f, 0.2f + Mathf.Min(0.5f, angle.y)) * 0.09f, Mathf.Min(0.5f, Math.Max(0.2f, speed / 5.0f)))).normalized;
@@ -1259,7 +1281,7 @@ public class GameNetwork : MonoBehaviour {
         location.AddObject(playerObject);
 
         playerController = (Instantiate(bodyPrefabs[0])).GetComponent<PlayerController>();
-        playerController.gameNetwork = this;
+        playerController.duelController = this;
         playerObject = new PlayerObject();
         playerObject.position = new Vector3(0.0f, 0.0f, 5.0f);
         playerObject.direction = 1.0f;
@@ -1317,7 +1339,7 @@ public class GameNetwork : MonoBehaviour {
                 visualId = 1;
             }
             obstructionController = (Instantiate(obstructionPrefabs[visualId])).GetComponent<ObstructionController>();
-            obstructionController.gameNetwork = this;
+            obstructionController.duelController = this;
             obstructionObject = new ObstructionObject();
             obstructionObject.position = new Vector3(((float)(i - 2)) + UnityEngine.Random.Range(0.01f, 0.9f), 0.0f, UnityEngine.Random.Range(1.2f, 2.5f));
             switch (visualId)
@@ -1345,7 +1367,7 @@ public class GameNetwork : MonoBehaviour {
         {
             visualId = 2;
             obstructionController = (Instantiate(obstructionPrefabs[visualId])).GetComponent<ObstructionController>();
-            obstructionController.gameNetwork = this;
+            obstructionController.duelController = this;
             obstructionObject = new ObstructionObject();
             obstructionObject.position = new Vector3(((float)(i - 2)) * 0.66f + UnityEngine.Random.Range(0.05f, 0.6f), 0.0f, UnityEngine.Random.Range(1.2f, 2.5f));
             switch (visualId)

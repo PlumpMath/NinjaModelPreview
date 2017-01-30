@@ -20,8 +20,8 @@ public class GameMatchMaker : Photon.PunBehaviour
     public LoginController loginController;
     public RegionMoveController regionMoveController;
     public PlayerController playerController;
+    public DuelController duelController;
     [NonSerialized]
-    public GameNetwork gameNetwork;
     public Camera camera;
     public Canvas canvasConnect;
     public Canvas canvasPlay;
@@ -87,6 +87,7 @@ public class GameMatchMaker : Photon.PunBehaviour
         else
         {
             PhotonNetwork.Disconnect();
+            SceneManager.LoadScene("map");
         }
 
     }
@@ -203,7 +204,8 @@ public class GameMatchMaker : Photon.PunBehaviour
 
     public void SceneChanged(Scene lastScene, Scene currentScene)
     {
-        switch(currentScene.name)
+        InitializeMessage initializeMessage;
+        switch (currentScene.name)
         {
             case "map":
                 Debug.Log("MAP LOADED!!!");
@@ -215,13 +217,29 @@ public class GameMatchMaker : Photon.PunBehaviour
                 Debug.Log("REGION LOADED!!!");
                 gameMode = 2;
                 loginController.statusCanvas.enabled = false;
-                InitializeMessage initializeMessage = new InitializeMessage();
+                initializeMessage = new InitializeMessage();
                 PhotonNetwork.networkingPeer.OpCustom((byte)1, new Dictionary<byte, object> { { 245, initializeMessage.Pack() } }, true);
                 break;
             case "battle":
                 Debug.Log("DUEL LOADED!!!");
                 gameMode = 3;
                 loginController.statusCanvas.enabled = false;
+                duelController.camera = (Camera)GameObject.Find("Main Camera").GetComponent<Camera>();
+                if(duelController.location != null)
+                {
+                    duelController.location.Cleanup();
+                }
+                duelController.location = new Location();
+                duelController.location.SetNetworkBehavior(duelController);
+                Swipe swipe = duelController.camera.gameObject.GetComponent<Swipe>();
+                swipe.duelController = duelController;
+                duelController.swipeController = swipe.swipeController;
+                duelController.duelUI = (DuelUI)duelController.camera.gameObject.GetComponent<DuelUI>();
+                canvasPlay = (Canvas)GameObject.Find("Canvas").GetComponent<Canvas>();
+                GameObject.Destroy(GameObject.Find("body1_new"));
+                HelloDuelMessage helloDuelMessage = new HelloDuelMessage();
+                helloDuelMessage.token = "";
+                PhotonNetwork.networkingPeer.OpCustom((byte)1, new Dictionary<byte, object> { { 245, helloDuelMessage.Pack() } }, true);
                 break;
         }
     }
@@ -340,6 +358,7 @@ public class GameMatchMaker : Photon.PunBehaviour
     {
         int i;
         BaseObjectMessage baseObjectMessage;
+        RegionMoveMessage moveMessage;
         PlayerObject playerObject = null;
         //PlayerController playerController = null;
         //Debug.Log("RECEIVE EVENT[" + eventCode + "] from [" + senderId + "]");
@@ -350,13 +369,14 @@ public class GameMatchMaker : Photon.PunBehaviour
                 redirectMessage.Unpack((byte[])content);
                 Debug.Log("CATCH REDIRECT MESSAGE: " + redirectMessage.roomName);
                 targetRoom = redirectMessage.roomName;
+                System.Threading.Thread.Sleep(2000);
                 PhotonNetwork.LeaveRoom();
-                regionMoveController.enabled = false;
                 gameMode = 0;
+                regionMoveController.enabled = false;
                 loginController.statusCanvas.enabled = true;
                 break;
             case 2:
-                RegionMoveMessage moveMessage = new RegionMoveMessage();
+                moveMessage = new RegionMoveMessage();
                 moveMessage.Unpack((byte[])content);
                 Debug.Log("OBJECT [" + moveMessage.userId + "] MOVE TO: " + moveMessage.destination + " IN " + moveMessage.moveTimemark + " SEC");
                 if (moveMessage.userId == "")
@@ -386,6 +406,30 @@ public class GameMatchMaker : Photon.PunBehaviour
                 chatMessage.Unpack((byte[])content);
                 regionMoveController.ShowOpponentChat(chatMessage.userId, chatMessage.iconId);
                 break;
+            case 5:
+                BaseObjectMessage leaveMessage = new BaseObjectMessage();
+                leaveMessage.Unpack((byte[])content);
+                if(leaveMessage.timemark == 0.0f)
+                {
+                    regionMoveController.StopLeaving();
+                }
+                else
+                {
+                    regionMoveController.StartLeaving(leaveMessage.timemark - leaveMessage.timestamp);
+                }
+                break;
+            case 6:
+                moveMessage = new RegionMoveMessage();
+                moveMessage.Unpack((byte[])content);
+                Debug.Log("OBJECT [" + moveMessage.userId + "] REMOVE");
+                if (moveMessage.userId == "")
+                {
+                }
+                else
+                {
+                    regionMoveController.RemoveOpponent(moveMessage.userId);
+                }
+                break;
         }
     }
 
@@ -402,29 +446,33 @@ public class GameMatchMaker : Photon.PunBehaviour
                 RedirectMessage redirectMessage = new RedirectMessage();
                 redirectMessage.Unpack((byte[])content);
                 Debug.Log("CATCH REDIRECT MESSAGE: " + redirectMessage.roomName);
+                playerController = GameObject.Find("Main Camera").GetComponent<PlayerController>();
+                playerController.enabled = false;
                 targetRoom = redirectMessage.roomName;
                 PhotonNetwork.LeaveRoom();
-                playerController.enabled = false;
                 gameMode = 0;
                 loginController.statusCanvas.enabled = true;
                 break;
-            case 91:
-                baseObjectMessage = new BaseObjectMessage();
-                baseObjectMessage.Unpack((byte[])content);
-                remoteTimestamp = baseObjectMessage.timemark;
-                gameNetwork.ClientInit();
-                gameNetwork.playerId = baseObjectMessage.id;
-                Debug.Log("INITIALIZE PLAYER ID: " + gameNetwork.playerId);
+            case 2:
+                InitializeMessage initializeMessage = new InitializeMessage();
+                initializeMessage.Unpack((byte[])content);
+                remoteTimestamp = initializeMessage.timemark;
+                duelController.enabled = true;
+                duelController.ClientInit();
+                duelController.playerId = initializeMessage.id;
+                Debug.Log("INITIALIZE PLAYER ID: " + duelController.playerId);
                 /* duplicate for GameNetwork RpcSpawnObject case PLAYER */
-                playerObject = (PlayerObject)gameNetwork.location.GetObject(gameNetwork.playerId);
+                /*
+                playerObject = (PlayerObject)duelController.location.GetObject(duelController.playerId);
                 if (playerObject != null)
                 {
                     camera.transform.position = playerObject.position * 100.0f + Vector3.up * 20.0f;
-                    if (gameNetwork.playerId == 1)
+                    if (duelController.playerId == 1)
                     {
                         camera.transform.eulerAngles = new Vector3(camera.transform.eulerAngles.x, 180.0f, camera.transform.eulerAngles.z);
                     }
                 }
+                */
                 /*
                 playerObject = (PlayerObject)gameNetwork.location.GetObject(gameNetwork.playerId == 1 ? 0 : 1);
                 if (playerObject != null && playerObject.visualObject == null)
@@ -441,38 +489,12 @@ public class GameMatchMaker : Photon.PunBehaviour
                     }
                 }
                 */
-                /* */
-                canvasPlay.enabled = true;
-                InitializeMessage initializeMessage = new InitializeMessage();
-                /*
-                for (i = 1; i < AbilityButtons.Length; i++)
-                {
-                    if (AbilityButtons[i].image.color == Color.green)
-                    {
-                        if (initializeMessage.abilityFirstId <= -1)
-                        {
-                            initializeMessage.abilityFirstId = i;
-                        }
-                        else
-                        {
-                            initializeMessage.abilitySecondId = i;
-                        }
-                    }
-                }
-                gameNetwork.myMissileId = armedMissile.GetCurrentMissile();
-                initializeMessage.missileId = gameNetwork.myMissileId;
-                for (i = 1; i < VenomButtons.Length; i++)
-                {
-                    if (VenomButtons[i].image.color == Color.green)
-                    {
-                        initializeMessage.venomId = i;
-                    }
-                }
-                */
-                PhotonNetwork.networkingPeer.OpCustom((byte)1, new Dictionary<byte, object> { { 245, initializeMessage.Pack() } }, true);
+
+                //baseObjectMessage = new BaseObjectMessage();
+                //PhotonNetwork.networkingPeer.OpCustom((byte)1, new Dictionary<byte, object> { { 245, baseObjectMessage.Pack() } }, true);
 
                 break;
-            case 2:
+            case 3:
                 SpawnObjectMessage spawnObjectMessage = new SpawnObjectMessage();
                 spawnObjectMessage.Unpack((byte[])content);
                 //Debug.Log(Time.fixedTime + " Spawn." + spawnObjectMessage.objectType + " [" + spawnObjectMessage.id + "]");
@@ -480,7 +502,7 @@ public class GameMatchMaker : Photon.PunBehaviour
                 delayedMessages.AddLast(spawnObjectMessage);
                 //gameNetwork.RpcSpawnObject(spawnObjectMessage.id, spawnObjectMessage.objectType, spawnObjectMessage.newPosition, spawnObjectMessage.newFloat, spawnObjectMessage.visualId);
                 break;
-            case 3:
+            case 4:
                 DestroyObjectMessage destroyObjectMessage = new DestroyObjectMessage();
                 destroyObjectMessage.Unpack((byte[])content);
                 //Debug.Log(Time.fixedTime + " Destroy [" + destroyObjectMessage.id + "]: " + destroyObjectMessage.objectId);
@@ -488,7 +510,7 @@ public class GameMatchMaker : Photon.PunBehaviour
                 delayedMessages.AddLast(destroyObjectMessage);
                 //gameNetwork.RpcDestroyObject(destroyObjectMessage.id);
                 break;
-            case 4:
+            case 5:
                 MoveObjectMessage moveObjectMessage = new MoveObjectMessage();
                 moveObjectMessage.Unpack((byte[])content);
                 //Debug.Log(Time.fixedTime + " Move [" + moveObjectMessage.id + "]");
@@ -496,24 +518,24 @@ public class GameMatchMaker : Photon.PunBehaviour
                 delayedMessages.AddLast(moveObjectMessage);
                 //gameNetwork.RpcMoveObject(moveObjectMessage.id, moveObjectMessage.newPosition, moveObjectMessage.newFloat, moveObjectMessage.timestamp);
                 break;
-            case 5:
+            case 6:
                 UpdatePlayerMessage updatePlayerMessage = new UpdatePlayerMessage();
                 updatePlayerMessage.Unpack((byte[])content);
                 //Debug.Log("Player[" + updatePlayerMessage.id + "] health: " + updatePlayerMessage.newHealth + " ; stamina: " + updatePlayerMessage.newStamina);
-                gameNetwork.RpcUpdatePlayer(updatePlayerMessage.id, updatePlayerMessage.newHealth, updatePlayerMessage.newStamina, updatePlayerMessage.newStaminaConsumption);
-                break;
-            case 6:
-                gameNetwork.RpcRearmMissile();
+                duelController.RpcUpdatePlayer(updatePlayerMessage.id, updatePlayerMessage.newHealth, updatePlayerMessage.newStamina, updatePlayerMessage.newStaminaConsumption);
                 break;
             case 7:
-                baseObjectMessage = new BaseObjectMessage();
-                baseObjectMessage.Unpack((byte[])content);
-                gameNetwork.RpcFlashPlayer(baseObjectMessage.id);
+                duelController.RpcRearmMissile();
                 break;
             case 8:
+                baseObjectMessage = new BaseObjectMessage();
+                baseObjectMessage.Unpack((byte[])content);
+                duelController.RpcFlashPlayer(baseObjectMessage.id);
+                break;
+            case 9:
                 GameOverMessage gameOverMessage = new GameOverMessage();
                 gameOverMessage.Unpack((byte[])content);
-                gameNetwork.RpcGameOver(gameOverMessage.winner, gameOverMessage.time, gameOverMessage.damage, gameOverMessage.wound);
+                duelController.RpcGameOver(gameOverMessage.winner, gameOverMessage.time, gameOverMessage.damage, gameOverMessage.wound);
 
                 /*
                 gameNetwork = GameObject.Instantiate(gameNetworkPrefab).GetComponent<GameNetwork>();
@@ -524,42 +546,43 @@ public class GameMatchMaker : Photon.PunBehaviour
                 */
 
                 break;
-            case 9:
+            case 10:
                 SetAbilityMessage setAbilityMessage = new SetAbilityMessage();
                 setAbilityMessage.Unpack((byte[])content);
-                gameNetwork.RpcSetAbility(setAbilityMessage.id, setAbilityMessage.value);
+                duelController.RpcSetAbility(setAbilityMessage.id, setAbilityMessage.value);
                 break;
-            case 10:
+            case 11:
                 NoticeMessage noticeMessage = new NoticeMessage();
                 noticeMessage.Unpack((byte[])content);
                 //Debug.Log("GET NOTICE MESSAGE. timemark: " + noticeMessage.timemark + " ; numericValue: " + noticeMessage.numericValue);
                 noticeMessage.eventCode = eventCode;
                 delayedMessages.AddLast(noticeMessage);
                 break;
-            case 11:
+            case 12:
                 baseObjectMessage = new BaseObjectMessage();
                 baseObjectMessage.Unpack((byte[])content);
                 Debug.Log("RECEIVE FLASH PASSIVE ABILITY. timemark: " + baseObjectMessage.timemark);
                 baseObjectMessage.eventCode = eventCode;
                 delayedMessages.AddLast(baseObjectMessage);
                 break;
-            case 12:
+            case 13:
                 baseObjectMessage = new BaseObjectMessage();
                 baseObjectMessage.Unpack((byte[])content);
                 //Debug.Log("FLASH OBSTRUCTION[" + baseObjectMessage.id + "]. timemark: " + baseObjectMessage.timemark);
-                gameNetwork.RpcFlashObstruction(baseObjectMessage.id);
+                duelController.RpcFlashObstruction(baseObjectMessage.id);
                 break;
-            case 13:
+            case 14:
                 VisualEffectMessage visualEffectMessage = new VisualEffectMessage();
                 visualEffectMessage.Unpack((byte[])content);
                 Debug.Log("VISUAL EFFECT [" + visualEffectMessage.id + "]. targetId: " + visualEffectMessage.targetId);
                 visualEffectMessage.eventCode = eventCode;
                 delayedMessages.AddLast(visualEffectMessage);
                 break;
-            case 14:
+            case 15:
                 PingMessage pingMessage = new PingMessage();
                 PingMessage newPingMessage;
                 pingMessage.Unpack((byte[])content);
+                Debug.Log("PING MESSAGE: " + pingMessage.time);
                 if(pingMessage.time == 0.0f)
                 {
                     newPingMessage = new PingMessage(remoteTimestamp, pingMessage.timemark);
@@ -570,6 +593,8 @@ public class GameMatchMaker : Photon.PunBehaviour
                     remoteTimestamp = pingMessage.timemark + pingMessage.time / 2.0f;
                 }
                 break;
+            // not need, temporary
+            /*
             case 15:
                 ThrowMessage throwMessage = new ThrowMessage();
                 throwMessage.Unpack((byte[])content);
@@ -578,6 +603,7 @@ public class GameMatchMaker : Photon.PunBehaviour
                     playerController.swipe.Throw2(playerController, new Vector2(throwMessage.angleX, throwMessage.angleY), throwMessage.torsion, throwMessage.speed);
                 }
                 break;
+            */
         }
     }
 
@@ -596,19 +622,19 @@ public class GameMatchMaker : Photon.PunBehaviour
             {
                 switch(objMessageNode.Value.eventCode)
                 {
-                    case 2:
-                        SpawnObjectMessage spawnObjectMessage = (SpawnObjectMessage)objMessageNode.Value;
-                        gameNetwork.RpcSpawnObject(spawnObjectMessage.objectId, spawnObjectMessage.objectType, spawnObjectMessage.newPosition, spawnObjectMessage.newVelocity, spawnObjectMessage.newAcceleration, spawnObjectMessage.newTorsion, spawnObjectMessage.newFloat, spawnObjectMessage.visualId);
-                        break;
                     case 3:
-                        DestroyObjectMessage destroyObjectMessage = (DestroyObjectMessage)objMessageNode.Value;
-                        gameNetwork.RpcDestroyObject(destroyObjectMessage.objectId);
+                        SpawnObjectMessage spawnObjectMessage = (SpawnObjectMessage)objMessageNode.Value;
+                        duelController.RpcSpawnObject(spawnObjectMessage.objectId, spawnObjectMessage.objectType, spawnObjectMessage.newPosition, spawnObjectMessage.newVelocity, spawnObjectMessage.newAcceleration, spawnObjectMessage.newTorsion, spawnObjectMessage.newFloat, spawnObjectMessage.visualId);
                         break;
                     case 4:
-                        MoveObjectMessage moveObjectMessage = (MoveObjectMessage)objMessageNode.Value;
-                        gameNetwork.RpcMoveObject(moveObjectMessage.objectId, moveObjectMessage.newPosition, moveObjectMessage.newVelocity, moveObjectMessage.newAcceleration, moveObjectMessage.newTorsion, moveObjectMessage.newFloat, moveObjectMessage.timestamp);
+                        DestroyObjectMessage destroyObjectMessage = (DestroyObjectMessage)objMessageNode.Value;
+                        duelController.RpcDestroyObject(destroyObjectMessage.objectId);
                         break;
-                    case 10:
+                    case 5:
+                        MoveObjectMessage moveObjectMessage = (MoveObjectMessage)objMessageNode.Value;
+                        duelController.RpcMoveObject(moveObjectMessage.objectId, moveObjectMessage.newPosition, moveObjectMessage.newVelocity, moveObjectMessage.newAcceleration, moveObjectMessage.newTorsion, moveObjectMessage.newFloat, moveObjectMessage.timestamp);
+                        break;
+                    case 11:
                         NoticeMessage noticeMessage = (NoticeMessage)objMessageNode.Value;
                         //Debug.Log("NOTICE MESSAGE: " + noticeMessage.numericValue + " ; " + noticeMessage.color + " ; " + noticeMessage.floating + " ; " + noticeMessage.offset);
                         string noticeText = "";
@@ -632,15 +658,15 @@ public class GameMatchMaker : Photon.PunBehaviour
                         {
                             noticeText += " " + langNotices[noticeMessage.suffixMessage];
                         }
-                        gameNetwork.RpcShowNotice(noticeMessage.id, noticeText, noticeMessage.offset, noticeMessage.color, noticeMessage.floating);
+                        duelController.RpcShowNotice(noticeMessage.id, noticeText, noticeMessage.offset, noticeMessage.color, noticeMessage.floating);
                         break;
-                    case 11:
+                    case 12:
                         Debug.Log("@ INVOKE FLASH PASSIVE ABILITY[" + objMessageNode.Value.id + "]");
-                        gameNetwork.RpcFlashPassiveAbility(objMessageNode.Value.id);
+                        duelController.RpcFlashPassiveAbility(objMessageNode.Value.id);
                         break;
-                    case 13:
+                    case 14:
                         VisualEffectMessage visualEffectMessage = (VisualEffectMessage)objMessageNode.Value;
-                        gameNetwork.RpcVisualEffect(visualEffectMessage.id, visualEffectMessage.invokerId, visualEffectMessage.targetId, visualEffectMessage.targetPosition, visualEffectMessage.direction, visualEffectMessage.duration);
+                        duelController.RpcVisualEffect(visualEffectMessage.id, visualEffectMessage.invokerId, visualEffectMessage.targetId, visualEffectMessage.targetPosition, visualEffectMessage.direction, visualEffectMessage.duration);
                         break;
                 }
                 delayedMessages.Remove(objMessageNode);
@@ -715,7 +741,7 @@ public class GameMatchMaker : Photon.PunBehaviour
 
     public void FindInternetMatch(string matchName)
     {
-        if (gameNetwork != null)
+        if (duelController != null)
         {
             //NetManager.singleton.StopMatchMaker();
             //NetManager.singleton.StartMatchMaker();

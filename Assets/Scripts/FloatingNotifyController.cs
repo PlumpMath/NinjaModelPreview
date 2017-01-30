@@ -28,7 +28,7 @@ public class FloatingNotifyController : MonoBehaviour {
             quadMesh.material.color = new Color(1.0f, 1.0f, 1.0f, f);
             textMesh.color = new Color(baseColor.r, baseColor.g, baseColor.b, f);
             textMeshBack.color = new Color(baseColor.r * 0.5f, baseColor.g * 0.5f, baseColor.b * 0.5f, f);
-            transform.position += Vector3.up * 4.0f * Time.deltaTime;
+            transform.position += Vector3.up * 1.0f * Time.deltaTime;
             if(cooldown <= 0.0f)
             {
                 Destroy(gameObject);

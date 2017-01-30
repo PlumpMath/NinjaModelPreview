@@ -316,6 +316,7 @@ public class RegionMoveController : MonoBehaviour {
             return;
         }
 
+        /*
         if (leaveCooldown > 0.0f)
         {
             leaveCooldown -= Time.deltaTime;
@@ -343,6 +344,7 @@ public class RegionMoveController : MonoBehaviour {
                 SceneManager.LoadScene("map");
             }
         }
+        */
 
         if(blockInput > 0.0f)
         {
@@ -673,6 +675,7 @@ public class RegionMoveController : MonoBehaviour {
             camera.transform.position += Vector3.forward * (25.0f - camera.transform.position.z);
         }
 
+        /*
         if (!exitButton.enabled)
         {
             if (transform.position.x < -8.0f || transform.position.x > 8.0f || transform.position.z < -26.0f || transform.position.z > 27.0f)
@@ -698,6 +701,15 @@ public class RegionMoveController : MonoBehaviour {
                 {
                     statusBar.text = "Переход через " + Mathf.Ceil(leaveCooldown) + " секунд";
                 }
+            }
+        }
+        */
+        if (leaveCooldown > 0.0f)
+        {
+            leaveCooldown -= Time.deltaTime;
+            if (leaveCooldown + Time.deltaTime > Mathf.Ceil(leaveCooldown) && Mathf.Ceil(leaveCooldown) >= 0.0f)
+            {
+                statusBar.text = "Переход через " + Mathf.Ceil(leaveCooldown) + " секунд";
             }
         }
 
@@ -870,6 +882,24 @@ public class RegionMoveController : MonoBehaviour {
         bot.SetState(destination, moveTime);
     }
 
+    public void RemoveOpponent(string id)
+    {
+        int i;
+        RegionBotBehavior bot;
+        LinkedListNode<RegionBotBehavior> botNode = bots.First;
+        while (botNode != null)
+        {
+            bot = botNode.Value;
+            if (bot.playerId == id)
+            {
+                GameObject.Destroy(bot.gameObject);
+                bots.Remove(botNode);
+                return;
+            }
+            botNode = botNode.Next;
+        }
+    }
+
     public void ThrowOpponentHook(string id, Vector2 destination, float moveTime)
     {
         int i;
@@ -948,6 +978,22 @@ public class RegionMoveController : MonoBehaviour {
         smileyCooldown = 2.0f;
         smileyBackground.enabled = true;
         smileyIcon.enabled = true;
+    }
+
+    public void StartLeaving(float time)
+    {
+        leaveCooldown = time;
+        statusBar.text = "Переход через 5 секунд";
+        exitButton.enabled = true;
+        exitButton.image.enabled = true;
+    }
+
+    public void StopLeaving()
+    {
+        leaveCooldown = 0.0f;
+        statusBar.text = "";
+        exitButton.enabled = false;
+        exitButton.image.enabled = false;
     }
 
 }
