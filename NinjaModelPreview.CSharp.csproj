@@ -146,6 +146,7 @@
     <Compile Include="Assets\Photon Unity Networking\UtilityScripts\TimeKeeper.cs" />
     <Compile Include="Assets\Scripts\AbilityButton.cs" />
     <Compile Include="Assets\Scripts\ArmedMissileController.cs" />
+    <Compile Include="Assets\Scripts\CanvasFloatingNotifyController.cs" />
     <Compile Include="Assets\Scripts\DuelController.cs" />
     <Compile Include="Assets\Scripts\DuelUI.cs" />
     <Compile Include="Assets\Scripts\FixedNotifyController.cs" />
@@ -163,6 +164,7 @@
     <Compile Include="Assets\Scripts\RegionBotBehavior.cs" />
     <Compile Include="Assets\Scripts\RegionHook.cs" />
     <Compile Include="Assets\Scripts\RegionMoveController.cs" />
+    <Compile Include="Assets\Scripts\RegionPreset.cs" />
     <Compile Include="Assets\Scripts\ScreenEffectsController.cs" />
     <Compile Include="Assets\Scripts\SmileyButton.cs" />
     <Compile Include="Assets\Scripts\SparksController.cs" />
@@ -203,7 +205,9 @@
     <None Include="Assets\Resources\Shaders\HighlightMaterial.shader" />
     <None Include="Assets\Resources\Shaders\MatCap_CustomBumpTexture.shader" />
     <None Include="Assets\Resources\Shaders\MatCap_CustomTexture.shader" />
+    <None Include="Assets\Resources\Shaders\MatcapRadialLight.shader" />
     <None Include="Assets\Resources\Shaders\ProjectorAlphaBlend.shader" />
+    <None Include="Assets\Resources\Shaders\SpriteRadialLight.shader" />
     <None Include="Assets\Resources\Shaders\TransparentDiffuseWithHighlight.shader" />
     <None Include="Assets\Resources\Shaders\UnlitShaderWithShadow.shader" />
   </ItemGroup>

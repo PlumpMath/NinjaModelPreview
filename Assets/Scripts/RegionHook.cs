@@ -56,9 +56,9 @@ public class RegionHook : MonoBehaviour {
 
         transform.position += velocity * Time.deltaTime;
 
-        points[0] = hook.transform.position - Vector3.up * 0.1f + direction.normalized * 0.2f;
-        points[1] = (hook.transform.position + player.transform.position - direction.normalized * (0.2f * direction.magnitude + 0.1f)) * 0.5f - Vector3.up * 0.1f - velocity.normalized * 0.2f * direction.magnitude;
-        points[2] = player.transform.position - Vector3.up * 0.1f - direction.normalized * 0.3f;
+        points[0] = hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.2f;
+        points[1] = (hook.transform.position + player.transform.position - direction.normalized * (0.2f * direction.magnitude + 0.1f)) * 0.5f - Vector3.up * 0.05f - velocity.normalized * 0.2f * direction.magnitude;
+        points[2] = player.transform.position - Vector3.up * 0.05f - direction.normalized * 0.3f;
         chain.SetPositions(points);
         chain.material.SetTextureScale("_MainTex", new Vector2((direction.magnitude - 0.5f) * 5.0f, 1.0f));
         a = Vector3.Angle(Vector3.forward, direction);
@@ -74,14 +74,14 @@ public class RegionHook : MonoBehaviour {
     {
         enabled = false;
         hook.enabled = false;
-        hook.transform.position = new Vector3(hook.transform.position.x, 10.0f, hook.transform.position.z);
+        hook.transform.position = new Vector3(hook.transform.position.x, -10.0f, hook.transform.position.z);
         chain.enabled = false;
         rollback = false;
     }
 
     public void Show()
     {
-        hook.transform.position = new Vector3(hook.transform.position.x, 0.0f, hook.transform.position.z);
+        hook.transform.position = new Vector3(hook.transform.position.x, 0.1f, hook.transform.position.z);
         Update();
         enabled = true;
         hook.enabled = true;

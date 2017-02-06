@@ -1,0 +1,535 @@
+fileFormatVersion: 2
+guid: 220b3e79f785f1b488e7d70e85ffcef9
+timeCreated: 1486128066
+licenseType: Free
+TextureImporter:
+  fileIDToRecycleName:
+    21300000: region01_object_atlas_0
+    21300002: region01_object_atlas_1
+    21300004: region01_object_atlas_2
+    21300006: region01_object_atlas_3
+    21300008: region01_object_atlas_4
+    21300010: region01_object_atlas_5
+    21300012: region01_object_atlas_6
+    21300014: region01_object_atlas_7
+    21300016: region01_object_atlas_8
+    21300018: region01_object_atlas_9
+    21300020: region01_object_atlas_10
+    21300022: region01_object_atlas_11
+    21300024: region01_object_atlas_12
+    21300026: region01_object_atlas_13
+    21300028: region01_object_atlas_14
+    21300030: region01_object_atlas_15
+    21300032: region01_object_atlas_16
+    21300034: region01_object_atlas_17
+    21300036: region01_object_atlas_18
+    21300038: region01_object_atlas_19
+    21300040: region01_object_atlas_20
+    21300042: region01_object_atlas_21
+    21300044: region01_object_atlas_22
+    21300046: region01_object_atlas_23
+    21300048: region01_object_atlas_24
+    21300050: region01_object_atlas_25
+    21300052: region01_object_atlas_26
+    21300054: region01_object_atlas_27
+    21300056: region01_object_atlas_28
+    21300058: region01_object_atlas_29
+    21300060: region01_object_atlas_30
+    21300062: region01_object_atlas_31
+    21300064: region01_object_atlas_32
+    21300066: region01_object_atlas_33
+  serializedVersion: 2
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 1
+    linearTexture: 0
+    correctGamma: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+  isReadable: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 0
+  cubemapConvolution: 0
+  cubemapConvolutionSteps: 7
+  cubemapConvolutionExponent: 1.5
+  seamlessCubemap: 0
+  textureFormat: -1
+  maxTextureSize: 2048
+  textureSettings:
+    filterMode: -1
+    aniso: 16
+    mipBias: -1
+    wrapMode: 1
+  nPOTScale: 0
+  lightmap: 0
+  rGBM: 0
+  compressionQuality: 50
+  allowsAlphaSplitting: 0
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spritePixelsToUnits: 100
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  buildTargetSettings: []
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: region01_object_atlas_0
+      rect:
+        serializedVersion: 2
+        x: 57
+        y: 1748
+        width: 331
+        height: 253
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_1
+      rect:
+        serializedVersion: 2
+        x: 408
+        y: 1737
+        width: 312
+        height: 280
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_2
+      rect:
+        serializedVersion: 2
+        x: 792
+        y: 1776
+        width: 263
+        height: 232
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_3
+      rect:
+        serializedVersion: 2
+        x: 1009
+        y: 1533
+        width: 271
+        height: 261
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_4
+      rect:
+        serializedVersion: 2
+        x: 1334
+        y: 1331
+        width: 554
+        height: 567
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_5
+      rect:
+        serializedVersion: 2
+        x: 725
+        y: 1524
+        width: 271
+        height: 223
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_6
+      rect:
+        serializedVersion: 2
+        x: 1332
+        y: 1734
+        width: 20
+        height: 10
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_7
+      rect:
+        serializedVersion: 2
+        x: 40
+        y: 1460
+        width: 291
+        height: 237
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_8
+      rect:
+        serializedVersion: 2
+        x: 335
+        y: 1445
+        width: 369
+        height: 271
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_9
+      rect:
+        serializedVersion: 2
+        x: 1008
+        y: 1676
+        width: 4
+        height: 9
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_10
+      rect:
+        serializedVersion: 2
+        x: 50
+        y: 1183
+        width: 370
+        height: 268
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_11
+      rect:
+        serializedVersion: 2
+        x: 456
+        y: 1329
+        width: 176
+        height: 115
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_12
+      rect:
+        serializedVersion: 2
+        x: 677
+        y: 1344
+        width: 227
+        height: 175
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_13
+      rect:
+        serializedVersion: 2
+        x: 904
+        y: 1380
+        width: 185
+        height: 136
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_14
+      rect:
+        serializedVersion: 2
+        x: 1092
+        y: 1272
+        width: 280
+        height: 226
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_15
+      rect:
+        serializedVersion: 2
+        x: 428
+        y: 1292
+        width: 12
+        height: 20
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_16
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 1216
+        width: 128
+        height: 88
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_17
+      rect:
+        serializedVersion: 2
+        x: 628
+        y: 1152
+        width: 232
+        height: 156
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_18
+      rect:
+        serializedVersion: 2
+        x: 893
+        y: 1196
+        width: 187
+        height: 168
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_19
+      rect:
+        serializedVersion: 2
+        x: 88
+        y: 929
+        width: 316
+        height: 242
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_20
+      rect:
+        serializedVersion: 2
+        x: 452
+        y: 1063
+        width: 155
+        height: 129
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_21
+      rect:
+        serializedVersion: 2
+        x: 665
+        y: 944
+        width: 183
+        height: 177
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_22
+      rect:
+        serializedVersion: 2
+        x: 888
+        y: 908
+        width: 284
+        height: 259
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_23
+      rect:
+        serializedVersion: 2
+        x: 1166
+        y: 888
+        width: 413
+        height: 345
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_24
+      rect:
+        serializedVersion: 2
+        x: 1612
+        y: 974
+        width: 371
+        height: 234
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_25
+      rect:
+        serializedVersion: 2
+        x: 217
+        y: 913
+        width: 78
+        height: 31
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_26
+      rect:
+        serializedVersion: 2
+        x: 804
+        y: 892
+        width: 4
+        height: 4
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_27
+      rect:
+        serializedVersion: 2
+        x: 892
+        y: 648
+        width: 274
+        height: 256
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_28
+      rect:
+        serializedVersion: 2
+        x: 51
+        y: 614
+        width: 310
+        height: 273
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_29
+      rect:
+        serializedVersion: 2
+        x: 671
+        y: 755
+        width: 201
+        height: 125
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_30
+      rect:
+        serializedVersion: 2
+        x: 832
+        y: 632
+        width: 104
+        height: 128
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_31
+      rect:
+        serializedVersion: 2
+        x: 1191
+        y: 564
+        width: 356
+        height: 273
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_32
+      rect:
+        serializedVersion: 2
+        x: 617
+        y: 476
+        width: 291
+        height: 228
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: region01_object_atlas_33
+      rect:
+        serializedVersion: 2
+        x: 631
+        y: 688
+        width: 4
+        height: 6
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    outline: []
+  spritePackingTag: 
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

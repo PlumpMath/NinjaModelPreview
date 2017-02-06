@@ -50,6 +50,8 @@ public class RegionBotBehavior : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
+        float t;
+
         if(cooldown2 > 0.0f)
         {
             cooldown2 -= Time.deltaTime;
@@ -80,8 +82,10 @@ public class RegionBotBehavior : MonoBehaviour {
         if(cooldown > 0.0f)
         {
             cooldown -= Time.deltaTime;
+            t = Time.deltaTime;
             if(cooldown <= 0.0f)
             {
+                t = cooldown + Time.deltaTime;
                 cooldown = 0.0f;
                 /*
                 cooldown = 0.7f;
@@ -108,7 +112,7 @@ public class RegionBotBehavior : MonoBehaviour {
                 }
                 */
             }
-            transform.position += direction * speed * Time.deltaTime;
+            transform.position += direction * speed * t;
         }
         if (smileyCooldown > 0.0f)
         {
@@ -123,8 +127,9 @@ public class RegionBotBehavior : MonoBehaviour {
         //transform.position += direction * speed * Time.deltaTime;
         if (direction.magnitude > 0.0f)
         {
-            playerIcon.transform.localRotation = Quaternion.LookRotation(Vector3.right * direction.x + Vector3.up * direction.z, Vector3.forward);
+            playerIcon.transform.localRotation = Quaternion.LookRotation(Vector3.right * direction.x + Vector3.up * direction.z, -Vector3.forward);
         }
+        /*
         if (transform.position.x < -9.0f)
         {
             transform.position += Vector3.right * (-9.0f - transform.position.x);
@@ -141,6 +146,7 @@ public class RegionBotBehavior : MonoBehaviour {
         {
             transform.position += Vector3.forward * (29.0f - transform.position.z);
         }
+        */
 
         mapNode = map.FindNode(transform.position.x, transform.position.z);
         if (mapNode != null)

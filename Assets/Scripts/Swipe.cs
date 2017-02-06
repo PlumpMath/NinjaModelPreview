@@ -473,7 +473,7 @@ public class Swipe : MonoBehaviour {
         missileController.name = missilePrefab.name;
         //missileController.taskObject = taskObject;
         position = armedMissile.transform.position;
-        if (angle.y < 0.0f || ((PlayerObject)duelController.location.GetObject(0)).stamina < 0.33f)
+        if (angle.y < 0.0f || ((PlayerObject)duelController.location.GetObject(duelController.playerId)).stamina < 0.33f)
         {
             //taskObject.players[0].stamina = Mathf.Max(0.0f, taskObject.players[0].stamina - 0.1f);
             angle.y = 1.0f;

@@ -769,6 +769,7 @@ public class Location
         PlayerObject playerObject;
         MissileObject missileObject;
         Vector3 v3Delta;
+        float timestamp = Time.time;
         float scale = 0.0f;
         objNode = objects.First;
         while (objNode != null)
@@ -849,7 +850,8 @@ public class Location
                         if (playerObject.id == network.playerId)
                         {
                             network.duelUI.SetSelfHealth(playerObject.health);
-                            network.duelUI.SetStamina(playerObject.stamina);
+                            //playerObject.stamina = Mathf.Max(0.0f, Mathf.Min(100.0f, playerObject.stamina + playerObject.staminaRegeneration * deltaTime));
+                            network.duelUI.SetStamina(Mathf.Max(0.0f, Mathf.Min(100.0f, playerObject.stamina + Mathf.Max(0.0f, playerObject.staminaRegeneration) * (Time.time - playerObject.lastTimestamp))));
                             //network.healthBarSelf.text = Mathf.Floor(playerObject.health) + "";
                             //network.staminaBar.rectTransform.sizeDelta = new Vector2(network.staminaBar.rectTransform.sizeDelta.x + (network.gameMatchMaker.canvasPlay.pixelRect.width * playerObject.stamina / 100.0f - network.staminaBar.rectTransform.sizeDelta.x) * Mathf.Min(1.0f, Time.deltaTime * 15.0f), network.staminaBar.rectTransform.sizeDelta.y);
                         }

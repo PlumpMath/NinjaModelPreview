@@ -128,6 +128,7 @@ public class GameMatchMaker : Photon.PunBehaviour
         else if (PhotonNetwork.networkingPeer.CurrentRoom.name.Length == 8 && PhotonNetwork.networkingPeer.CurrentRoom.name.Substring(0, 6) == "region")
         {
             //PhotonNetwork.networkingPeer.OpCustom((byte)1, new Dictionary<byte, object> { { 245, Encoding.ASCII.GetBytes(enteringToken) } }, true);
+            Debug.Log("REGION ID: " + PhotonNetwork.networkingPeer.CurrentRoom.name.Substring(6, 2));
             PlayerPrefs.SetString("CurrentRegion", PhotonNetwork.networkingPeer.CurrentRoom.name.Substring(6, 2));
             PlayerPrefs.SetString("CurrentPoint", "S");
             SceneManager.LoadScene("region");
@@ -369,7 +370,7 @@ public class GameMatchMaker : Photon.PunBehaviour
                 redirectMessage.Unpack((byte[])content);
                 Debug.Log("CATCH REDIRECT MESSAGE: " + redirectMessage.roomName);
                 targetRoom = redirectMessage.roomName;
-                System.Threading.Thread.Sleep(2000);
+                //System.Threading.Thread.Sleep(2000);
                 PhotonNetwork.LeaveRoom();
                 gameMode = 0;
                 regionMoveController.enabled = false;

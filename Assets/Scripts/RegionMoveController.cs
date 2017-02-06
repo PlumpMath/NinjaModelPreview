@@ -1,10 +1,16 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+using UnityEditor;
+#endif
+using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
 using System.Collections;
 using System.Collections.Generic;
 
+#if UNITY_EDITOR
+[InitializeOnLoad]
+#endif
 public class RegionMoveController : MonoBehaviour {
 
     public GameMatchMaker matchMaker = null;
@@ -98,9 +104,9 @@ public class RegionMoveController : MonoBehaviour {
         int i;
 
         string currentRegionId = PlayerPrefs.GetString("CurrentRegion", "01");
-        mapQuads[0].material = Resources.Load<Material>("Materials/RegionMap" + currentRegionId + "_1");
-        mapQuads[1].material = Resources.Load<Material>("Materials/RegionMap" + currentRegionId + "_2");
-        mapQuads[2].material = Resources.Load<Material>("Materials/RegionMap" + currentRegionId + "_3");
+        //mapQuads[0].material = Resources.Load<Material>("Materials/RegionMap" + currentRegionId + "_1");
+        //mapQuads[1].material = Resources.Load<Material>("Materials/RegionMap" + currentRegionId + "_2");
+        //mapQuads[2].material = Resources.Load<Material>("Materials/RegionMap" + currentRegionId + "_3");
 
 
         inputModeButtons[0].onClick.AddListener(delegate() {
@@ -261,10 +267,48 @@ public class RegionMoveController : MonoBehaviour {
             statusBar.text = "Пустошь дырявых штанов";
         }
 
+        GameObject regionPreset = (GameObject)GameObject.Instantiate(Resources.Load("Prefabs/Regions/Region" + currentRegionId));
+        regionPreset.transform.position = new Vector3(0.0f, -0.015f, 0.0f);
+
         matchMaker = GameObject.Find("GameNetwork").GetComponent<GameMatchMaker>();
         matchMaker.regionMoveController = this;
 
+        RegionPreset preset = GameObject.FindObjectOfType<RegionPreset>();
+        if(preset != null)
+        {
+            Light light = GameObject.Find("Directional Light").GetComponent<Light>();
+            light.color = preset.ambientColor;
+            Shader.SetGlobalColor("_AmbientLight", preset.ambientColor);
+        }
+
     }
+
+#if UNITY_EDITOR
+
+    private bool inEditorUpdated = false;
+
+    RegionMoveController()
+    {
+        inEditorUpdated = false;
+        EditorApplication.update += InEditorUpdate;
+    }
+
+    void InEditorUpdate()
+    {
+        if(!inEditorUpdated)
+        {
+            inEditorUpdated = true;
+            RegionPreset preset = GameObject.FindObjectOfType<RegionPreset>();
+            if (preset != null)
+            {
+                Light light = GameObject.Find("Directional Light").GetComponent<Light>();
+                light.color = preset.ambientColor;
+                Shader.SetGlobalColor("_AmbientLight", preset.ambientColor);
+            }
+        }
+    }
+
+#endif
 
     void OnGUI() {
 
@@ -526,7 +570,7 @@ public class RegionMoveController : MonoBehaviour {
                 case 3:
                     direction.x = posX / (float)Screen.width - 0.5f;
                     direction.z = Mathf.Max(-0.5f, Mathf.Min(0.5f, (posY - (float)Screen.height * 0.5f) / (float)Screen.width));
-                    Vector3 cameraShift = camera.transform.position - transform.position;
+                    Vector3 cameraShift = camera.transform.position - transform.position + Vector3.forward * 10.0f;
                     cameraShift.y = 0.0f;
                     cameraShift.x /= 2.7f * 2.0f;
                     cameraShift.z /= 2.7f * 2.0f;
@@ -558,7 +602,7 @@ public class RegionMoveController : MonoBehaviour {
         {
             inputTimeout = 0.1f;
             RegionMoveMessage regionMoveMessage = new RegionMoveMessage();
-            regionMoveMessage.destination = position2D + direction2D * speed * inputCooldown;
+            regionMoveMessage.destination = position2D + direction2D * speed * (inputCooldown + Time.deltaTime);
             regionMoveMessage.moveTimemark = inputCooldown;
             PhotonNetwork.networkingPeer.OpCustom((byte)2, new Dictionary<byte, object> { { 245, regionMoveMessage.Pack() } }, true);
         }
@@ -585,7 +629,7 @@ public class RegionMoveController : MonoBehaviour {
             barrierNode = barrierNode.Next;
         }
 
-        if (mapNode.coverageType == 2)
+        if (mapNode != null && mapNode.coverageType == 2)
         {
             bushDistanceTraveled += (new Vector3(newPosition2D.x, transform.position.y, newPosition2D.y) - transform.position).magnitude * Random.Range(0.0f, 1.0f);
             if (bushDistanceTraveled > 5.0f)
@@ -599,8 +643,9 @@ public class RegionMoveController : MonoBehaviour {
 
         if (direction.magnitude > 0.1f)
         {
-            playerIcon.transform.localRotation = Quaternion.LookRotation(Vector3.right * direction.x + Vector3.up * direction.z, Vector3.forward);
+            playerIcon.transform.localRotation = Quaternion.LookRotation(Vector3.right * direction.x + Vector3.up * direction.z, -Vector3.forward);
         }
+        /*
         if (transform.position.x < -9.0f)
         {
             transform.position += Vector3.right * (-9.0f - transform.position.x);
@@ -617,6 +662,7 @@ public class RegionMoveController : MonoBehaviour {
         {
             transform.position += Vector3.forward * (30.0f - transform.position.z);
         }
+        */
 
         mapNode = map.FindNode(transform.position.x, transform.position.z);
         if(mapNode != null)
@@ -657,22 +703,22 @@ public class RegionMoveController : MonoBehaviour {
             playerFaceRenderer.color = newColor;
         }
 
-        camera.transform.position += new Vector3(transform.position.x - camera.transform.position.x, 0.0f, transform.position.z - camera.transform.position.z) * Time.deltaTime * 5.0f;
-        if (camera.transform.position.x < -7.0f)
+        camera.transform.position += new Vector3(transform.position.x - camera.transform.position.x, 0.0f, transform.position.z - camera.transform.position.z - 10.0f) * Time.deltaTime * 5.0f;
+        if (camera.transform.position.x < -27.0f)
         {
-            camera.transform.position += Vector3.right * (-7.0f - camera.transform.position.x);
+            camera.transform.position += Vector3.right * (-27.0f - camera.transform.position.x);
         }
-        if (camera.transform.position.x > 7.0f)
+        if (camera.transform.position.x > 27.0f)
         {
-            camera.transform.position += Vector3.right * (7.0f - camera.transform.position.x);
+            camera.transform.position += Vector3.right * (27.0f - camera.transform.position.x);
         }
-        if (camera.transform.position.z < -25.0f)
+        if (camera.transform.position.z < -20.0f - 10.0f)
         {
-            camera.transform.position += Vector3.forward * (-25.0f - camera.transform.position.z);
+            camera.transform.position += Vector3.forward * (-20.0f - 10.0f - camera.transform.position.z);
         }
-        if (camera.transform.position.z > 25.0f)
+        if (camera.transform.position.z > 20.0f - 10.0f)
         {
-            camera.transform.position += Vector3.forward * (25.0f - camera.transform.position.z);
+            camera.transform.position += Vector3.forward * (20.0f - 10.0f - camera.transform.position.z);
         }
 
         /*

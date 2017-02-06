@@ -82,6 +82,10 @@ public class DuelController : MonoBehaviour {
     //[PunRPC]
     public void RpcSpawnObject(int id, Location.ObjectType objectType, Vector3 newPosition, Vector3 newVelocity, Vector3 newAcceleration, Vector3 newTorsion, float newFloat, int visualId)
     {
+        if(location == null)
+        {
+            return;
+        }
         PlayerController playerController = null;
         PlayerObject playerObject = null;
         PlayerObject playerObject2 = null;
@@ -195,6 +199,10 @@ public class DuelController : MonoBehaviour {
     //[PunRPC]
     public void RpcDestroyObject(int id)
     {
+        if (location == null)
+        {
+            return;
+        }
         if (!isServer)
         {
             LocationObject locationObject = GetLocationObject(id);
@@ -234,9 +242,13 @@ public class DuelController : MonoBehaviour {
     //[PunRPC]
     public void RpcMoveObject(int id, Vector3 newPosition, Vector3 newVelocity, Vector3 newAcceleration, Vector3 newTorsion, float newScale, float messageTimestamp)
     {
+        if (location == null)
+        {
+            return;
+        }
         if (!isServer)
         {
-            Debug.Log("RpcMoveObject [CLIENT]: " + id + "; " + newPosition);
+            //Debug.Log("RpcMoveObject [CLIENT]: " + id + "; " + newPosition);
             //transform.position += Vector3.right * (newPosition.x - transform.position.x);
             LocationObject obj = GetLocationObject(id);
             if (obj != null)
@@ -269,6 +281,10 @@ public class DuelController : MonoBehaviour {
     //[PunRPC]
     public void RpcUpdatePlayer(int id, float health, float stamina, float staminaConsumption)
     {
+        if (location == null)
+        {
+            return;
+        }
         //Debug.Log("RPC UPDATE PLAYER[" + id + "] health: " + health + " ; stamina: " + stamina);
         //if (!isServer)
         //{
@@ -282,8 +298,13 @@ public class DuelController : MonoBehaviour {
                 //Debug.Log("RPC UPDATE PLAYER[" + id + "] is PLAYER. changed!");
                 playerObject = (PlayerObject)obj;
                 playerObject.health = health;
-                playerObject.stamina = stamina;
                 playerObject.staminaConsumption = staminaConsumption;
+                if (Time.time > playerObject.lastTimestamp)
+                {
+                    playerObject.staminaRegeneration = (stamina - playerObject.stamina) / (Time.time - playerObject.lastTimestamp);
+                }
+                playerObject.stamina = stamina;
+                playerObject.lastTimestamp = Time.time;
             }
         }
         //}
@@ -389,14 +410,16 @@ public class DuelController : MonoBehaviour {
     public void ShowNotice(int target, string message, float offset, int color, bool floating)
     {
         //float distanceScale = 1.0f;
-        FloatingNotifyController floatingNotify;
+        CanvasFloatingNotifyController floatingNotify;
         LocationObject locationObject;
+        Vector3 v3;
         if (floating)
         {
             if (location != null)
             {
                 //Debug.Log("FLOATING NOTICE[" + target + ":" + playerId + "]");
-                floatingNotify = GameObject.Instantiate(floatNotifyPrefab).GetComponent<FloatingNotifyController>();
+                floatingNotify = GameObject.Instantiate(floatNotifyPrefab).GetComponent<CanvasFloatingNotifyController>();
+                floatingNotify.text.rectTransform.parent = ((Canvas)GameObject.Find("Canvas").GetComponent<Canvas>()).transform;
                 floatingNotify.Show(message, color);
                 locationObject = location.GetObject(target);
                 if (locationObject != null)
@@ -408,16 +431,24 @@ public class DuelController : MonoBehaviour {
                             PlayerObject playerObject = (PlayerObject)locationObject;
                             if (playerObject.visualObject != null) // (target != playerId)
                             {
+                                /*
                                 if (playerId == 1)
                                 {
                                     floatingNotify.transform.Rotate(0.0f, 180.0f, 0.0f);
                                 }
-                                floatingNotify.transform.localScale = Vector3.one * Mathf.Pow(Mathf.Abs(playerObject.visualObject.transform.position.z), 0.5f) * 0.1f;
-                                floatingNotify.transform.position = playerObject.visualObject.transform.position + floatingNotify.transform.right * 1.5f + floatingNotify.transform.forward * 2.0f + Vector3.up * (3.5f - 1.0f * locationObject.floatingNotifyOffset);
+                                */
+                                //floatingNotify.transform.localScale = Vector3.one * Mathf.Pow(Mathf.Abs(playerObject.visualObject.transform.position.z), 0.5f) * 0.1f;
+                                //floatingNotify.transform.position = playerObject.visualObject.transform.position + floatingNotify.transform.right * 1.5f + floatingNotify.transform.forward * 2.0f + Vector3.up * (3.5f - 1.0f * locationObject.floatingNotifyOffset);
+                                v3 = playerObject.visualObject.transform.position + floatingNotify.transform.right * 1.5f + floatingNotify.transform.forward * 2.0f + Vector3.up * (3.5f - 1.0f * locationObject.floatingNotifyOffset);
+                                v3 = camera.WorldToScreenPoint(v3);
+                                floatingNotify.text.rectTransform.anchoredPosition = new Vector2(v3.x, v3.y);
                             }
                             else // (target == playerId)
                             {
-                                floatingNotify.transform.position = camera.transform.position + Vector3.right * -0.2f + Vector3.forward * 1.0f + Vector3.up * (-0.95f + 0.5f * offset);
+                                //floatingNotify.transform.position = camera.transform.position + Vector3.right * -0.2f + Vector3.forward * 1.0f + Vector3.up * (-0.95f + 0.5f * offset);
+                                v3 = camera.transform.position + Vector3.right * -0.2f + Vector3.forward * 1.0f + Vector3.up * (-0.95f + 0.5f * offset);
+                                v3 = camera.WorldToScreenPoint(v3);
+                                floatingNotify.text.rectTransform.anchoredPosition = new Vector2(v3.x, v3.y);
                             }
                             break;
                         case Location.ObjectType.OBSTRUCTION:

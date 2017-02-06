@@ -1,6 +1,6 @@
 ﻿// MatCap Shader, (c) 2015 Jean Moreno
 
-Shader "Custom/Bumped/Textured Multiply Highlighted"
+Shader "MatCap/Radial Light"
 {
 	Properties
 	{
@@ -15,6 +15,9 @@ Shader "Custom/Bumped/Textured Multiply Highlighted"
 	{
 		Tags{ "RenderType" = "Opaque" }
 
+		Lighting Off
+		Fog{ Mode Off }
+
 		Pass
 		{
 			Tags{ "LightMode" = "Always" }
@@ -25,7 +28,6 @@ Shader "Custom/Bumped/Textured Multiply Highlighted"
 			#pragma fragmentoption ARB_precision_hint_fastest
 			#pragma shader_feature MATCAP_ACCURATE
 			#include "UnityCG.cginc"
-			#include "Lighting.cginc"
 
 			struct v2f
 			{
@@ -41,6 +43,7 @@ Shader "Custom/Bumped/Textured Multiply Highlighted"
 				float3 c0 : TEXCOORD2;
 				float3 c1 : TEXCOORD3;
 		#endif
+				float2 coord : TEXCOORD4;
 			};
 
 			uniform float4 _MainTex_ST;
@@ -69,18 +72,23 @@ Shader "Custom/Bumped/Textured Multiply Highlighted"
 				o.c0 = mul(rotation, normalize(UNITY_MATRIX_IT_MV[0].xyz));
 				o.c1 = mul(rotation, normalize(UNITY_MATRIX_IT_MV[1].xyz));
 		#endif
+				o.coord.xy = o.pos.xy;
 				return o;
 			}
 
 			uniform sampler2D _MainTex;
 			uniform sampler2D _BumpMap;
 			uniform sampler2D _MatCap;
+			float4 _AmbientLight;
 
 			fixed4 frag(v2f i) : COLOR
 			{
 				fixed4 tex = tex2D(_MainTex, i.uv);
-				tex *= _LightColor0;
+				tex *= _AmbientLight;
 				fixed3 normals = UnpackNormal(tex2D(_BumpMap, i.uv_bump));
+				float tx = abs(i.coord.x);
+				float ty = abs(i.coord.y);
+				float range = min(1.0f, max(0.0f, tx * tx + ty * ty - 0.2f));
 
 			#if MATCAP_ACCURATE
 				//Rotate normals from tangent space to world space
@@ -94,6 +102,9 @@ Shader "Custom/Bumped/Textured Multiply Highlighted"
 				half2 capCoord = half2(dot(i.c0, normals), dot(i.c1, normals));
 				float4 mc = tex2D(_MatCap, capCoord*0.5 + 0.5);
 			#endif
+
+				tex.rgb = tex.rgb = lerp(tex.rgb, dot(tex.rgb, float3(0.3, 0.59, 0.11)), range);
+				tex.rgb -= range * 0.3f;
 
 				return tex * mc * 2.0;
 			}

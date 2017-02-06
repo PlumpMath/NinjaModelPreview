@@ -105,7 +105,9 @@
     <None Include="Assets\Resources\Shaders\HighlightMaterial.shader" />
     <None Include="Assets\Resources\Shaders\MatCap_CustomBumpTexture.shader" />
     <None Include="Assets\Resources\Shaders\MatCap_CustomTexture.shader" />
+    <None Include="Assets\Resources\Shaders\MatcapRadialLight.shader" />
     <None Include="Assets\Resources\Shaders\ProjectorAlphaBlend.shader" />
+    <None Include="Assets\Resources\Shaders\SpriteRadialLight.shader" />
     <None Include="Assets\Resources\Shaders\TransparentDiffuseWithHighlight.shader" />
     <None Include="Assets\Resources\Shaders\UnlitShaderWithShadow.shader" />
   </ItemGroup>

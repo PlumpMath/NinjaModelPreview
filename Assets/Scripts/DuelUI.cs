@@ -167,7 +167,7 @@ public class DuelUI : MonoBehaviour {
         opponentHealthBarLabel.text = Mathf.Ceil(opponentHealthBar.fillAmount * 100.0f) + "";
         staminaLabel.text = "x " + Mathf.Floor(players[0].stamina / 0.33f);
         */
-        if(ability1Cooldown > 0.0f)
+        if (ability1Cooldown > 0.0f)
         {
             ability1Cooldown -= Time.deltaTime;
             screenWave.rectTransform.localRotation = Quaternion.Euler(0.0f, 0.0f, ability1Cooldown * 90.0f - 45.0f);
