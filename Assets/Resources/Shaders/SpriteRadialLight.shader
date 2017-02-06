@@ -32,7 +32,7 @@
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
-			#pragma multi_compile DUMMY PIXELSNAP_ON
+			#pragma multi_compile DUMMY //PIXELSNAP_ON
 			#include "UnityCG.cginc"
 
 			struct appdata_t
@@ -58,9 +58,9 @@
 				OUT.vertex = mul(UNITY_MATRIX_MVP, IN.vertex);
 				OUT.texcoord = IN.texcoord;
 				OUT.color = IN.color * _Color;
-		#ifdef PIXELSNAP_ON
-				OUT.vertex = UnityPixelSnap(OUT.vertex);
-		#endif
+		//#ifdef PIXELSNAP_ON
+		//		OUT.vertex = UnityPixelSnap(OUT.vertex);
+		//#endif
 				OUT.coord.xy = OUT.vertex.xy;
 				return OUT;
 			}
