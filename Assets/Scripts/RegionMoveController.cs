@@ -1,16 +1,10 @@
-﻿#if UNITY_EDITOR
-using UnityEditor;
-#endif
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
 using System.Collections;
 using System.Collections.Generic;
 
-#if UNITY_EDITOR
-[InitializeOnLoad]
-#endif
 public class RegionMoveController : MonoBehaviour {
 
     public GameMatchMaker matchMaker = null;
@@ -273,6 +267,7 @@ public class RegionMoveController : MonoBehaviour {
         matchMaker = GameObject.Find("GameNetwork").GetComponent<GameMatchMaker>();
         matchMaker.regionMoveController = this;
 
+        /*
         RegionPreset preset = GameObject.FindObjectOfType<RegionPreset>();
         if(preset != null)
         {
@@ -280,9 +275,11 @@ public class RegionMoveController : MonoBehaviour {
             light.color = preset.ambientColor;
             Shader.SetGlobalColor("_AmbientLight", preset.ambientColor);
         }
+        */
 
     }
 
+/*
 #if UNITY_EDITOR
 
     private bool inEditorUpdated = false;
@@ -309,6 +306,7 @@ public class RegionMoveController : MonoBehaviour {
     }
 
 #endif
+*/
 
     void OnGUI() {
 

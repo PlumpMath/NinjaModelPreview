@@ -68,12 +68,13 @@
 			sampler2D _MainTex;
 			uniform float _EffectAmount;
 			float4 _AmbientLight;
+			float _ScreenRatio;
 
 			fixed4 frag(v2f IN) : COLOR
 			{
 				half4 texcol = tex2D(_MainTex, IN.texcoord) * IN.color * _AmbientLight;
 				half tx = abs(IN.coord.x);
-				half ty = abs(IN.coord.y);
+				half ty = abs(IN.coord.y * _ScreenRatio);
 				half range = min(1.0f, max(0.0f, tx * tx + ty * ty - 0.2f));
 				texcol.rgb = lerp(texcol.rgb, dot(texcol.rgb, float3(0.3, 0.59, 0.11)), range);
 				texcol.rgb -= range * 0.3f;

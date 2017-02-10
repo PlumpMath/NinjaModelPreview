@@ -429,6 +429,10 @@ public class Swipe : MonoBehaviour {
 
     public bool Throw(Vector2 angle, float torsion, float speed)
     {
+        if(duelController == null || duelController.location == null)
+        {
+            return false;
+        }
         int i;
         Vector3 position;
         Vector3 acceleration;
@@ -554,7 +558,7 @@ public class Swipe : MonoBehaviour {
 
         position += velocity * Time.deltaTime;
         armedMissile.Rearm();
-        missileController.transform.Rotate(70.0f, 0.0f, 0.0f);
+        missileController.transform.Rotate(60.0f, 0.0f, 0.0f);
         missileController.transform.position = position;
         missileController.acceleration = acceleration;
         missileController.velocity = velocity;

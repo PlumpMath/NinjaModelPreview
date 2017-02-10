@@ -80,6 +80,7 @@ Shader "MatCap/Radial Light"
 			uniform sampler2D _BumpMap;
 			uniform sampler2D _MatCap;
 			float4 _AmbientLight;
+			float _ScreenRatio;
 
 			fixed4 frag(v2f i) : COLOR
 			{
@@ -87,7 +88,7 @@ Shader "MatCap/Radial Light"
 				tex *= _AmbientLight;
 				fixed3 normals = UnpackNormal(tex2D(_BumpMap, i.uv_bump));
 				float tx = abs(i.coord.x);
-				float ty = abs(i.coord.y);
+				float ty = abs(i.coord.y * _ScreenRatio);
 				float range = min(1.0f, max(0.0f, tx * tx + ty * ty - 0.2f));
 
 			#if MATCAP_ACCURATE
