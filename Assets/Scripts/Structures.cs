@@ -2349,4 +2349,76 @@ public class RegionChatMessage : BaseObjectMessage
 
 }
 
+public class RegionDiscoverMessage : BaseObjectMessage
+{
+
+    public string userId = "";
+    public int iconId = -1;
+    public int playerGold = -1;
+
+    public RegionDiscoverMessage() : base()
+    {
+    }
+
+    public RegionDiscoverMessage(float currentTimestamp, float targetTimemark) : base(currentTimestamp, targetTimemark)
+    {
+    }
+
+    public override byte[] Pack()
+    {
+        int index = 0;
+        byte[] data = new byte[6 * 4 + Encoding.UTF8.GetBytes(userId).Length];
+        PackBase(ref data, ref index);
+        PutString(data, userId, ref index);
+        PutInt(data, iconId, ref index);
+        PutInt(data, playerGold, ref index);
+        return data;
+    }
+
+    public override void Unpack(byte[] data)
+    {
+        int index = 0;
+        UnpackBase(ref data, ref index);
+        userId = GetString(data, ref index);
+        iconId = GetInt(data, ref index);
+        playerGold = GetInt(data, ref index);
+    }
+
+}
+
+public class RegionIconMessage : BaseObjectMessage
+{
+
+    public Vector2 position = Vector2.zero;
+    public int iconId = -1;
+
+    public RegionIconMessage() : base()
+    {
+    }
+
+    public RegionIconMessage(float currentTimestamp, float targetTimemark) : base(currentTimestamp, targetTimemark)
+    {
+    }
+
+    public override byte[] Pack()
+    {
+        int index = 0;
+        byte[] data = new byte[6 * 4];
+        PackBase(ref data, ref index);
+        PutFloat(data, position.x, ref index);
+        PutFloat(data, position.y, ref index);
+        PutInt(data, iconId, ref index);
+        return data;
+    }
+
+    public override void Unpack(byte[] data)
+    {
+        int index = 0;
+        UnpackBase(ref data, ref index);
+        position.x = GetFloat(data, ref index);
+        position.y = GetFloat(data, ref index);
+        iconId = GetInt(data, ref index);
+    }
+
+}
 

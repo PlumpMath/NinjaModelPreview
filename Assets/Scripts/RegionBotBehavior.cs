@@ -211,17 +211,27 @@ public class RegionBotBehavior : MonoBehaviour {
         direction.Normalize();
     }
 
-    public void ThrowHook(Vector2 destination, float moveTime)
+    public void ThrowHook(Vector2 destination, float time)
     {
-        if (!hook.enabled /* && rankModifier > 0.0f */)
+        Vector3 v3;
+        if (!hook.enabled)
         {
             hook.transform.position = transform.position;
-            hook.velocity = new Vector3(destination.x, transform.position.y, destination.y) - transform.position;
-            hook.velocity = hook.velocity.normalized * 3.0f;
-            hook.destinationTimemark = moveTime;
-            hook.cooldown = 3.0f;
-            hook.rollbackTimemark = 2.5f;
-            hook.Show();
+            v3 = (new Vector3(destination.x, hook.transform.position.y, destination.y) - hook.transform.position);
+            hook.velocity = v3.normalized * (v3.magnitude / time);
+            hook.cooldown = 5.0f;
+            hook.Show(time);
+        }
+        else if (destination.magnitude != 0.0f)
+        {
+            v3 = new Vector3(destination.x, 0.0f, destination.y) - hook.transform.position;
+            v3.y = 0.0f;
+            hook.velocity = v3.normalized * (v3.magnitude / time);
+            hook.Move(time);
+        }
+        else
+        {
+            hook.Rollback();
         }
     }
 
@@ -234,4 +244,20 @@ public class RegionBotBehavior : MonoBehaviour {
         smileyIcon.enabled = true;
     }
 
+    public void ShowDiscovered(int iconId)
+    {
+        smileyCooldown = 2.0f;
+        switch (iconId)
+        {
+            case 0:
+                smileyIcon.sprite = player.GetComponent<RegionMoveController>().someFoundSprite;
+                break;
+            default:
+                smileyIcon.sprite = player.GetComponent<RegionMoveController>().someFoundSprite;
+                break;
+        }
+        smileyIcon.transform.localScale = Vector3.one * 1.5f;
+        smileyBackground.enabled = true;
+        smileyIcon.enabled = true;
+    }
 }

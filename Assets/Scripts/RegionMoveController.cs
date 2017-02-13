@@ -37,7 +37,9 @@ public class RegionMoveController : MonoBehaviour {
     public Button exitButton;
     public Button leaveScreen;
     public Text statusBar;
+    public Text goldLabel;
     public MeshRenderer[] mapQuads = new MeshRenderer[3];
+    public GameObject timedIconPrefab = null;
 
     public RegionMap map = new RegionMap();
     public RegionMapNode mapNode = null;
@@ -45,16 +47,23 @@ public class RegionMoveController : MonoBehaviour {
     public int coverageType = 0;
     public int lastCoverageType = 0;
     public bool hidden = false;
+    public int gold = 0;
 
     public int inputMode = 3;
     public float inputCooldown = 0.0f;
-    public float inputTimeout = 0.0f;
+    public float applyInputCooldown = 0.0f;
+    public float inputSendCooldown = 0.0f;
     public float blockInput = 0.0f;
     public int ignoreFinger = -1;
 
     public RegionHook hook = null;
 
+    public RegionPreset region = null;
+
     private Vector3 direction = Vector3.zero;
+    private Vector3 smoothDirection = Vector3.zero;
+    private Vector3 inputDirection = Vector3.zero;
+    private bool inputTouched = false;
     public float battleCooldown = 0.0f;
     private float botActionCooldown = 0.0f;
     private float bushDistanceTraveled = 0.0f;
@@ -63,6 +72,7 @@ public class RegionMoveController : MonoBehaviour {
     private float leaveCooldown = 0.0f;
 
     private LinkedList<RegionBotBehavior> bots = new LinkedList<RegionBotBehavior>();
+    private LinkedList<RoutePoint> route = new LinkedList<RoutePoint>();
 
     public void SwitchInputMode(int mode)
     {
@@ -261,8 +271,8 @@ public class RegionMoveController : MonoBehaviour {
             statusBar.text = "Пустошь дырявых штанов";
         }
 
-        GameObject regionPreset = (GameObject)GameObject.Instantiate(Resources.Load("Prefabs/Regions/Region" + currentRegionId));
-        regionPreset.transform.position = new Vector3(0.0f, -0.015f, 0.0f);
+        region = ((GameObject)GameObject.Instantiate(Resources.Load("Prefabs/Regions/Region" + currentRegionId))).GetComponent<RegionPreset>();
+        region.transform.position = new Vector3(0.0f, -0.015f, 0.0f);
 
         matchMaker = GameObject.Find("GameNetwork").GetComponent<GameMatchMaker>();
         matchMaker.regionMoveController = this;
@@ -341,6 +351,7 @@ public class RegionMoveController : MonoBehaviour {
         bool touched = false;
         float posX = 0.0f;
         float posY = 0.0f;
+        RoutePoint routePoint;
         RegionBotBehavior bot;
         LinkedListNode<RegionBotBehavior> botNode;
         Vector3 v3;
@@ -397,12 +408,12 @@ public class RegionMoveController : MonoBehaviour {
             }
         }
 
-        if(inputTimeout > 0.0f)
+        if(inputSendCooldown > 0.0f)
         {
-            inputTimeout -= Time.deltaTime;
-            if(inputTimeout < 0.0f)
+            inputSendCooldown -= Time.deltaTime;
+            if(inputSendCooldown < 0.0f)
             {
-                inputTimeout = 0.0f;
+                inputSendCooldown = 0.0f;
             }
         }
 
@@ -566,16 +577,16 @@ public class RegionMoveController : MonoBehaviour {
                     }
                     break;
                 case 3:
-                    direction.x = posX / (float)Screen.width - 0.5f;
-                    direction.z = Mathf.Max(-0.5f, Mathf.Min(0.5f, (posY - (float)Screen.height * 0.5f) / (float)Screen.width));
+                    inputDirection.x = posX / (float)Screen.width - 0.5f;
+                    inputDirection.z = Mathf.Max(-0.5f, Mathf.Min(0.5f, (posY - (float)Screen.height * 0.5f) / (float)Screen.width));
+                    inputDirection.z *= 1.6f;
                     Vector3 cameraShift = camera.transform.position - transform.position + Vector3.forward * 10.0f;
                     cameraShift.y = 0.0f;
                     cameraShift.x /= 2.7f * 2.0f;
                     cameraShift.z /= 2.7f * 2.0f;
-                    direction += cameraShift;
-                    speed = 1.6f;
-                    inputCooldown = direction.magnitude * 5.3f / speed;
-                    direction.Normalize();
+                    inputDirection += cameraShift;
+                    inputDirection *= 5.3f;
+                    inputTouched = true;
                     break;
             }
         }
@@ -588,7 +599,44 @@ public class RegionMoveController : MonoBehaviour {
             }
             else
             {
-                direction *= 1.0f - Time.deltaTime * 5.0f;
+                if (route.Count > 0)
+                {
+                    route.RemoveFirst();
+                    if (route.Count > 0)
+                    {
+                        routePoint = route.First.Value;
+                        direction = (routePoint.destination - transform.position).normalized;
+                        inputCooldown = (routePoint.destination - transform.position).magnitude / speed; // routePoint.timestamp - Time.time;
+                    }
+                }
+                else
+                {
+                    direction *= 1.0f - Time.deltaTime * 10.0f;
+                }
+            }
+        }
+
+        applyInputCooldown -= Time.deltaTime;
+        if(applyInputCooldown <= 0.0f)
+        {
+            applyInputCooldown += 0.1f;
+            if (inputTouched)
+            {
+                inputTouched = false;
+                direction.x = inputDirection.x;
+                direction.z = inputDirection.z;
+                //inputCooldown = direction.magnitude * 5.3f / speed;
+                speed = 1.6f;
+                route = region.GetRoute(transform.position, transform.position + direction, speed, 0.0f);
+                //direction.Normalize();
+                inputCooldown = 0.0f;
+                direction *= 0.0f;
+                if (route.Count > 0)
+                {
+                    routePoint = route.First.Value;
+                    direction = (routePoint.destination - transform.position).normalized;
+                    inputCooldown = (routePoint.destination - transform.position).magnitude / speed; // routePoint.timestamp - Time.time;
+                }
             }
         }
 
@@ -596,9 +644,9 @@ public class RegionMoveController : MonoBehaviour {
         Vector2 direction2D = new Vector2(direction.x, direction.z);
         Vector2 newPosition2D = position2D + direction2D * speed * Time.deltaTime;
 
-        if (inputTimeout <= 0.0f)
+        if (inputSendCooldown <= 0.0f)
         {
-            inputTimeout = 0.1f;
+            inputSendCooldown = 0.1f;
             RegionMoveMessage regionMoveMessage = new RegionMoveMessage();
             regionMoveMessage.destination = position2D + direction2D * speed * (inputCooldown + Time.deltaTime);
             regionMoveMessage.moveTimemark = inputCooldown;
@@ -627,6 +675,7 @@ public class RegionMoveController : MonoBehaviour {
             barrierNode = barrierNode.Next;
         }
 
+        /*
         if (mapNode != null && mapNode.coverageType == 2)
         {
             bushDistanceTraveled += (new Vector3(newPosition2D.x, transform.position.y, newPosition2D.y) - transform.position).magnitude * Random.Range(0.0f, 1.0f);
@@ -636,12 +685,14 @@ public class RegionMoveController : MonoBehaviour {
                 ShowDiscovered(0);
             }
         }
+        */
 
         transform.position = new Vector3(newPosition2D.x, transform.position.y, newPosition2D.y);
 
         if (direction.magnitude > 0.1f)
         {
-            playerIcon.transform.localRotation = Quaternion.LookRotation(Vector3.right * direction.x + Vector3.up * direction.z, -Vector3.forward);
+            smoothDirection += (Vector3.right * direction.x + Vector3.up * direction.z - smoothDirection) * Mathf.Min(1.0f, Time.deltaTime * 5.0f);
+            playerIcon.transform.localRotation = Quaternion.LookRotation(smoothDirection, -Vector3.forward);
         }
         /*
         if (transform.position.x < -9.0f)
@@ -980,16 +1031,27 @@ public class RegionMoveController : MonoBehaviour {
 
     public void ThrowHook(Vector2 destination, float time)
     {
-        Vector3 v;
+        Vector3 v3;
         if(!hook.enabled)
         {
             hook.transform.position = transform.position;
-            v = (new Vector3(destination.x, hook.transform.position.y, destination.y) - hook.transform.position);
-            hook.velocity = v.normalized * (v.magnitude / time);
-            hook.destinationTimemark = time;
-            hook.cooldown = 3.0f;
-            hook.rollbackTimemark = 2.5f;
-            hook.Show();
+            v3 = (new Vector3(destination.x, hook.transform.position.y, destination.y) - hook.transform.position);
+            hook.velocity = v3.normalized * (v3.magnitude / time);
+            //hook.destinationTimemark = time;
+            hook.cooldown = 8.0f;
+            //hook.rollbackTimemark = 2.5f;
+            hook.Show(time);
+        }
+        else if(destination.magnitude != 0.0f)
+        {
+            v3 = new Vector3(destination.x, 0.0f, destination.y) - hook.transform.position;
+            v3.y = 0.0f;
+            hook.velocity = v3.normalized * (v3.magnitude / time);
+            hook.Move(time);
+        }
+        else
+        {
+            hook.Rollback();
         }
     }
 
@@ -1024,6 +1086,43 @@ public class RegionMoveController : MonoBehaviour {
         smileyIcon.enabled = true;
     }
 
+    public void ShowOpponentDiscovered(string id, int iconId)
+    {
+        int i;
+        RegionBotBehavior bot;
+        LinkedListNode<RegionBotBehavior> botNode = bots.First;
+        while (botNode != null)
+        {
+            bot = botNode.Value;
+            if (bot.playerId == id)
+            {
+                bot.ShowDiscovered(iconId);
+                return;
+            }
+            botNode = botNode.Next;
+        }
+    }
+
+    public void ShowTimedIcon(Vector2 position, int iconId)
+    {
+        RegionTimedIcon icon = (RegionTimedIcon)((GameObject)GameObject.Instantiate(timedIconPrefab)).GetComponent<RegionTimedIcon>();
+        /*
+        switch (iconId)
+        {
+            case 0:
+                icon.sprite.sprite = someFoundSprite;
+                break;
+            case 1:
+                icon.sprite.sprite = taskCompleteSprite;
+                break;
+            case 2:
+                icon.sprite.sprite = itemFoundSprite;
+                break;
+        }
+        */
+        icon.transform.position = new Vector3(position.x, 0.0f, position.y);
+    }
+
     public void StartLeaving(float time)
     {
         leaveCooldown = time;
@@ -1038,6 +1137,13 @@ public class RegionMoveController : MonoBehaviour {
         statusBar.text = "";
         exitButton.enabled = false;
         exitButton.image.enabled = false;
+    }
+
+    public void SetGold(int newGold)
+    {
+        // ... show new gold and gold change
+        goldLabel.text = "+ " + newGold;
+        gold = newGold;
     }
 
 }
