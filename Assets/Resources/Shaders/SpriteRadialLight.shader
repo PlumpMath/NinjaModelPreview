@@ -20,14 +20,14 @@
 
 		Cull Off
 		Lighting Off
-		ZWrite Off
 		Fog{ Mode Off }
-		Blend SrcAlpha OneMinusSrcAlpha
 
 		Pass
 		{
 
-			Tags{ "LightMode" = "Always" }
+			//Tags{ "LightMode" = "Always" }
+			ZWrite Off
+			Blend SrcAlpha OneMinusSrcAlpha
 
 			CGPROGRAM
 			#pragma vertex vert
@@ -65,20 +65,29 @@
 				return OUT;
 			}
 
+			uniform sampler2D _AmbientPalette;
 			sampler2D _MainTex;
 			uniform float _EffectAmount;
-			float4 _AmbientLight;
-			float _ScreenRatio;
+			//float4 _AmbientLight;
+			//float _ScreenRatio;
 
 			fixed4 frag(v2f IN) : COLOR
 			{
-				half4 texcol = tex2D(_MainTex, IN.texcoord) * IN.color * _AmbientLight;
-				half tx = abs(IN.coord.x);
-				half ty = abs(IN.coord.y * _ScreenRatio);
-				half range = min(1.0f, max(0.0f, tx * tx + ty * ty - 0.2f));
-				texcol.rgb = lerp(texcol.rgb, dot(texcol.rgb, float3(0.3, 0.59, 0.11)), range);
-				texcol.rgb -= range * 0.3f;
-				return texcol;
+				half4 tex = tex2D(_MainTex, IN.texcoord) * IN.color;// *_AmbientLight;
+				//half tx = abs(IN.coord.x);
+				//half ty = abs(IN.coord.y * _ScreenRatio);
+				//half range = min(1.0f, max(0.0f, tx * tx + ty * ty - 0.2f));
+				
+				float tx = abs(IN.coord.x) * 0.5f - 0.5f;
+				float ty = abs(IN.coord.y) * 0.5f - 0.5f;
+				float4 mul = tex2D(_AmbientPalette, float2(tx, ty));
+
+				//texcol.rgb = lerp(texcol.rgb, dot(texcol.rgb, float3(0.3, 0.59, 0.11)), range);
+				//texcol.rgb -= range * 0.3f;
+
+				tex.rgb = tex.rgb * mul.rgb + pow(tex.rgb - 0.4f, 2.0f);
+
+				return tex;
 			}
 
 			ENDCG

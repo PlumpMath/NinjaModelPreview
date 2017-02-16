@@ -221,6 +221,13 @@ public class MapController : MonoBehaviour {
                             playerObject.image.rectTransform.anchoredPosition = mapPoints[i].rectTransform.anchoredPosition;
                         }
                     }
+
+                    // !!!
+
+                    TapToRegion("01");
+
+                    // !!!
+
                     break;
                 case 1002: // Route
                     regionId = Encoding.UTF8.GetString(data, i, 2);

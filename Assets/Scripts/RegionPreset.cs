@@ -11,6 +11,7 @@ using System.Collections.Generic;
 public class RegionPreset : MonoBehaviour {
 
     public Color ambientColor = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+    public Texture2D ambientPalette;
 
     public LinkedList<RegionCollider> colliders = new LinkedList<RegionCollider>();
 
@@ -43,6 +44,7 @@ public class RegionPreset : MonoBehaviour {
         Light light = GameObject.Find("Directional Light").GetComponent<Light>();
         light.color = ambientColor;
         Shader.SetGlobalColor("_AmbientLight", ambientColor);
+        Shader.SetGlobalTexture("_AmbientPalette", ambientPalette);
         Shader.SetGlobalFloat("_ScreenRatio", (float)Screen.height / (float)Screen.width);
     }
 
@@ -55,7 +57,7 @@ public class RegionPreset : MonoBehaviour {
         RegionCollider collider = new RegionCollider();
         collider.position = obj.transform.position;
         collider.position.y = 0.0f;
-        collider.radius = obj.transform.localScale.x + 0.3f;
+        collider.radius = obj.transform.localScale.x + 0.1f;
         colliders.AddLast(collider);
     }
 
@@ -142,12 +144,14 @@ public class RegionPreset : MonoBehaviour {
         RegionCollider nearestCollider = null;
         LinkedListNode<RegionCollider> colliderNode = nearestColliders.First;
 
+        /*
         if((nearestCollider = CheckCollision(origin, nearestColliders)) != null)
         {
             point.destination = nearestCollider.position + (origin - nearestCollider.position).normalized * (nearestCollider.radius + 0.01f);
             point.timestamp = Time.time + timeoffset + (point.destination - origin).magnitude / speed;
             return point;
         }
+        */
 
         while (colliderNode != null)
         {
@@ -208,6 +212,14 @@ public class RegionPreset : MonoBehaviour {
                 v3 = nearestCollider.position + (v3m - nearestCollider.position).normalized * (nearestCollider.radius + 0.01f);
             }
             point.destination = v3;
+
+            if ((nearestCollider = CheckCollision(origin, nearestColliders)) != null)
+            {
+                v3 = nearestCollider.position + (origin - nearestCollider.position).normalized * (nearestCollider.radius + 0.01f);
+                f = Mathf.Min(1.0f, Mathf.Max(0.0f, (nearestCollider.radius - (origin - nearestCollider.position).magnitude) * 5.0f));
+                point.destination = v3 * f + point.destination * (1.0f - f);
+            }
+
             point.timestamp = Time.time + timeoffset + (point.destination - origin).magnitude / speed;
             return point;
         }

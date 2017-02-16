@@ -162,9 +162,11 @@
     <Compile Include="Assets\Scripts\Posteffects\FogEffect.cs" />
     <Compile Include="Assets\Scripts\Posteffects\HighlightEffect.cs" />
     <Compile Include="Assets\Scripts\RegionBotBehavior.cs" />
+    <Compile Include="Assets\Scripts\RegionColliderController.cs" />
     <Compile Include="Assets\Scripts\RegionHook.cs" />
     <Compile Include="Assets\Scripts\RegionMoveController.cs" />
     <Compile Include="Assets\Scripts\RegionPreset.cs" />
+    <Compile Include="Assets\Scripts\RegionTimedIcon.cs" />
     <Compile Include="Assets\Scripts\ScreenEffectsController.cs" />
     <Compile Include="Assets\Scripts\SmileyButton.cs" />
     <Compile Include="Assets\Scripts\SparksController.cs" />
@@ -206,6 +208,7 @@
     <None Include="Assets\Resources\Shaders\MatCap_CustomBumpTexture.shader" />
     <None Include="Assets\Resources\Shaders\MatCap_CustomTexture.shader" />
     <None Include="Assets\Resources\Shaders\MatcapRadialLight.shader" />
+    <None Include="Assets\Resources\Shaders\ParticleRadialLight.shader" />
     <None Include="Assets\Resources\Shaders\ProjectorAlphaBlend.shader" />
     <None Include="Assets\Resources\Shaders\SpriteRadialLight.shader" />
     <None Include="Assets\Resources\Shaders\TransparentDiffuseWithHighlight.shader" />

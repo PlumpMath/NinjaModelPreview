@@ -76,20 +76,22 @@ Shader "MatCap/Radial Light"
 				return o;
 			}
 
+			uniform sampler2D _AmbientPalette;
 			uniform sampler2D _MainTex;
 			uniform sampler2D _BumpMap;
 			uniform sampler2D _MatCap;
-			float4 _AmbientLight;
-			float _ScreenRatio;
+			//float4 _AmbientLight;
+			//float _ScreenRatio;
 
 			fixed4 frag(v2f i) : COLOR
 			{
 				fixed4 tex = tex2D(_MainTex, i.uv);
-				tex *= _AmbientLight;
+				//tex *= _AmbientLight;
 				fixed3 normals = UnpackNormal(tex2D(_BumpMap, i.uv_bump));
-				float tx = abs(i.coord.x);
-				float ty = abs(i.coord.y * _ScreenRatio);
-				float range = min(1.0f, max(0.0f, tx * tx + ty * ty - 0.2f));
+				float tx = abs(i.coord.x) * 0.5f - 0.5f; // abs(i.coord.x)
+				float ty = abs(i.coord.y) * 0.5f - 0.5f; // abs(i.coord.y / _ScreenRatio)
+				//float range = min(1.0f, max(0.0f, tx * tx + ty * ty - 0.2f));
+				float4 mul = tex2D(_AmbientPalette, float2(tx, ty));
 
 			#if MATCAP_ACCURATE
 				//Rotate normals from tangent space to world space
@@ -104,8 +106,9 @@ Shader "MatCap/Radial Light"
 				float4 mc = tex2D(_MatCap, capCoord*0.5 + 0.5);
 			#endif
 
-				tex.rgb = tex.rgb = lerp(tex.rgb, dot(tex.rgb, float3(0.3, 0.59, 0.11)), range);
-				tex.rgb -= range * 0.3f;
+				tex.rgb = tex.rgb * mul.rgb + pow(tex.rgb - 0.4f, 2.0f);
+				//tex.rgb = tex.rgb = lerp(tex.rgb, dot(tex.rgb, float3(0.3, 0.59, 0.11)), range);
+				//tex.rgb -= range * 0.3f;
 
 				return tex * mc * 2.0;
 			}

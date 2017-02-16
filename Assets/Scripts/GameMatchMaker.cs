@@ -372,6 +372,15 @@ public class GameMatchMaker : Photon.PunBehaviour
                 redirectMessage.Unpack((byte[])content);
                 Debug.Log("CATCH REDIRECT MESSAGE: " + redirectMessage.roomName);
                 targetRoom = redirectMessage.roomName;
+
+
+                // !!! 
+
+                targetRoom = "region01";
+
+                // !!!
+
+
                 //System.Threading.Thread.Sleep(2000);
                 PhotonNetwork.LeaveRoom();
                 gameMode = 0;

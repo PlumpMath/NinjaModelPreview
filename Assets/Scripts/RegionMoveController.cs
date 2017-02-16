@@ -60,6 +60,15 @@ public class RegionMoveController : MonoBehaviour {
 
     public RegionPreset region = null;
 
+    public int traceType = 1;
+
+    public ParticleSystem stepsPS1;
+    public ParticleSystem stepsPS2;
+    public ParticleSystem stepsPS3;
+    public ParticleSystem stepsPS4;
+
+    public Button traceTypeButton;
+
     private Vector3 direction = Vector3.zero;
     private Vector3 smoothDirection = Vector3.zero;
     private Vector3 inputDirection = Vector3.zero;
@@ -112,7 +121,7 @@ public class RegionMoveController : MonoBehaviour {
         //mapQuads[1].material = Resources.Load<Material>("Materials/RegionMap" + currentRegionId + "_2");
         //mapQuads[2].material = Resources.Load<Material>("Materials/RegionMap" + currentRegionId + "_3");
 
-
+        /*
         inputModeButtons[0].onClick.AddListener(delegate() {
             SwitchInputMode(0);
         });
@@ -125,6 +134,7 @@ public class RegionMoveController : MonoBehaviour {
         inputModeButtons[3].onClick.AddListener(delegate () {
             SwitchInputMode(3);
         });
+        */
 
         hookButton.onClick.AddListener(delegate() {
             ThrowHook();
@@ -271,11 +281,43 @@ public class RegionMoveController : MonoBehaviour {
             statusBar.text = "Пустошь дырявых штанов";
         }
 
+        ParticleSystem.EmissionModule emission1 = stepsPS1.emission;
+        ParticleSystem.EmissionModule emission2 = stepsPS2.emission;
+        ParticleSystem.EmissionModule emission3 = stepsPS3.emission;
+        ParticleSystem.EmissionModule emission4 = stepsPS4.emission;
+
+        emission1.enabled = false;
+        emission2.enabled = false;
+        emission3.enabled = false;
+        emission4.enabled = false;
+
+        traceTypeButton.onClick.AddListener(delegate () {
+            if (traceType == 1)
+            {
+                traceType = 2;
+                traceTypeButton.image.color = new Color(1.0f, 1.0f, 0.0f, 1.0f);
+            }
+            else if (traceType == 2)
+            {
+                traceType = 3;
+                traceTypeButton.image.color = new Color(0.0f, 1.0f, 0.0f, 1.0f);
+            }
+            else if (traceType == 3)
+            {
+                traceType = 1;
+                traceTypeButton.image.color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
+            }
+        });
+
         region = ((GameObject)GameObject.Instantiate(Resources.Load("Prefabs/Regions/Region" + currentRegionId))).GetComponent<RegionPreset>();
         region.transform.position = new Vector3(0.0f, -0.015f, 0.0f);
 
-        matchMaker = GameObject.Find("GameNetwork").GetComponent<GameMatchMaker>();
-        matchMaker.regionMoveController = this;
+        GameObject gameNetworkGO = GameObject.Find("GameNetwork");
+        if (gameNetworkGO != null)
+        {
+            matchMaker = gameNetworkGO.GetComponent<GameMatchMaker>();
+            matchMaker.regionMoveController = this;
+        }
 
         /*
         RegionPreset preset = GameObject.FindObjectOfType<RegionPreset>();
@@ -289,34 +331,34 @@ public class RegionMoveController : MonoBehaviour {
 
     }
 
-/*
-#if UNITY_EDITOR
+    /*
+    #if UNITY_EDITOR
 
-    private bool inEditorUpdated = false;
+        private bool inEditorUpdated = false;
 
-    RegionMoveController()
-    {
-        inEditorUpdated = false;
-        EditorApplication.update += InEditorUpdate;
-    }
-
-    void InEditorUpdate()
-    {
-        if(!inEditorUpdated)
+        RegionMoveController()
         {
-            inEditorUpdated = true;
-            RegionPreset preset = GameObject.FindObjectOfType<RegionPreset>();
-            if (preset != null)
+            inEditorUpdated = false;
+            EditorApplication.update += InEditorUpdate;
+        }
+
+        void InEditorUpdate()
+        {
+            if(!inEditorUpdated)
             {
-                Light light = GameObject.Find("Directional Light").GetComponent<Light>();
-                light.color = preset.ambientColor;
-                Shader.SetGlobalColor("_AmbientLight", preset.ambientColor);
+                inEditorUpdated = true;
+                RegionPreset preset = GameObject.FindObjectOfType<RegionPreset>();
+                if (preset != null)
+                {
+                    Light light = GameObject.Find("Directional Light").GetComponent<Light>();
+                    light.color = preset.ambientColor;
+                    Shader.SetGlobalColor("_AmbientLight", preset.ambientColor);
+                }
             }
         }
-    }
 
-#endif
-*/
+    #endif
+    */
 
     void OnGUI() {
 
@@ -650,7 +692,10 @@ public class RegionMoveController : MonoBehaviour {
             RegionMoveMessage regionMoveMessage = new RegionMoveMessage();
             regionMoveMessage.destination = position2D + direction2D * speed * (inputCooldown + Time.deltaTime);
             regionMoveMessage.moveTimemark = inputCooldown;
-            PhotonNetwork.networkingPeer.OpCustom((byte)2, new Dictionary<byte, object> { { 245, regionMoveMessage.Pack() } }, true);
+            if (PhotonNetwork.networkingPeer.PeerState == ExitGames.Client.Photon.PeerStateValue.Connected)
+            {
+                PhotonNetwork.networkingPeer.OpCustom((byte)2, new Dictionary<byte, object> { { 245, regionMoveMessage.Pack() } }, true);
+            }
         }
 
         RegionBarrier barrier;
@@ -694,6 +739,80 @@ public class RegionMoveController : MonoBehaviour {
             smoothDirection += (Vector3.right * direction.x + Vector3.up * direction.z - smoothDirection) * Mathf.Min(1.0f, Time.deltaTime * 5.0f);
             playerIcon.transform.localRotation = Quaternion.LookRotation(smoothDirection, -Vector3.forward);
         }
+
+        ParticleSystem.EmissionModule emission1 = stepsPS1.emission;
+        ParticleSystem.EmissionModule emission2 = stepsPS2.emission;
+        ParticleSystem.EmissionModule emission3 = stepsPS3.emission;
+        ParticleSystem.EmissionModule emission4 = stepsPS4.emission;
+
+        if (traceType == 1)
+        {
+
+            if(emission3.enabled)
+            {
+                emission3.enabled = false;
+                emission4.enabled = false;
+            }
+
+            if (direction.magnitude <= 0.5f && emission1.enabled)
+            {
+                emission1.enabled = false;
+                emission2.enabled = false;
+            }
+            else if (direction.magnitude > 0.5f && !emission1.enabled)
+            {
+                emission1.enabled = true;
+                emission2.enabled = true;
+            }
+            transform.position += Vector3.up * (0.0f - transform.position.y);
+
+        }
+        else if(traceType == 2)
+        {
+
+            if (emission1.enabled)
+            {
+                emission1.enabled = false;
+                emission2.enabled = false;
+            }
+
+            if (direction.magnitude <= 0.5f && emission3.enabled)
+            {
+                emission3.enabled = false;
+                emission4.enabled = false;
+            }
+            else if (direction.magnitude > 0.5f && !emission3.enabled)
+            {
+                emission3.enabled = true;
+                emission4.enabled = true;
+            }
+            transform.position += Vector3.up * (0.0f - transform.position.y);
+
+        }
+        else if(traceType == 3)
+        {
+
+            if (emission3.enabled)
+            {
+                emission3.enabled = false;
+                emission4.enabled = false;
+            }
+            if (emission1.enabled)
+            {
+                emission1.enabled = false;
+            }
+            if (direction.magnitude <= 0.5f && emission2.enabled)
+            {
+                emission2.enabled = false;
+            }
+            else if (direction.magnitude > 0.5f && !emission2.enabled)
+            {
+                emission2.enabled = true;
+            }
+            transform.position += Vector3.up * ((direction.magnitude * 0.3f - transform.position.y) * Mathf.Min(1.0f, Time.deltaTime * 10.0f));
+
+        }
+
         /*
         if (transform.position.x < -9.0f)
         {
@@ -748,8 +867,8 @@ public class RegionMoveController : MonoBehaviour {
             {
                 newColor.a -= 0.25f;
             }
-            playerIconRenderer.color = newColor;
-            playerFaceRenderer.color = newColor;
+            //playerIconRenderer.color = newColor;
+            //playerFaceRenderer.color = newColor;
         }
 
         camera.transform.position += new Vector3(transform.position.x - camera.transform.position.x, 0.0f, transform.position.z - camera.transform.position.z - 10.0f) * Time.deltaTime * 5.0f;
