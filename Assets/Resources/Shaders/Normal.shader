@@ -1,14 +1,10 @@
 ﻿// MatCap Shader, (c) 2015 Jean Moreno
 
-Shader "MatCap/Radial Light"
+Shader "Posteffects/Normal"
 {
 	Properties
 	{
-		_MainTex("Base (RGB)", 2D) = "white" {}
 		_BumpMap("Normal Map", 2D) = "bump" {}
-		_MatCap("MatCap (RGB)", 2D) = "white" {}
-		_HighlightTex("Highlight (RGB)", 2D) = "black" {}
-		_Translucency("_Translucency", Range(0.0, 1.0)) = 0.0
 		[Toggle(MATCAP_ACCURATE)] _MatCapAccurate("Accurate Calculation", Int) = 0
 	}
 
@@ -33,7 +29,6 @@ Shader "MatCap/Radial Light"
 			struct v2f
 			{
 				float4 pos	: SV_POSITION;
-				float2 uv : TEXCOORD0;
 				float2 uv_bump : TEXCOORD1;
 
 		#if MATCAP_ACCURATE
@@ -44,7 +39,6 @@ Shader "MatCap/Radial Light"
 				float3 c0 : TEXCOORD2;
 				float3 c1 : TEXCOORD3;
 		#endif
-				float2 coord : TEXCOORD4;
 			};
 
 			uniform float4 _MainTex_ST;
@@ -54,7 +48,6 @@ Shader "MatCap/Radial Light"
 			{
 				v2f o;
 				o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
-				o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
 				o.uv_bump = TRANSFORM_TEX(v.texcoord,_BumpMap);
 
 		#if MATCAP_ACCURATE
@@ -73,32 +66,16 @@ Shader "MatCap/Radial Light"
 				o.c0 = mul(rotation, normalize(UNITY_MATRIX_IT_MV[0].xyz));
 				o.c1 = mul(rotation, normalize(UNITY_MATRIX_IT_MV[1].xyz));
 		#endif
-				o.coord.xy = o.pos.xy;
 				return o;
 			}
 
-			float _Translucency;
-			uniform sampler2D _AmbientPalette;
-			uniform sampler2D _MainTex;
 			uniform sampler2D _BumpMap;
-			uniform sampler2D _MatCap;
-			//uniform sampler2D _FullScreen;
-			uniform sampler2D _SolidScreen;
-			//uniform sampler2D _NormalScreen;
-			//float4 _AmbientLight;
-			//float _ScreenRatio;
 
 			fixed4 frag(v2f i) : COLOR
 			{
-				float2 normals2D;
-				float3 baseNorm = float3(0.0f, 0.0f, 1.0f);
-				fixed4 tex = tex2D(_MainTex, i.uv);
-				//tex *= _AmbientLight;
 				fixed3 normals = UnpackNormal(tex2D(_BumpMap, i.uv_bump));
-				float tx = abs(i.coord.x) * 0.5f - 0.5f; // abs(i.coord.x)
-				float ty = abs(i.coord.y) * 0.5f - 0.5f; // abs(i.coord.y / _ScreenRatio)
-				//float range = min(1.0f, max(0.0f, tx * tx + ty * ty - 0.2f));
-				float4 mulTex = tex2D(_AmbientPalette, float2(tx, ty));
+
+				float2 n;
 
 			#if MATCAP_ACCURATE
 				//Rotate normals from tangent space to world space
@@ -107,26 +84,15 @@ Shader "MatCap/Radial Light"
 				worldNorm.y = dot(i.tSpace1.xyz, normals);
 				worldNorm.z = dot(i.tSpace2.xyz, normals);
 				worldNorm = mul((float3x3)UNITY_MATRIX_V, worldNorm);
-				float4 mc = tex2D(_MatCap, worldNorm.xy * 0.5 + 0.5);
-				normals2D = worldNorm.xy;
+				//float4 mc = tex2D(_MatCap, worldNorm.xy * 0.5 + 0.5);
+				n = worldNorm.xy * 0.5 + 0.5;
 			#else
 				half2 capCoord = half2(dot(i.c0, normals), dot(i.c1, normals));
-				float4 mc = tex2D(_MatCap, capCoord*0.5 + 0.5);
-				normals2D = capCoord;
+				//float4 mc = tex2D(_MatCap, capCoord*0.5 + 0.5);
+				n = capCoord*0.5 + 0.5;
 			#endif
 
-				tex.rgb = tex.rgb * mulTex.rgb + pow(tex.rgb - 0.4f, 2.0f);
-				//tex.rgb = tex.rgb = lerp(tex.rgb, dot(tex.rgb, float3(0.3, 0.59, 0.11)), range);
-				//tex.rgb -= range * 0.3f;
-
-				tex = tex * mc * 2.0;
-
-				//fixed4 normalCaptured = tex2D(_NormalScreen, i.coord);
-				fixed4 solid = tex2D(_SolidScreen, i.coord * 0.5f + 0.5f + normals2D * 0.025f);
-				fixed4 translucent = pow((solid - 0.05f + max(0.0f, 1.0f - dot(normals, baseNorm) * 2.0f)) * 1.75f, 1.9f);
-				tex.rgb = tex.rgb * (1.0f - _Translucency) + translucent.rgb * _Translucency;
-
-				return tex;
+				return float4(n.x, n.y, 0.0f, 1.0f);
 			}
 			ENDCG
 		}

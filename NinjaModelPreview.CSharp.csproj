@@ -167,6 +167,7 @@
     <Compile Include="Assets\Scripts\RegionMoveController.cs" />
     <Compile Include="Assets\Scripts\RegionPreset.cs" />
     <Compile Include="Assets\Scripts\RegionTimedIcon.cs" />
+    <Compile Include="Assets\Scripts\ScreenCapture.cs" />
     <Compile Include="Assets\Scripts\ScreenEffectsController.cs" />
     <Compile Include="Assets\Scripts\SmileyButton.cs" />
     <Compile Include="Assets\Scripts\SparksController.cs" />
@@ -208,6 +209,7 @@
     <None Include="Assets\Resources\Shaders\MatCap_CustomBumpTexture.shader" />
     <None Include="Assets\Resources\Shaders\MatCap_CustomTexture.shader" />
     <None Include="Assets\Resources\Shaders\MatcapRadialLight.shader" />
+    <None Include="Assets\Resources\Shaders\Normal.shader" />
     <None Include="Assets\Resources\Shaders\ParticleRadialLight.shader" />
     <None Include="Assets\Resources\Shaders\ProjectorAlphaBlend.shader" />
     <None Include="Assets\Resources\Shaders\SpriteRadialLight.shader" />

@@ -4,6 +4,7 @@
 	{
 		[PerRendererData] _MainTex("Sprite Texture", 2D) = "white" {}
 		_Color("Tint", Color) = (1,1,1,1)
+		_Translucency("_Translucency", Range(0.0, 1.0)) = 0.0
 		[MaterialToggle] PixelSnap("Pixel snap", Float) = 0
 	}
 
@@ -33,6 +34,8 @@
 			#pragma vertex vert
 			#pragma fragment frag
 			#pragma multi_compile DUMMY //PIXELSNAP_ON
+			#pragma fragmentoption ARB_precision_hint_fastest
+			#pragma shader_feature MATCAP_ACCURATE
 			#include "UnityCG.cginc"
 
 			struct appdata_t
@@ -48,16 +51,29 @@
 				fixed4 color : COLOR;
 				half2 texcoord  : TEXCOORD0;
 				half2 coord : TEXCOORD1;
+
+				fixed3 tSpace0 : TEXCOORD2;
+				fixed3 tSpace1 : TEXCOORD3;
+				fixed3 tSpace2 : TEXCOORD4;
 			};
 
 			fixed4 _Color;
 
-			v2f vert(appdata_t IN)
+			v2f vert(appdata_full IN)
 			{
 				v2f OUT;
 				OUT.vertex = mul(UNITY_MATRIX_MVP, IN.vertex);
 				OUT.texcoord = IN.texcoord;
 				OUT.color = IN.color * _Color;
+
+
+				fixed3 worldNormal = UnityObjectToWorldNormal(IN.normal);
+				fixed3 worldTangent = UnityObjectToWorldDir(IN.tangent.xyz);
+				fixed3 worldBinormal = cross(worldNormal, worldTangent) * IN.tangent.w;
+				OUT.tSpace0 = fixed3(worldTangent.x, worldBinormal.x, worldNormal.x);
+				OUT.tSpace1 = fixed3(worldTangent.y, worldBinormal.y, worldNormal.y);
+				OUT.tSpace2 = fixed3(worldTangent.z, worldBinormal.z, worldNormal.z);
+
 		//#ifdef PIXELSNAP_ON
 		//		OUT.vertex = UnityPixelSnap(OUT.vertex);
 		//#endif
@@ -65,8 +81,10 @@
 				return OUT;
 			}
 
+			float _Translucency;
 			uniform sampler2D _AmbientPalette;
-			sampler2D _MainTex;
+			uniform sampler2D _MainTex;
+			uniform sampler2D _SolidScreen;
 			uniform float _EffectAmount;
 			//float4 _AmbientLight;
 			//float _ScreenRatio;
@@ -80,12 +98,25 @@
 				
 				float tx = abs(IN.coord.x) * 0.5f - 0.5f;
 				float ty = abs(IN.coord.y) * 0.5f - 0.5f;
-				float4 mul = tex2D(_AmbientPalette, float2(tx, ty));
+				float4 mulTex = tex2D(_AmbientPalette, float2(tx, ty));
+
+				float3 normals = float3(0.0f, 0.0f, 1.0f);
+				float3 worldNorm;
+				worldNorm.x = dot(IN.tSpace0.xyz, normals);
+				worldNorm.y = dot(IN.tSpace1.xyz, normals);
+				worldNorm.z = dot(IN.tSpace2.xyz, normals);
+				worldNorm = mul((float3x3)UNITY_MATRIX_V, worldNorm);
+				//float4 mc = tex2D(_MatCap, worldNorm.xy * 0.5 + 0.5);
+				float2 normals2D = worldNorm.xy;
 
 				//texcol.rgb = lerp(texcol.rgb, dot(texcol.rgb, float3(0.3, 0.59, 0.11)), range);
 				//texcol.rgb -= range * 0.3f;
 
-				tex.rgb = tex.rgb * mul.rgb + pow(tex.rgb - 0.4f, 2.0f);
+				tex.rgb = tex.rgb * mulTex.rgb + pow(tex.rgb - 0.4f, 2.0f);
+
+				fixed4 solid = tex2D(_SolidScreen, IN.coord * 0.5f + 0.5f + normals2D * 0.025f);
+				fixed4 translucent = solid + pow(tex * 0.4f + solid * 0.6f - 0.3f, 4.0f) * 2.0f;
+				tex.rgb = tex.rgb * (1.0f - _Translucency) + translucent.rgb * _Translucency;
 
 				return tex;
 			}

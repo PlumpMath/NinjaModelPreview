@@ -163,19 +163,19 @@ public class RegionBotBehavior : MonoBehaviour {
             Color newColor = new Color(1.0f, 0.5f, 0.5f, 1.0f);
             if (coverageType == 2)
             {
-                speed = 1.2f; // 0.8f
+                //speed = 1.2f; // 0.8f
                 newColor.a = 0.5f;
                 visibleDistance = 3.0f;
             }
             else if (coverageType == 1)
             {
-                speed = 1.2f;
+                //speed = 1.2f;
                 newColor.a = 0.75f;
                 visibleDistance = 5.0f;
             }
             else
             {
-                speed = 1.6f;
+                //speed = 1.6f;
                 visibleDistance = 7.0f;
             }
             playerIconRenderer.color = newColor;

@@ -51,6 +51,7 @@ public class RegionMoveController : MonoBehaviour {
 
     public int inputMode = 3;
     public float inputCooldown = 0.0f;
+    public float inputTargetingCooldown = 0.0f;
     public float applyInputCooldown = 0.0f;
     public float inputSendCooldown = 0.0f;
     public float blockInput = 0.0f;
@@ -658,6 +659,10 @@ public class RegionMoveController : MonoBehaviour {
             }
         }
 
+        if (!inputTouched)
+        {
+            inputTargetingCooldown = 0.0f;
+        }
         applyInputCooldown -= Time.deltaTime;
         if(applyInputCooldown <= 0.0f)
         {
@@ -665,19 +670,27 @@ public class RegionMoveController : MonoBehaviour {
             if (inputTouched)
             {
                 inputTouched = false;
+                inputTargetingCooldown += Time.deltaTime;
                 direction.x = inputDirection.x;
                 direction.z = inputDirection.z;
-                //inputCooldown = direction.magnitude * 5.3f / speed;
-                speed = 1.6f;
-                route = region.GetRoute(transform.position, transform.position + direction, speed, 0.0f);
-                //direction.Normalize();
-                inputCooldown = 0.0f;
-                direction *= 0.0f;
-                if (route.Count > 0)
+                if (inputTargetingCooldown > 0.1f)
                 {
-                    routePoint = route.First.Value;
-                    direction = (routePoint.destination - transform.position).normalized;
-                    inputCooldown = (routePoint.destination - transform.position).magnitude / speed; // routePoint.timestamp - Time.time;
+                    //inputCooldown = direction.magnitude * 5.3f / speed;
+                    speed = 1.6f;
+                    route = region.GetRoute(transform.position, transform.position + direction, speed, 0.0f);
+                    //direction.Normalize();
+                    inputCooldown = 0.0f;
+                    direction *= 0.0f;
+                    if (route.Count > 0)
+                    {
+                        routePoint = route.First.Value;
+                        direction = (routePoint.destination - transform.position).normalized;
+                        inputCooldown = (routePoint.destination - transform.position).magnitude / speed; // routePoint.timestamp - Time.time;
+                    }
+                }
+                else
+                {
+                    direction = direction.normalized * 0.01f;
                 }
             }
         }
@@ -734,9 +747,20 @@ public class RegionMoveController : MonoBehaviour {
 
         transform.position = new Vector3(newPosition2D.x, transform.position.y, newPosition2D.y);
 
-        if (direction.magnitude > 0.1f)
+        if (direction.magnitude > 0.001f)
         {
-            smoothDirection += (Vector3.right * direction.x + Vector3.up * direction.z - smoothDirection) * Mathf.Min(1.0f, Time.deltaTime * 5.0f);
+            v3 = new Vector3(direction.x, 0.0f, direction.z);
+            v3.Normalize();
+            if (inputTargetingCooldown > 0.1f)
+            {
+                smoothDirection.Normalize();
+                smoothDirection += (Vector3.right * v3.x + Vector3.up * v3.z - smoothDirection) * Mathf.Min(1.0f, Time.deltaTime * 5.0f);
+            }
+            else
+            {
+                smoothDirection.x = v3.x;
+                smoothDirection.y = v3.z;
+            }
             playerIcon.transform.localRotation = Quaternion.LookRotation(smoothDirection, -Vector3.forward);
         }
 
@@ -848,19 +872,19 @@ public class RegionMoveController : MonoBehaviour {
             if(coverageType == 2)
             {
                 inputCooldown *= speed / 1.2f; // 0.8f
-                speed = 1.2f; // 0.8f
+                //speed = 1.2f; // 0.8f
                 newColor.a = 0.5f;
             }
             else if (coverageType == 1)
             {
                 inputCooldown *= speed / 1.2f;
-                speed = 1.2f;
+                //speed = 1.2f;
                 newColor.a = 0.75f;
             }
             else
             {
                 inputCooldown *= speed / 1.6f;
-                speed = 1.6f;
+                //speed = 1.6f;
             }
             hidden = direction.magnitude < 0.1f;
             if (hidden)

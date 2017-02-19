@@ -349,9 +349,20 @@ public class LoginController : MonoBehaviour {
                     Debug.LogError("Server throw error: " + messageCode);
                     statusText.text = "Error code: " + messageCode;
                     loginSocket.Close();
-                    loginField.image.rectTransform.anchoredPosition = baseLoginFieldPosition;
-                    passwordField.image.rectTransform.anchoredPosition = basePasswordFieldPosition;
-                    submitButton.image.rectTransform.anchoredPosition = baseSubmitButtonPosition;
+                    if (messageCode == 1103)
+                    {
+                        storedKey = "";
+                        storedSecret = "";
+                        PlayerPrefs.SetString("CredentialsKey", storedKey);
+                        PlayerPrefs.SetString("CredentialsSecret", storedSecret);
+                        Connect();
+                    }
+                    else
+                    {
+                        loginField.image.rectTransform.anchoredPosition = baseLoginFieldPosition;
+                        passwordField.image.rectTransform.anchoredPosition = basePasswordFieldPosition;
+                        submitButton.image.rectTransform.anchoredPosition = baseSubmitButtonPosition;
+                    }
                     break;
             }
 
