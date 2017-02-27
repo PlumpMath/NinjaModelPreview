@@ -2422,3 +2422,39 @@ public class RegionIconMessage : BaseObjectMessage
 
 }
 
+public class RegionEffectMessage : BaseObjectMessage
+{
+
+    public Vector2 position = Vector2.zero;
+    public int iconId = -1;
+
+    public RegionEffectMessage() : base()
+    {
+    }
+
+    public RegionEffectMessage(float currentTimestamp, float targetTimemark) : base(currentTimestamp, targetTimemark)
+    {
+    }
+
+    public override byte[] Pack()
+    {
+        int index = 0;
+        byte[] data = new byte[6 * 4];
+        PackBase(ref data, ref index);
+        PutFloat(data, position.x, ref index);
+        PutFloat(data, position.y, ref index);
+        PutInt(data, iconId, ref index);
+        return data;
+    }
+
+    public override void Unpack(byte[] data)
+    {
+        int index = 0;
+        UnpackBase(ref data, ref index);
+        position.x = GetFloat(data, ref index);
+        position.y = GetFloat(data, ref index);
+        iconId = GetInt(data, ref index);
+    }
+
+}
+

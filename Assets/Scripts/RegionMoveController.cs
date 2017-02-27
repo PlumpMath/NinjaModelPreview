@@ -28,6 +28,8 @@ public class RegionMoveController : MonoBehaviour {
     public Sprite someFoundSprite;
     public Sprite itemFoundSprite;
     public Sprite taskCompleteSprite;
+    public Sprite startBattleSprite;
+    public Sprite hookBounceSprite;
     public Image joystickKey;
     public Image joystickFrame;
     public Button[] inputModeButtons = new Button[4];
@@ -70,9 +72,9 @@ public class RegionMoveController : MonoBehaviour {
 
     public Button traceTypeButton;
 
-    private Vector3 direction = Vector3.zero;
+    public Vector3 direction = Vector3.zero;
     private Vector3 smoothDirection = Vector3.zero;
-    private Vector3 inputDirection = Vector3.zero;
+    public Vector3 inputDirection = Vector3.zero;
     private bool inputTouched = false;
     public float battleCooldown = 0.0f;
     private float botActionCooldown = 0.0f;
@@ -80,6 +82,7 @@ public class RegionMoveController : MonoBehaviour {
     private float discoveredTimer = 0.0f;
     private float smileyCooldown = 0.0f;
     private float leaveCooldown = 0.0f;
+    private float releaseProgress = 0.0f;
 
     private LinkedList<RegionBotBehavior> bots = new LinkedList<RegionBotBehavior>();
     private LinkedList<RoutePoint> route = new LinkedList<RoutePoint>();
@@ -392,6 +395,7 @@ public class RegionMoveController : MonoBehaviour {
         int i;
         bool stop = true;
         bool touched = false;
+        float f;
         float posX = 0.0f;
         float posY = 0.0f;
         RoutePoint routePoint;
@@ -441,15 +445,6 @@ public class RegionMoveController : MonoBehaviour {
             }
         }
         */
-
-        if(blockInput > 0.0f)
-        {
-            blockInput -= Time.deltaTime;
-            if(blockInput < 0.0f)
-            {
-                blockInput = 0.0f;
-            }
-        }
 
         if(inputSendCooldown > 0.0f)
         {
@@ -634,6 +629,43 @@ public class RegionMoveController : MonoBehaviour {
             }
         }
 
+        if (blockInput > 0.0f)
+        {
+            if(touched)
+            {
+                Vector2 lastInputDirection = new Vector3(inputDirection.x, inputDirection.y, inputDirection.z);
+                inputDirection.x = posX / (float)Screen.width - 0.5f;
+                inputDirection.z = Mathf.Max(-0.5f, Mathf.Min(0.5f, (posY - (float)Screen.height * 0.5f) / (float)Screen.width));
+                inputDirection.z *= 1.6f;
+                Vector3 cameraShift = camera.transform.position - transform.position + Vector3.forward * 10.0f;
+                cameraShift.y = 0.0f;
+                cameraShift.x /= 2.7f * 2.0f;
+                cameraShift.z /= 2.7f * 2.0f;
+                inputDirection += cameraShift;
+                inputDirection *= 0.001f;
+                releaseProgress += Vector3.Angle(lastInputDirection.normalized, inputDirection.normalized);
+                if(releaseProgress > 720.0f)
+                {
+                    releaseProgress = 0.0f;
+                    BaseObjectMessage baseMessage = new BaseObjectMessage();
+                    baseMessage.id = 1;
+                    if (PhotonNetwork.networkingPeer.PeerState == ExitGames.Client.Photon.PeerStateValue.Connected)
+                    {
+                        PhotonNetwork.networkingPeer.OpCustom((byte)5, new Dictionary<byte, object> { { 245, baseMessage.Pack() } }, true);
+                    }
+                }
+            }
+            else
+            {
+                releaseProgress = 0.0f;
+            }
+            blockInput -= Time.deltaTime;
+            if (blockInput < 0.0f)
+            {
+                blockInput = 0.0f;
+            }
+        }
+
         if (stop)
         {
             if (inputCooldown > 0.0f && inputMode == 3)
@@ -654,15 +686,17 @@ public class RegionMoveController : MonoBehaviour {
                 }
                 else
                 {
-                    direction *= 1.0f - Time.deltaTime * 10.0f;
+                    direction *= Mathf.Max(0.01f, 1.0f - Time.deltaTime * 10.0f);
                 }
             }
         }
 
+        /*
         if (!inputTouched)
         {
             inputTargetingCooldown = 0.0f;
         }
+        */
         applyInputCooldown -= Time.deltaTime;
         if(applyInputCooldown <= 0.0f)
         {
@@ -673,8 +707,8 @@ public class RegionMoveController : MonoBehaviour {
                 inputTargetingCooldown += Time.deltaTime;
                 direction.x = inputDirection.x;
                 direction.z = inputDirection.z;
-                if (inputTargetingCooldown > 0.1f)
-                {
+                //if (inputTargetingCooldown > 0.1f)
+                //{
                     //inputCooldown = direction.magnitude * 5.3f / speed;
                     speed = 1.6f;
                     route = region.GetRoute(transform.position, transform.position + direction, speed, 0.0f);
@@ -687,10 +721,25 @@ public class RegionMoveController : MonoBehaviour {
                         direction = (routePoint.destination - transform.position).normalized;
                         inputCooldown = (routePoint.destination - transform.position).magnitude / speed; // routePoint.timestamp - Time.time;
                     }
-                }
-                else
+                //}
+                //else
+                //{
+                //    direction = direction.normalized * 0.01f;
+                //}
+            }
+            else
+            {
+                if (inputTargetingCooldown >= 0.2f)
                 {
-                    direction = direction.normalized * 0.01f;
+                    inputTargetingCooldown = 0.0f;
+                }
+                else if(inputTargetingCooldown > 0.0f)
+                {
+                    inputTargetingCooldown = 0.0f;
+                    route.Clear();
+                    routePoint = null;
+                    inputCooldown = 0.0f;
+                    //direction *= 0.0f;
                 }
             }
         }
@@ -747,20 +796,13 @@ public class RegionMoveController : MonoBehaviour {
 
         transform.position = new Vector3(newPosition2D.x, transform.position.y, newPosition2D.y);
 
-        if (direction.magnitude > 0.001f)
+        if (direction.magnitude > 0.0f)
         {
             v3 = new Vector3(direction.x, 0.0f, direction.z);
             v3.Normalize();
-            if (inputTargetingCooldown > 0.1f)
-            {
-                smoothDirection.Normalize();
-                smoothDirection += (Vector3.right * v3.x + Vector3.up * v3.z - smoothDirection) * Mathf.Min(1.0f, Time.deltaTime * 5.0f);
-            }
-            else
-            {
-                smoothDirection.x = v3.x;
-                smoothDirection.y = v3.z;
-            }
+            smoothDirection.Normalize();
+            f = Mathf.Min(0.33f, Time.deltaTime * 5.0f);
+            smoothDirection = smoothDirection * (1.0f - f) + new Vector3(v3.x, v3.z, 0.0f) * f;
             playerIcon.transform.localRotation = Quaternion.LookRotation(smoothDirection, -Vector3.forward);
         }
 
@@ -865,6 +907,7 @@ public class RegionMoveController : MonoBehaviour {
         {
             coverageType = 0;
         }
+        /*
         if(coverageType != lastCoverageType || (!hidden && direction.magnitude < 0.1f) || (hidden && direction.magnitude >= 0.1f))
         {
             lastCoverageType = coverageType;
@@ -894,6 +937,7 @@ public class RegionMoveController : MonoBehaviour {
             //playerIconRenderer.color = newColor;
             //playerFaceRenderer.color = newColor;
         }
+        */
 
         camera.transform.position += new Vector3(transform.position.x - camera.transform.position.x, 0.0f, transform.position.z - camera.transform.position.z - 10.0f) * Time.deltaTime * 5.0f;
         if (camera.transform.position.x < -27.0f)
@@ -1084,13 +1128,16 @@ public class RegionMoveController : MonoBehaviour {
         }
         else
         {
-            direction = new Vector3(destination.x, 0.0f, destination.y) - transform.position;
+            direction = new Vector3(destination.x - transform.position.x, 0.0f, destination.y - transform.position.z);
             inputCooldown = moveTime;
             speed = direction.magnitude / inputCooldown;
             direction.Normalize();
 
             blockInput = inputCooldown;
+            applyInputCooldown = inputCooldown;
         }
+        inputTargetingCooldown = 0.0f;
+        route.Clear();
     }
 
     public void SetOpponentState(string id, Vector2 destination, float moveTime)
@@ -1200,6 +1247,10 @@ public class RegionMoveController : MonoBehaviour {
 
     public void ThrowHook()
     {
+        if (blockInput > 0.0f)
+        {
+            return;
+        }
         Vector3 v = playerIcon.transform.forward * 6.0f;
         RegionThrowMessage regionThrowMessage = new RegionThrowMessage();
         Vector2 position2D = new Vector2(transform.position.x, transform.position.z);
@@ -1264,6 +1315,26 @@ public class RegionMoveController : MonoBehaviour {
         }
         */
         icon.transform.position = new Vector3(position.x, 0.0f, position.y);
+    }
+
+    public void ShowEffect(Vector2 position, int iconId)
+    {
+        RegionTimedIcon icon = (RegionTimedIcon)((GameObject)GameObject.Instantiate(timedIconPrefab)).GetComponent<RegionTimedIcon>();
+        switch(iconId)
+        {
+            case 1:
+                icon.transform.position = new Vector3(position.x, 0.8f, position.y - 0.4f);
+                icon.sprite.transform.localScale = Vector3.one * 0.5f;
+                icon.sprite.sprite = startBattleSprite;
+                icon.cooldown = 4.0f;
+                break;
+            case 2:
+                icon.transform.position = new Vector3(position.x, 0.3f, position.y - 0.1f);
+                icon.sprite.transform.localScale = Vector3.one * 1.0f;
+                icon.sprite.sprite = hookBounceSprite;
+                icon.cooldown = 0.5f;
+                break;
+        }
     }
 
     public void StartLeaving(float time)

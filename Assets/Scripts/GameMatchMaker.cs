@@ -362,6 +362,7 @@ public class GameMatchMaker : Photon.PunBehaviour
         RegionMoveMessage moveMessage;
         RegionDiscoverMessage discoverMessage;
         RegionIconMessage iconMessage;
+        RegionEffectMessage effectMessage;
         PlayerObject playerObject = null;
         //PlayerController playerController = null;
         //Debug.Log("RECEIVE EVENT[" + eventCode + "] from [" + senderId + "]");
@@ -464,6 +465,12 @@ public class GameMatchMaker : Photon.PunBehaviour
                 iconMessage = new RegionIconMessage();
                 iconMessage.Unpack((byte[])content);
                 regionMoveController.ShowTimedIcon(iconMessage.position, iconMessage.iconId);
+                break;
+            case 9:
+                //Debug.Log("TIMED ICON MESSAGE");
+                effectMessage = new RegionEffectMessage();
+                effectMessage.Unpack((byte[])content);
+                regionMoveController.ShowEffect(effectMessage.position, effectMessage.iconId);
                 break;
         }
     }

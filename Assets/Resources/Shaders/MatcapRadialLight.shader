@@ -1,4 +1,6 @@
-﻿// MatCap Shader, (c) 2015 Jean Moreno
+﻿// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
+
+// MatCap Shader, (c) 2015 Jean Moreno
 
 Shader "MatCap/Radial Light"
 {
@@ -45,6 +47,7 @@ Shader "MatCap/Radial Light"
 				float3 c1 : TEXCOORD3;
 		#endif
 				float2 coord : TEXCOORD4;
+				float3 vert : TEXCOORD5;
 			};
 
 			uniform float4 _MainTex_ST;
@@ -74,6 +77,8 @@ Shader "MatCap/Radial Light"
 				o.c1 = mul(rotation, normalize(UNITY_MATRIX_IT_MV[1].xyz));
 		#endif
 				o.coord.xy = o.pos.xy;
+				float4 pos = mul(unity_ObjectToWorld, v.vertex);
+				o.vert.xyz = pos.xyz;
 				return o;
 			}
 
@@ -84,6 +89,8 @@ Shader "MatCap/Radial Light"
 			uniform sampler2D _MatCap;
 			//uniform sampler2D _FullScreen;
 			uniform sampler2D _SolidScreen;
+			uniform sampler2D _FogTex;
+			uniform float4 _FogColor;
 			//uniform sampler2D _NormalScreen;
 			//float4 _AmbientLight;
 			//float _ScreenRatio;
@@ -125,6 +132,17 @@ Shader "MatCap/Radial Light"
 				fixed4 solid = tex2D(_SolidScreen, i.coord * 0.5f + 0.5f + normals2D * 0.025f);
 				fixed4 translucent = pow((solid - 0.05f + max(0.0f, 1.0f - dot(normals, baseNorm) * 2.0f)) * 1.75f, 1.9f);
 				tex.rgb = tex.rgb * (1.0f - _Translucency) + translucent.rgb * _Translucency;
+
+				float4 fogTex = tex2D(_FogTex, float2(i.vert.x + _Time.z * 0.033f, i.vert.z * 2.0f + i.vert.y + _Time.z * 0.01f) * 0.05f);
+				float4 fogTex2 = tex2D(_FogTex, float2(i.vert.x - _Time.z * 0.02f, i.vert.z * 2.0f + i.vert.y + _Time.z * 0.05f) * 0.05f);
+				fogTex.r = max(fogTex.r, fogTex2.r);
+				fogTex.g = max(fogTex.g, fogTex2.g);
+				fogTex.b = max(fogTex.b, fogTex2.b);
+				fogTex.a = max(fogTex.a, fogTex2.a);
+				fogTex *= _FogColor;
+				fogTex.rgb *= mulTex.rgb;
+				fogTex = fogTex * min(1.0f, max(0.0f, 1.1f - i.vert.y * 0.5f)) * fogTex.a;
+				tex.rgb = tex.rgb * (1.0f - fogTex.a) + fogTex.rgb * fogTex.a;
 
 				return tex;
 			}

@@ -32,8 +32,9 @@ public class ScreenCapture : MonoBehaviour {
             solidCapture = new RenderTexture(Screen.width / 2, Screen.height / 2, 16, RenderTextureFormat.Default);
             solidCapture.wrapMode = TextureWrapMode.Repeat;
             solidCapture.Create();
+
         }
-        catch(System.Exception ex)
+        catch (System.Exception ex)
         {
 
         }

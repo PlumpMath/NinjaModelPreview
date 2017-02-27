@@ -12,6 +12,8 @@ public class RegionPreset : MonoBehaviour {
 
     public Color ambientColor = new Color(1.0f, 1.0f, 1.0f, 1.0f);
     public Texture2D ambientPalette;
+    public Texture2D fogTexture;
+    public Color fogColor;
 
     public LinkedList<RegionCollider> colliders = new LinkedList<RegionCollider>();
 
@@ -46,6 +48,8 @@ public class RegionPreset : MonoBehaviour {
         Shader.SetGlobalColor("_AmbientLight", ambientColor);
         Shader.SetGlobalTexture("_AmbientPalette", ambientPalette);
         Shader.SetGlobalFloat("_ScreenRatio", (float)Screen.height / (float)Screen.width);
+        Shader.SetGlobalTexture("_FogTex", fogTexture);
+        Shader.SetGlobalColor("_FogColor", fogColor);
     }
 
     void Update () {

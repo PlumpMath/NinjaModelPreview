@@ -55,6 +55,8 @@
 				fixed3 tSpace0 : TEXCOORD2;
 				fixed3 tSpace1 : TEXCOORD3;
 				fixed3 tSpace2 : TEXCOORD4;
+
+				half3 vert : TEXCOORD5;
 			};
 
 			fixed4 _Color;
@@ -78,6 +80,10 @@
 		//		OUT.vertex = UnityPixelSnap(OUT.vertex);
 		//#endif
 				OUT.coord.xy = OUT.vertex.xy;
+
+				float4 pos = mul(unity_ObjectToWorld, IN.vertex);
+				OUT.vert.xyz = pos.xyz;
+
 				return OUT;
 			}
 
@@ -86,6 +92,8 @@
 			uniform sampler2D _MainTex;
 			uniform sampler2D _SolidScreen;
 			uniform float _EffectAmount;
+			uniform sampler2D _FogTex;
+			uniform float4 _FogColor;
 			//float4 _AmbientLight;
 			//float _ScreenRatio;
 
@@ -117,6 +125,18 @@
 				fixed4 solid = tex2D(_SolidScreen, IN.coord * 0.5f + 0.5f + normals2D * 0.025f);
 				fixed4 translucent = solid + pow(tex * 0.4f + solid * 0.6f - 0.3f, 4.0f) * 2.0f;
 				tex.rgb = tex.rgb * (1.0f - _Translucency) + translucent.rgb * _Translucency;
+
+
+				float4 fogTex = tex2D(_FogTex, float2(IN.vert.x + _Time.z * 0.033f, IN.vert.z * 2.0f + IN.vert.y + _Time.z * 0.01f) * 0.05f);
+				float4 fogTex2 = tex2D(_FogTex, float2(IN.vert.x - _Time.z * 0.02f, IN.vert.z * 2.0f + IN.vert.y + _Time.z * 0.05f) * 0.05f);
+				fogTex.r = max(fogTex.r, fogTex2.r);
+				fogTex.g = max(fogTex.g, fogTex2.g);
+				fogTex.b = max(fogTex.b, fogTex2.b);
+				fogTex.a = max(fogTex.a, fogTex2.a);
+				fogTex *= _FogColor;
+				fogTex.rgb *= mulTex.rgb;
+				fogTex = fogTex * min(1.0f, max(0.0f, 1.1f - IN.vert.y * 0.5f)) * fogTex.a;
+				tex.rgb = tex.rgb * (1.0f - fogTex.a) + fogTex.rgb * fogTex.a;
 
 				return tex;
 			}

@@ -17,6 +17,7 @@ public class RegionHook : MonoBehaviour {
     public float throwTimemark = 0.0f;
     public float rollbackTimemark = 0.0f;
     public float cooldown = 0.0f;
+    public float wrappingCooldown = 0.0f;
 
     private float startRollbackDistance = 0.0f;
 
@@ -61,6 +62,15 @@ public class RegionHook : MonoBehaviour {
             return;
         }
 
+        if(wrappingCooldown > 0.0f)
+        {
+            wrappingCooldown -= Time.deltaTime;
+            if(wrappingCooldown < 0.0f)
+            {
+                wrappingCooldown = 0.0f;
+            }
+        }
+
         if(rollback)
         {
             rollbackTimemark -= Time.deltaTime;
@@ -88,12 +98,30 @@ public class RegionHook : MonoBehaviour {
             v3.Normalize();
             if (!throwing)
             {
-                v3 = new Vector3(v3.z, 0.0f, -v3.x) * Mathf.Sin(f * l * 2.0f + Time.time * 5.0f) * 0.5f;
-                points[i] = (hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f) + (player.transform.position + Vector3.up * 0.2f - direction.normalized * 0.3f) * f + v3 * (1.0f - Mathf.Abs(f - 0.5f) * 2.0f) * c;
+                if (rollback)
+                {
+                    v3 = new Vector3(v3.z, (Mathf.Abs(v3.x) + Mathf.Abs(v3.z)) * 0.1f, -v3.x) * Mathf.Sin(f * l * 2.0f + Time.time * 5.0f) * 0.5f;
+                    points[i] = (hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f) + (player.transform.position + Vector3.up * 0.2f - direction.normalized * 0.3f) * f + v3 * (1.0f - Mathf.Abs(f - 0.5f) * 2.0f) * c;
+                }
+                else
+                {
+                    if (i < points.Length / 2)
+                    {
+                        f = (float)i / (float)points.Length * 2.0f * (1.0f - wrappingCooldown);
+                        v3 = new Vector3(Mathf.Sin(f * 8.0f) * 0.3f, f, Mathf.Cos(f * 8.0f) * 0.3f);
+                        points[i] = hook.transform.position + v3;
+                    }
+                    else
+                    {
+                        f = (float)(i - points.Length / 2) / (float)(points.Length / 2);
+                        v3 = new Vector3(v3.z, (Mathf.Abs(v3.x) + Mathf.Abs(v3.z)) * 0.1f, -v3.x) * Mathf.Sin(f * l * 2.0f + Time.time * 5.0f) * 0.5f;
+                        points[i] = (hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f) + (player.transform.position + Vector3.up * 0.2f - direction.normalized * 0.3f) * f + v3 * (1.0f - Mathf.Abs(f - 0.5f) * 2.0f) * c;
+                    }
+                }
             }
             else
             {
-                v3 = new Vector3(Mathf.Sin(f * 4.0f + Time.time * 5.0f), 0.0f, Mathf.Cos(f * 4.0f + Time.time * 5.0f)) * (0.2f + direction.magnitude * 0.5f);
+                v3 = new Vector3(Mathf.Sin(f * 4.0f + Time.time * 5.0f), Mathf.Sin(f * 3.0f + Time.time * 5.0f - 0.5f) + 1.0f, Mathf.Cos(f * 4.0f + Time.time * 5.0f)) * (0.2f + direction.magnitude * 0.5f);
                 points[i] = (hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f) + (player.transform.position + Vector3.up * 0.2f - direction.normalized * 0.3f) * f + v3 * (1.0f - Mathf.Pow(Mathf.Abs(f - 0.5f) * 2.0f, 4.0f)) * c;
             }
             if (i > 0)
@@ -149,6 +177,7 @@ public class RegionHook : MonoBehaviour {
         hookMesh.enabled = true;
         chain.enabled = true;
         throwing = false;
+        wrappingCooldown = 1.0f;
     }
 
     public void Rollback()
