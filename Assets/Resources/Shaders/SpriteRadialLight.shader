@@ -108,6 +108,12 @@
 				float ty = abs(IN.coord.y) * 0.5f - 0.5f;
 				float4 mulTex = tex2D(_AmbientPalette, float2(tx, ty));
 
+				float minC = min(tex.r, min(tex.g, tex.b));
+				float maxC = max(tex.r, max(tex.g, tex.b));
+				float diffC = maxC - minC;
+				diffC += maxC * 0.3f;
+				diffC = min(1.0f, diffC * 2.0f);
+
 				float3 normals = float3(0.0f, 0.0f, 1.0f);
 				float3 worldNorm;
 				worldNorm.x = dot(IN.tSpace0.xyz, normals);
@@ -120,7 +126,7 @@
 				//texcol.rgb = lerp(texcol.rgb, dot(texcol.rgb, float3(0.3, 0.59, 0.11)), range);
 				//texcol.rgb -= range * 0.3f;
 
-				tex.rgb = tex.rgb * mulTex.rgb + pow(tex.rgb - 0.4f, 2.0f);
+				tex.rgb = tex.rgb * diffC + tex.rgb * mulTex.rgb * (1.0f - diffC) + pow(tex.rgb - 0.4f, 2.0f);
 
 				fixed4 solid = tex2D(_SolidScreen, IN.coord * 0.5f + 0.5f + normals2D * 0.025f);
 				fixed4 translucent = solid + pow(tex * 0.4f + solid * 0.6f - 0.3f, 4.0f) * 2.0f;

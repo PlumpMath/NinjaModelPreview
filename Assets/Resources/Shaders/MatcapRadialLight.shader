@@ -107,6 +107,10 @@ Shader "MatCap/Radial Light"
 				//float range = min(1.0f, max(0.0f, tx * tx + ty * ty - 0.2f));
 				float4 mulTex = tex2D(_AmbientPalette, float2(tx, ty));
 
+				float minC = min(tex.r, min(tex.g, tex.b));
+				float maxC = max(tex.r, max(tex.g, tex.b));
+				float diffC = maxC - minC;
+
 			#if MATCAP_ACCURATE
 				//Rotate normals from tangent space to world space
 				float3 worldNorm;
@@ -122,7 +126,7 @@ Shader "MatCap/Radial Light"
 				normals2D = capCoord;
 			#endif
 
-				tex.rgb = tex.rgb * mulTex.rgb + pow(tex.rgb - 0.4f, 2.0f);
+				tex.rgb = tex.rgb * diffC + tex.rgb * mulTex.rgb * (1.0f - diffC) + pow(tex.rgb - 0.4f, 2.0f);
 				//tex.rgb = tex.rgb = lerp(tex.rgb, dot(tex.rgb, float3(0.3, 0.59, 0.11)), range);
 				//tex.rgb -= range * 0.3f;
 
