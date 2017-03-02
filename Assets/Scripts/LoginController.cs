@@ -151,12 +151,14 @@ public class LoginController : MonoBehaviour {
 
     void LoginSendCallback(IAsyncResult result)
     {
+        Debug.Log("End send. Begin receive");
         loginSocket.Client.EndSend(result);
         loginSocket.Client.BeginReceive(socketBuffer, 2048, 2048, SocketFlags.None, new AsyncCallback(LoginReceiveCallback), socketBuffer);
     }
 
     void LoginReceiveCallback(IAsyncResult result)
     {
+        Debug.Log("End receive");
         byte[] rawData;
         loginSocket.Client.EndReceive(result);
         rawData = new byte[2048];

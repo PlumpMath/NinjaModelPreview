@@ -73,8 +73,10 @@ public class RegionMoveController : MonoBehaviour {
     public Button traceTypeButton;
 
     public Vector3 direction = Vector3.zero;
+    public Vector3 normalDirection = Vector3.forward;
     private Vector3 smoothDirection = Vector3.zero;
     public Vector3 inputDirection = Vector3.zero;
+    public Vector3 lastInputDirection = Vector3.zero;
     private bool inputTouched = false;
     public float battleCooldown = 0.0f;
     private float botActionCooldown = 0.0f;
@@ -633,7 +635,7 @@ public class RegionMoveController : MonoBehaviour {
         {
             if(touched)
             {
-                Vector2 lastInputDirection = new Vector3(inputDirection.x, inputDirection.y, inputDirection.z);
+                Vector3 previousInputDirection = new Vector3(inputDirection.x, inputDirection.y, inputDirection.z);
                 inputDirection.x = posX / (float)Screen.width - 0.5f;
                 inputDirection.z = Mathf.Max(-0.5f, Mathf.Min(0.5f, (posY - (float)Screen.height * 0.5f) / (float)Screen.width));
                 inputDirection.z *= 1.6f;
@@ -643,7 +645,12 @@ public class RegionMoveController : MonoBehaviour {
                 cameraShift.z /= 2.7f * 2.0f;
                 inputDirection += cameraShift;
                 inputDirection *= 0.001f;
-                releaseProgress += Vector3.Angle(lastInputDirection.normalized, inputDirection.normalized);
+                f = Vector3.Angle(previousInputDirection.normalized, inputDirection.normalized);
+                if(Vector3.Angle((previousInputDirection.normalized + (previousInputDirection.normalized + lastInputDirection.normalized) * 0.1f).normalized, inputDirection.normalized) < Vector3.Angle(previousInputDirection.normalized, inputDirection.normalized))
+                {
+                    f *= -1.0f;
+                }
+                releaseProgress += f;
                 if(releaseProgress > 720.0f)
                 {
                     releaseProgress = 0.0f;
@@ -654,6 +661,9 @@ public class RegionMoveController : MonoBehaviour {
                         PhotonNetwork.networkingPeer.OpCustom((byte)5, new Dictionary<byte, object> { { 245, baseMessage.Pack() } }, true);
                     }
                 }
+                lastInputDirection.x = previousInputDirection.x;
+                lastInputDirection.y = previousInputDirection.y;
+                lastInputDirection.z = previousInputDirection.z;
             }
             else
             {
@@ -664,6 +674,10 @@ public class RegionMoveController : MonoBehaviour {
             {
                 blockInput = 0.0f;
             }
+        }
+        else if (releaseProgress > 0.0f)
+        {
+            releaseProgress = 0.0f;
         }
 
         if (stop)
@@ -796,10 +810,12 @@ public class RegionMoveController : MonoBehaviour {
 
         transform.position = new Vector3(newPosition2D.x, transform.position.y, newPosition2D.y);
 
-        if (direction.magnitude > 0.0f)
+        if (direction.magnitude > 0.001f)
         {
-            v3 = new Vector3(direction.x, 0.0f, direction.z);
-            v3.Normalize();
+            normalDirection.x = direction.x;
+            normalDirection.z = direction.z;
+            normalDirection.Normalize();
+            v3 = new Vector3(normalDirection.x, 0.0f, normalDirection.z);
             smoothDirection.Normalize();
             f = Mathf.Min(0.33f, Time.deltaTime * 5.0f);
             smoothDirection = smoothDirection * (1.0f - f) + new Vector3(v3.x, v3.z, 0.0f) * f;
@@ -1251,12 +1267,13 @@ public class RegionMoveController : MonoBehaviour {
         {
             return;
         }
-        Vector3 v = playerIcon.transform.forward * 6.0f;
+        Vector3 v = normalDirection * 6.0f; // playerIcon.transform.forward * 6.0f;
         RegionThrowMessage regionThrowMessage = new RegionThrowMessage();
         Vector2 position2D = new Vector2(transform.position.x, transform.position.z);
         Vector2 direction2D = new Vector2(v.x, v.z);
         regionThrowMessage.throwTimemark = 1.5f;
         regionThrowMessage.destination = position2D + direction2D * regionThrowMessage.throwTimemark;
+        Debug.Log("HOOK DIRECTION: " + v + " ; " + position2D + " ; " + direction2D + " ; " + regionThrowMessage.destination + " ; " + regionThrowMessage.throwTimemark);
         PhotonNetwork.networkingPeer.OpCustom((byte)3, new Dictionary<byte, object> { { 245, regionThrowMessage.Pack() } }, true);
     }
 
