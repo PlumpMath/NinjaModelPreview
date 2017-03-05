@@ -67,8 +67,6 @@ public class RegionMoveController : MonoBehaviour {
 
     public ParticleSystem stepsPS1;
     public ParticleSystem stepsPS2;
-    public ParticleSystem stepsPS3;
-    public ParticleSystem stepsPS4;
 
     public Button traceTypeButton;
 
@@ -289,13 +287,9 @@ public class RegionMoveController : MonoBehaviour {
 
         ParticleSystem.EmissionModule emission1 = stepsPS1.emission;
         ParticleSystem.EmissionModule emission2 = stepsPS2.emission;
-        ParticleSystem.EmissionModule emission3 = stepsPS3.emission;
-        ParticleSystem.EmissionModule emission4 = stepsPS4.emission;
 
         emission1.enabled = false;
         emission2.enabled = false;
-        emission3.enabled = false;
-        emission4.enabled = false;
 
         traceTypeButton.onClick.AddListener(delegate () {
             if (traceType == 1)
@@ -824,75 +818,21 @@ public class RegionMoveController : MonoBehaviour {
 
         ParticleSystem.EmissionModule emission1 = stepsPS1.emission;
         ParticleSystem.EmissionModule emission2 = stepsPS2.emission;
-        ParticleSystem.EmissionModule emission3 = stepsPS3.emission;
-        ParticleSystem.EmissionModule emission4 = stepsPS4.emission;
 
-        if (traceType == 1)
+        if (direction.magnitude <= 0.5f && emission1.enabled)
         {
-
-            if(emission3.enabled)
-            {
-                emission3.enabled = false;
-                emission4.enabled = false;
-            }
-
-            if (direction.magnitude <= 0.5f && emission1.enabled)
-            {
-                emission1.enabled = false;
-                emission2.enabled = false;
-            }
-            else if (direction.magnitude > 0.5f && !emission1.enabled)
-            {
-                emission1.enabled = true;
-                emission2.enabled = true;
-            }
-            transform.position += Vector3.up * (0.0f - transform.position.y);
-
+            emission1.enabled = false;
+            emission2.enabled = false;
         }
-        else if(traceType == 2)
+        else if (direction.magnitude > 0.5f && !emission1.enabled && blockInput > 0.0f)
         {
-
-            if (emission1.enabled)
-            {
-                emission1.enabled = false;
-                emission2.enabled = false;
-            }
-
-            if (direction.magnitude <= 0.5f && emission3.enabled)
-            {
-                emission3.enabled = false;
-                emission4.enabled = false;
-            }
-            else if (direction.magnitude > 0.5f && !emission3.enabled)
-            {
-                emission3.enabled = true;
-                emission4.enabled = true;
-            }
-            transform.position += Vector3.up * (0.0f - transform.position.y);
-
+            emission1.enabled = true;
+            emission2.enabled = true;
         }
-        else if(traceType == 3)
+        else if (direction.magnitude > 0.5f && !emission2.enabled)
         {
-
-            if (emission3.enabled)
-            {
-                emission3.enabled = false;
-                emission4.enabled = false;
-            }
-            if (emission1.enabled)
-            {
-                emission1.enabled = false;
-            }
-            if (direction.magnitude <= 0.5f && emission2.enabled)
-            {
-                emission2.enabled = false;
-            }
-            else if (direction.magnitude > 0.5f && !emission2.enabled)
-            {
-                emission2.enabled = true;
-            }
-            transform.position += Vector3.up * ((direction.magnitude * 0.3f - transform.position.y) * Mathf.Min(1.0f, Time.deltaTime * 10.0f));
-
+            emission1.enabled = false;
+            emission2.enabled = true;
         }
 
         /*

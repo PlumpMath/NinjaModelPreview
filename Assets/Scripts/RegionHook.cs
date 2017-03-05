@@ -110,7 +110,7 @@ public class RegionHook : MonoBehaviour {
                     if (i < points.Length / 2)
                     {
                         f = (float)i / (float)points.Length * 2.0f * (1.0f - wrappingCooldown);
-                        v3 = new Vector3(Mathf.Sin(f * 8.0f) * 0.3f, f, Mathf.Cos(f * 8.0f) * 0.3f);
+                        v3 = new Vector3(Mathf.Sin(f * 12.0f) * 0.4f, f, Mathf.Cos(f * 12.0f) * 0.4f);
                         f2 = Mathf.Min(1.0f, (1.0f - f) * 8.0f);
                         f3 = 0.0f;
                         points[i] = (hook.transform.position + v3) * f2 + ((hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f3) + (player.transform.position + Vector3.up * 0.2f - direction.normalized * 0.3f) * f3 + v3 * (1.0f - Mathf.Abs(f3 - 0.5f) * 2.0f) * c) * (1.0f - f2);

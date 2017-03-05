@@ -404,7 +404,7 @@ public class GameMatchMaker : Photon.PunBehaviour
             case 3:
                 RegionThrowMessage throwMessage = new RegionThrowMessage();
                 throwMessage.Unpack((byte[])content);
-                Debug.Log("PLAYER [" + throwMessage.userId + "] THROW HOOK distance: " + (throwMessage.destination - new Vector2(regionMoveController.transform.position.x, regionMoveController.transform.position.z)).magnitude + " ; time: " + throwMessage.throwTimemark + " ; destination: " + throwMessage.destination);
+                Debug.Log("PLAYER [" + throwMessage.userId + "] THROW HOOK distance: " + (throwMessage.destination - new Vector2(regionMoveController.transform.position.x, regionMoveController.transform.position.z)).magnitude + " ; time: " + throwMessage.throwTimemark);
                 if(throwMessage.userId == "")
                 {
                     regionMoveController.ThrowHook(throwMessage.destination, throwMessage.throwTimemark);

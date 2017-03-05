@@ -14,6 +14,9 @@ public class RegionBotBehavior : MonoBehaviour {
     public SpriteRenderer smileyBackground;
     public SpriteRenderer smileyIcon;
 
+    public ParticleSystem stepsPS1;
+    public ParticleSystem stepsPS2;
+
     public RegionMap map = new RegionMap();
     public RegionMapNode mapNode = null;
 
@@ -32,8 +35,11 @@ public class RegionBotBehavior : MonoBehaviour {
     public bool isGoodVisible = true;
 
     public Vector3 direction = Vector3.zero;
+    public Vector3 normalDirection = Vector3.up;
+    public Vector3 smoothDirection = Vector3.up;
     public float cooldown = 0.1f;
     private float cooldown2 = 0.1f;
+    private float blockInput = 0.0f;
     private float smileyCooldown = 0.0f;
 
     // Use this for initialization
@@ -51,6 +57,8 @@ public class RegionBotBehavior : MonoBehaviour {
 	void Update () {
 
         float t;
+        float f;
+        Vector3 v3;
 
         if(cooldown2 > 0.0f)
         {
@@ -114,6 +122,7 @@ public class RegionBotBehavior : MonoBehaviour {
             }
             transform.position += direction * speed * t;
         }
+
         if (smileyCooldown > 0.0f)
         {
             smileyCooldown -= Time.deltaTime;
@@ -125,10 +134,50 @@ public class RegionBotBehavior : MonoBehaviour {
             }
         }
         //transform.position += direction * speed * Time.deltaTime;
+
+        /*
         if (direction.magnitude > 0.0f)
         {
             playerIcon.transform.localRotation = Quaternion.LookRotation(Vector3.right * direction.x + Vector3.up * direction.z, -Vector3.forward);
         }
+        */
+
+
+
+        if (direction.magnitude > 0.001f)
+        {
+            normalDirection.x = direction.x;
+            normalDirection.z = direction.z;
+            normalDirection.Normalize();
+            v3 = new Vector3(normalDirection.x, 0.0f, normalDirection.z);
+            smoothDirection.Normalize();
+            f = Mathf.Min(0.33f, Time.deltaTime * 5.0f);
+            smoothDirection = smoothDirection * (1.0f - f) + new Vector3(v3.x, v3.z, 0.0f) * f;
+            playerIcon.transform.localRotation = Quaternion.LookRotation(smoothDirection, -Vector3.forward);
+        }
+
+        ParticleSystem.EmissionModule emission1 = stepsPS1.emission;
+        ParticleSystem.EmissionModule emission2 = stepsPS2.emission;
+
+        if (direction.magnitude <= 0.5f && emission1.enabled)
+        {
+            emission1.enabled = false;
+            emission2.enabled = false;
+        }
+        else if (direction.magnitude > 0.5f && !emission1.enabled && blockInput > 0.0f)
+        {
+            emission1.enabled = true;
+            emission2.enabled = true;
+        }
+        else if (direction.magnitude > 0.5f && !emission2.enabled)
+        {
+            emission1.enabled = false;
+            emission2.enabled = true;
+        }
+
+
+
+
         /*
         if (transform.position.x < -9.0f)
         {
