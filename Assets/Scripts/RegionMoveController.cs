@@ -12,6 +12,7 @@ public class RegionMoveController : MonoBehaviour {
     public float speed = 1.0f;
     public Camera camera;
     public Canvas mainCanvas;
+    public Animation anim;
     public GameObject playerIcon;
     public SpriteRenderer playerIconRenderer;
     public SpriteRenderer playerFaceRenderer;
@@ -86,6 +87,8 @@ public class RegionMoveController : MonoBehaviour {
 
     private LinkedList<RegionBotBehavior> bots = new LinkedList<RegionBotBehavior>();
     private LinkedList<RoutePoint> route = new LinkedList<RoutePoint>();
+
+    private float animTime = 0.0f;
 
     public void SwitchInputMode(int mode)
     {
@@ -382,6 +385,8 @@ public class RegionMoveController : MonoBehaviour {
             }
         }
 #endif
+
+        anim["move"].speed = 1.1f;
 
     }
 
@@ -819,7 +824,7 @@ public class RegionMoveController : MonoBehaviour {
         ParticleSystem.EmissionModule emission1 = stepsPS1.emission;
         ParticleSystem.EmissionModule emission2 = stepsPS2.emission;
 
-        if (direction.magnitude <= 0.5f && emission1.enabled)
+        if (direction.magnitude <= 0.5f && emission2.enabled)
         {
             emission1.enabled = false;
             emission2.enabled = false;
@@ -834,6 +839,23 @@ public class RegionMoveController : MonoBehaviour {
             emission1.enabled = false;
             emission2.enabled = true;
         }
+
+        if(direction.magnitude > 0.01f)
+        {
+            animTime += Time.deltaTime;
+            if(animTime > 1.0f)
+            {
+                animTime -= 1.0f;
+            }
+        }
+        else
+        {
+            if(animTime < 0.5f || (animTime > 0.6f && animTime < 1.0f))
+            {
+                animTime += Time.deltaTime * 0.5f;
+            }
+        }
+        anim["move"].time = animTime;
 
         /*
         if (transform.position.x < -9.0f)

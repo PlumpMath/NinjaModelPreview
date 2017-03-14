@@ -141,7 +141,7 @@
 				fogTex.a = max(fogTex.a, fogTex2.a);
 				fogTex *= _FogColor;
 				fogTex.rgb *= mulTex.rgb;
-				fogTex = fogTex * min(1.0f, max(0.0f, 1.1f - IN.vert.y * 0.5f)) * fogTex.a;
+				fogTex = fogTex * min(1.0f, max(0.0f, 1.1f - IN.vert.y * 1.0f)) * fogTex.a;
 				tex.rgb = tex.rgb * (1.0f - fogTex.a) + fogTex.rgb * fogTex.a;
 
 				return tex;

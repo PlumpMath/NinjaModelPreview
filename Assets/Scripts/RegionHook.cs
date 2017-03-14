@@ -58,7 +58,7 @@ public class RegionHook : MonoBehaviour {
         }
 
 
-        if (direction.magnitude < 0.5f && rollback)
+        if (direction.magnitude < 1.0f && rollback)
         {
             Hide();
             return;
@@ -103,7 +103,7 @@ public class RegionHook : MonoBehaviour {
                 if (rollback)
                 {
                     v3 = new Vector3(v3.z, (Mathf.Abs(v3.x) + Mathf.Abs(v3.z)) * 0.1f, -v3.x) * Mathf.Sin(f * l * 2.0f + Time.time * 5.0f) * 0.5f;
-                    points[i] = (hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f) + (player.transform.position + Vector3.up * 0.2f - direction.normalized * 0.3f) * f + v3 * (1.0f - Mathf.Abs(f - 0.5f) * 2.0f) * c;
+                    points[i] = (hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f) + (player.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f + v3 * (1.0f - Mathf.Abs(f - 0.5f) * 2.0f) * c;
                 }
                 else
                 {
@@ -113,20 +113,20 @@ public class RegionHook : MonoBehaviour {
                         v3 = new Vector3(Mathf.Sin(f * 12.0f) * 0.4f, f, Mathf.Cos(f * 12.0f) * 0.4f);
                         f2 = Mathf.Min(1.0f, (1.0f - f) * 8.0f);
                         f3 = 0.0f;
-                        points[i] = (hook.transform.position + v3) * f2 + ((hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f3) + (player.transform.position + Vector3.up * 0.2f - direction.normalized * 0.3f) * f3 + v3 * (1.0f - Mathf.Abs(f3 - 0.5f) * 2.0f) * c) * (1.0f - f2);
+                        points[i] = (hook.transform.position + v3) * f2 + ((hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f3) + (player.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f3 + v3 * (1.0f - Mathf.Abs(f3 - 0.5f) * 2.0f) * c) * (1.0f - f2);
                     }
                     else
                     {
                         f = (float)(i - points.Length / 2) / (float)(points.Length / 2);
                         v3 = new Vector3(v3.z, (Mathf.Abs(v3.x) + Mathf.Abs(v3.z)) * 0.1f, -v3.x) * Mathf.Sin(f * l * 2.0f + Time.time * 5.0f) * 0.5f;
-                        points[i] = (hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f) + (player.transform.position + Vector3.up * 0.2f - direction.normalized * 0.3f) * f + v3 * (1.0f - Mathf.Abs(f - 0.5f) * 2.0f) * c;
+                        points[i] = (hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f) + (player.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f + v3 * (1.0f - Mathf.Abs(f - 0.5f) * 2.0f) * c;
                     }
                 }
             }
             else
             {
                 v3 = new Vector3(Mathf.Sin(f * 4.0f + Time.time * 5.0f), Mathf.Sin(f * 3.0f + Time.time * 5.0f - 0.5f) + 1.0f, Mathf.Cos(f * 4.0f + Time.time * 5.0f)) * (0.2f + direction.magnitude * 0.5f);
-                points[i] = (hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f) + (player.transform.position + Vector3.up * 0.2f - direction.normalized * 0.3f) * f + v3 * (1.0f - Mathf.Pow(Mathf.Abs(f - 0.5f) * 2.0f, 4.0f)) * c;
+                points[i] = (hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f) + (player.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f + v3 * (1.0f - Mathf.Pow(Mathf.Abs(f - 0.5f) * 2.0f, 4.0f)) * c;
             }
             if (i > 0)
             {
@@ -137,7 +137,7 @@ public class RegionHook : MonoBehaviour {
         //points[1] = (hook.transform.position + player.transform.position - direction.normalized * (0.2f * direction.magnitude + 0.1f)) * 0.5f - Vector3.up * 0.05f - velocity.normalized * 0.2f * direction.magnitude;
         //points[2] = player.transform.position - Vector3.up * 0.05f - direction.normalized * 0.3f;
         chain.SetPositions(points);
-        chain.material.SetTextureScale("_MainTex", new Vector2((l - 0.5f) * 5.0f, 1.0f));
+        chain.material.SetTextureScale("_MainTex", new Vector2((l - 0.5f) * 7.0f, 1.0f));
         v3 = points[points.Length - 1] - points[points.Length - 2];
         v3.Normalize();
         a = Vector3.Angle(Vector3.forward, v3);
