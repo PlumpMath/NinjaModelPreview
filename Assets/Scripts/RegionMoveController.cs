@@ -89,6 +89,7 @@ public class RegionMoveController : MonoBehaviour {
     private LinkedList<RoutePoint> route = new LinkedList<RoutePoint>();
 
     private float animTime = 0.0f;
+    public float animMoveWeight = 0.0f;
 
     public void SwitchInputMode(int mode)
     {
@@ -229,7 +230,7 @@ public class RegionMoveController : MonoBehaviour {
         {
             if(enteringPoints[i].unlockPoint == currentPointId)
             {
-                transform.position = enteringPoints[i].transform.position;
+                //transform.position = enteringPoints[i].transform.position;
             }
         }
         /*
@@ -332,6 +333,19 @@ public class RegionMoveController : MonoBehaviour {
         }
         */
 
+        anim["stay"].enabled = true;
+        anim["move"].enabled = true;
+        anim["stay"].blendMode = AnimationBlendMode.Blend;
+        anim["move"].blendMode = AnimationBlendMode.Blend;
+        anim["stay"].wrapMode = WrapMode.Loop;
+        anim["move"].wrapMode = WrapMode.Loop;
+        anim["stay"].layer = 1;
+        anim["move"].layer = 1;
+        anim["stay"].weight = 100.0f;
+        anim["move"].weight = 0.0f;
+        anim["stay"].speed = 0.01f;
+        //anim["move"].speed = 4.0f;
+
     }
 
     /*
@@ -385,8 +399,6 @@ public class RegionMoveController : MonoBehaviour {
             }
         }
 #endif
-
-        anim["move"].speed = 1.1f;
 
     }
 
@@ -840,22 +852,28 @@ public class RegionMoveController : MonoBehaviour {
             emission2.enabled = true;
         }
 
-        if(direction.magnitude > 0.01f)
+        if(direction.magnitude > 0.1f)
         {
-            animTime += Time.deltaTime;
-            if(animTime > 1.0f)
-            {
-                animTime -= 1.0f;
-            }
+            animMoveWeight = Mathf.Min(1.0f, animMoveWeight + Time.deltaTime * 2.0f);
         }
         else
         {
-            if(animTime < 0.5f || (animTime > 0.6f && animTime < 1.0f))
-            {
-                animTime += Time.deltaTime * 0.5f;
-            }
+            animMoveWeight = Mathf.Max(0.0f, animMoveWeight - Time.deltaTime * 2.0f);
+            //animTime = 0.0f;
         }
-        anim["move"].time = animTime;
+        animTime += Time.deltaTime;
+        if (animTime > 6.0f)
+        {
+            animTime -= 6.0f;
+        }
+
+        Debug.Log("anim[stay] enabled: " + anim["stay"].enabled + " layer: " + anim["stay"].layer + " weight: " + anim["stay"].weight);
+
+        anim["stay"].weight = (1.0f - animMoveWeight) * 100.0f;
+        anim["move"].weight = animMoveWeight * 100.0f;
+        anim["stay"].time = 0.0f;
+        anim["move"].time = animTime * 1.5f;
+
 
         /*
         if (transform.position.x < -9.0f)
