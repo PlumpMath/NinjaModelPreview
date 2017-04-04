@@ -44,7 +44,7 @@ public class HighlightEffect : MonoBehaviour
         fullTex.wrapMode = TextureWrapMode.Clamp;
         fullTex.filterMode = FilterMode.Trilinear;
         fullTex.useMipMap = true;
-        fullTex.generateMips = true;
+        //fullTex.generateMips = true;
         fullTex.Create();
 
         subCamera.targetTexture = fullTex;
@@ -58,7 +58,7 @@ public class HighlightEffect : MonoBehaviour
         fullBloomTex.wrapMode = TextureWrapMode.Clamp;
         fullBloomTex.filterMode = FilterMode.Trilinear;
         fullBloomTex.useMipMap = true;
-        fullBloomTex.generateMips = true;
+        //fullBloomTex.generateMips = true;
         fullBloomTex.Create();
 
         Graphics.Blit(fullTex, fullBloomTex, material2);
@@ -67,7 +67,7 @@ public class HighlightEffect : MonoBehaviour
         smallTex.wrapMode = TextureWrapMode.Clamp;
         smallTex.filterMode = FilterMode.Trilinear;
         smallTex.useMipMap = true;
-        smallTex.generateMips = true;
+        //smallTex.generateMips = true;
         smallTex.Create();
 
         Graphics.Blit(fullBloomTex, smallTex, material2);

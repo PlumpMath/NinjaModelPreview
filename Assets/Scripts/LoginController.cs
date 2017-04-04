@@ -61,14 +61,17 @@ public class LoginController : MonoBehaviour {
         //serverHost = "localhost";
         //
 
-        storedKey = PlayerPrefs.GetString("CredentialsKey", "");
-        storedSecret = PlayerPrefs.GetString("CredentialsSecret", "");
-        if(PlayerPrefs.GetInt("LastVersion", 1) < 2)
+        if (PlayerPrefs.GetInt("LastVersion", 2) < 3)
         {
             storedKey = "";
             storedSecret = "";
-            PlayerPrefs.SetInt("LastVersion", 2);
+            PlayerPrefs.SetInt("LastVersion", 3);
+            PlayerPrefs.SetString("CredentialsKey", "");
+            PlayerPrefs.SetString("CredentialsSecret", "");
         }
+
+        storedKey = PlayerPrefs.GetString("CredentialsKey", "");
+        storedSecret = PlayerPrefs.GetString("CredentialsSecret", "");
 
         if (storedKey != "" && storedSecret != "")
         {
