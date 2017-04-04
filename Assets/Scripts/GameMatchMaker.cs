@@ -205,7 +205,8 @@ public class GameMatchMaker : Photon.PunBehaviour
 
     public void SceneChanged(Scene lastScene, Scene currentScene)
     {
-        InitializeMessage initializeMessage;
+        //InitializeMessage initializeMessage;
+        HelloRegionMessage helloRegionMessage;
         switch (currentScene.name)
         {
             case "map":
@@ -218,8 +219,9 @@ public class GameMatchMaker : Photon.PunBehaviour
                 Debug.Log("REGION LOADED!!!");
                 gameMode = 2;
                 loginController.statusCanvas.enabled = false;
-                initializeMessage = new InitializeMessage();
-                PhotonNetwork.networkingPeer.OpCustom((byte)1, new Dictionary<byte, object> { { 245, initializeMessage.Pack() } }, true);
+                helloRegionMessage = new HelloRegionMessage();
+                helloRegionMessage.token = enteringToken;
+                PhotonNetwork.networkingPeer.OpCustom((byte)1, new Dictionary<byte, object> { { 245, helloRegionMessage.Pack() } }, true);
                 break;
             case "battle":
                 Debug.Log("DUEL LOADED!!!");
@@ -363,6 +365,7 @@ public class GameMatchMaker : Photon.PunBehaviour
         RegionDiscoverMessage discoverMessage;
         RegionIconMessage iconMessage;
         RegionEffectMessage effectMessage;
+        RegionPlayerDataMessage playerDataMessage;
         PlayerObject playerObject = null;
         //PlayerController playerController = null;
         //Debug.Log("RECEIVE EVENT[" + eventCode + "] from [" + senderId + "]");
@@ -377,7 +380,7 @@ public class GameMatchMaker : Photon.PunBehaviour
 
                 // !!! 
 
-                targetRoom = "region01";
+                //targetRoom = "region01";
 
                 // !!!
 
@@ -471,6 +474,17 @@ public class GameMatchMaker : Photon.PunBehaviour
                 effectMessage = new RegionEffectMessage();
                 effectMessage.Unpack((byte[])content);
                 regionMoveController.ShowEffect(effectMessage.position, effectMessage.iconId);
+                break;
+            case 10:
+                //Debug.Log("TIMED ICON MESSAGE");
+                playerDataMessage = new RegionPlayerDataMessage();
+                playerDataMessage.Unpack((byte[])content);
+                regionMoveController.SetGold((int)playerDataMessage.sessionGold);
+                Debug.Log("PlayerData[" + playerDataMessage.playerId + "].playerId: " + playerDataMessage.playerId);
+                Debug.Log("PlayerData[" + playerDataMessage.playerId + "].gold: " + playerDataMessage.gold);
+                Debug.Log("PlayerData[" + playerDataMessage.playerId + "].sessionGold: " + playerDataMessage.sessionGold);
+                Debug.Log("PlayerData[" + playerDataMessage.playerId + "].emerald: " + playerDataMessage.emerald);
+                //regionMoveController.ShowEffect(effectMessage.position, effectMessage.iconId);
                 break;
         }
     }

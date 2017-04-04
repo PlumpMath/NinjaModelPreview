@@ -24,8 +24,8 @@ public class LoginController : MonoBehaviour {
     private TcpClient gameSocket = null;
     private byte[] socketBuffer;
     private LinkedList<ByteArrayContainer> messageQueue = new LinkedList<ByteArrayContainer>();
-    private string storedKey;
-    private string storedSecret;
+    private string storedKey = "";
+    private string storedSecret = "";
     private string authToken = "";
     private string storedHost = "";
     private int storedPort = 0;
@@ -57,8 +57,18 @@ public class LoginController : MonoBehaviour {
             Connect();
         });
 
+        //
+        //serverHost = "localhost";
+        //
+
         storedKey = PlayerPrefs.GetString("CredentialsKey", "");
         storedSecret = PlayerPrefs.GetString("CredentialsSecret", "");
+        if(PlayerPrefs.GetInt("LastVersion", 1) < 2)
+        {
+            storedKey = "";
+            storedSecret = "";
+            PlayerPrefs.SetInt("LastVersion", 2);
+        }
 
         if (storedKey != "" && storedSecret != "")
         {
@@ -105,7 +115,7 @@ public class LoginController : MonoBehaviour {
         socketBuffer = new byte[4096];
         if (storedKey != "" && storedSecret != "")
         {
-            Debug.Log("Authenticate with key");
+            Debug.Log("Authenticate with key [" + storedKey + "]");
             byte[] keyData = Encoding.UTF8.GetBytes(storedKey);
             dataLength = 2 + 2 + keyData.Length;
             i = 0;
@@ -184,6 +194,20 @@ public class LoginController : MonoBehaviour {
         Debug.Log("Prepare to send: " + dataLength);
         gameSocket.Client.BeginSend(socketBuffer, 0, dataLength, SocketFlags.None, new AsyncCallback(GameSendCallback), null);
         Debug.Log("Sending...");
+    }
+
+    public bool IsConnected()
+    {
+        if(gameSocket == null)
+        {
+            return false;
+        }
+        return gameSocket.Connected;
+    }
+
+    public void SendGameMessage(byte[] buf)
+    {
+        gameSocket.Client.BeginSend(buf, 0, buf.Length, SocketFlags.None, new AsyncCallback(GameSendCallback), null);
     }
 
     void GameSendCallback(IAsyncResult result)

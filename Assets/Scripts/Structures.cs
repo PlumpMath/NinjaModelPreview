@@ -1618,6 +1618,20 @@ public class BaseObjectMessage
         return value;
     }
 
+    public uint GetUInt(byte[] data, ref int index)
+    {
+        uint value = BitConverter.ToUInt32(data, index);
+        index += 4;
+        return value;
+    }
+
+    public ulong GetULong(byte[] data, ref int index)
+    {
+        ulong value = BitConverter.ToUInt64(data, index);
+        index += 8;
+        return value;
+    }
+
     public float GetFloat(byte[] data, ref int index)
     {
         float value = BitConverter.ToSingle(data, index);
@@ -1635,6 +1649,16 @@ public class BaseObjectMessage
         return value;
     }
 
+    public string GetSString(byte[] data, ref int index)
+    {
+        string value;
+        int length = BitConverter.ToInt16(data, index);
+        index += 2;
+        value = Encoding.UTF8.GetString(data, index, length);
+        index += length;
+        return value;
+    }
+
     public void PutBool(byte[] data, bool value, ref int index)
     {
         byte[] b1 = BitConverter.GetBytes(value);
@@ -1647,6 +1671,20 @@ public class BaseObjectMessage
         byte[] b4 = BitConverter.GetBytes(value);
         Buffer.BlockCopy(b4, 0, data, index, 4);
         index += 4;
+    }
+
+    public void PutUInt(byte[] data, uint value, ref int index)
+    {
+        byte[] b4 = BitConverter.GetBytes(value);
+        Buffer.BlockCopy(b4, 0, data, index, 4);
+        index += 4;
+    }
+
+    public void PutULong(byte[] data, ulong value, ref int index)
+    {
+        byte[] b8 = BitConverter.GetBytes(value);
+        Buffer.BlockCopy(b8, 0, data, index, 8);
+        index += 8;
     }
 
     public void PutFloat(byte[] data, float value, ref int index)
@@ -2034,6 +2072,37 @@ public class InitializeMessage : BaseObjectMessage
         missileId = GetInt(data, ref index);
         missileSkinId = GetInt(data, ref index);
         venomId = GetInt(data, ref index);
+    }
+
+}
+
+public class HelloRegionMessage : BaseObjectMessage
+{
+
+    public string token = "";
+
+    public HelloRegionMessage() : base()
+    {
+    }
+
+    public HelloRegionMessage(float currentTimestamp, float targetTimemark) : base(currentTimestamp, targetTimemark)
+    {
+    }
+
+    public override byte[] Pack()
+    {
+        int index = 0;
+        byte[] data = new byte[4 * 4 + Encoding.UTF8.GetBytes(token).Length];
+        PackBase(ref data, ref index);
+        PutString(data, token, ref index);
+        return data;
+    }
+
+    public override void Unpack(byte[] data)
+    {
+        int index = 0;
+        UnpackBase(ref data, ref index);
+        token = GetString(data, ref index);
     }
 
 }
@@ -2454,6 +2523,98 @@ public class RegionEffectMessage : BaseObjectMessage
         position.x = GetFloat(data, ref index);
         position.y = GetFloat(data, ref index);
         iconId = GetInt(data, ref index);
+    }
+
+}
+
+public class RegionPlayerDataMessage : BaseObjectMessage
+{
+
+    public ulong playerId = 0;
+    public uint cloth = 0;
+    public uint gold = 0;
+    public uint sessionGold = 0;
+    public uint emerald = 0;
+    public uint ratingPoints = 0;
+    public uint loot = 0;
+
+    public RegionPlayerDataMessage() : base()
+    {
+    }
+
+    public RegionPlayerDataMessage(float currentTimestamp, float targetTimemark) : base(currentTimestamp, targetTimemark)
+    {
+    }
+
+    public override byte[] Pack()
+    {
+        int index = 0;
+        byte[] data = new byte[6 * 4];
+        PackBase(ref data, ref index);
+        PutULong(data, playerId, ref index);
+        PutUInt(data, cloth, ref index);
+        PutUInt(data, gold, ref index);
+        PutUInt(data, sessionGold, ref index);
+        PutUInt(data, emerald, ref index);
+        PutUInt(data, ratingPoints, ref index);
+        PutUInt(data, loot, ref index);
+        return data;
+    }
+
+    public override void Unpack(byte[] data)
+    {
+        int index = 0;
+        UnpackBase(ref data, ref index);
+        playerId = GetULong(data, ref index);
+        cloth = GetUInt(data, ref index);
+        gold = GetUInt(data, ref index);
+        sessionGold = GetUInt(data, ref index);
+        emerald = GetUInt(data, ref index);
+        ratingPoints = GetUInt(data, ref index);
+        loot = GetUInt(data, ref index);
+    }
+
+}
+
+public class PlayerViewMessage : BaseObjectMessage
+{
+
+    public string nickname = "";
+    public string country = "";
+    public uint gold = 0;
+    public uint emerald = 0;
+    public uint ratingPoints = 0;
+    public uint cloth = 0;
+    public uint weapon = 0;
+    public uint weaponSkin = 0;
+
+    public PlayerViewMessage() : base()
+    {
+    }
+
+    public PlayerViewMessage(float currentTimestamp, float targetTimemark) : base(currentTimestamp, targetTimemark)
+    {
+    }
+
+    public override byte[] Pack()
+    {
+        int index = 0;
+        byte[] data = new byte[0];
+        return data;
+    }
+
+    public override void Unpack(byte[] data)
+    {
+        int index = 0;
+        //UnpackBase(ref data, ref index);
+        nickname = GetSString(data, ref index);
+        country = GetSString(data, ref index);
+        gold = GetUInt(data, ref index);
+        emerald = GetUInt(data, ref index);
+        ratingPoints = GetUInt(data, ref index);
+        cloth = GetUInt(data, ref index);
+        weapon = GetUInt(data, ref index);
+        weaponSkin = GetUInt(data, ref index);
     }
 
 }

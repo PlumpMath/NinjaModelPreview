@@ -36,6 +36,24 @@ public class MapController : MonoBehaviour {
     private int storedPort = 0;
 
 
+
+
+
+
+    public Canvas mapCanvas;
+    public Button mapOpenProfileButton;
+
+    public Canvas profileCanvas;
+    public Button profileCloseButton;
+    public Text profileNicknameLabel;
+    public Text profileGoldLabel;
+
+
+
+
+
+
+
     // Use this for initialization
     void Start () {
 
@@ -129,6 +147,24 @@ public class MapController : MonoBehaviour {
         playerObject.onClick.AddListener(delegate() {
             //SceneManager.LoadScene("region");
         });
+
+        mapOpenProfileButton.onClick.AddListener(delegate() {
+            mapCanvas.enabled = false;
+            profileCanvas.enabled = true;
+        });
+
+        profileCloseButton.onClick.AddListener(delegate() {
+            mapCanvas.enabled = true;
+            profileCanvas.enabled = false;
+        });
+
+        profileCanvas.enabled = false;
+
+        if(loginController.IsConnected())
+        {
+            short messageCode = 1003;
+            loginController.SendGameMessage(BitConverter.GetBytes(messageCode));
+        }
         
     }
 
@@ -209,10 +245,23 @@ public class MapController : MonoBehaviour {
             switch (messageCode)
             {
                 case 1001: // Initial message. Coordinates and global variables received
-                    currentRegion = Encoding.UTF8.GetString(data, i, 2);
-                    i += 2;
-                    enteringPoint = Encoding.UTF8.GetString(data, i, 1);
-                    Debug.Log("currentRegion: " + currentRegion + " ; enteringPoint: " + enteringPoint);
+
+
+                    byte[] messageData = new byte[data.Length - i];
+                    Buffer.BlockCopy(data, i, messageData, 0, messageData.Length);
+                    PlayerViewMessage playerView = new PlayerViewMessage();
+                    playerView.Unpack(messageData);
+
+                    Debug.Log("PLAYER: " + playerView.nickname + "[" + playerView.country + "] gold: " + playerView.gold);
+
+                    profileNicknameLabel.text = playerView.nickname;
+                    profileGoldLabel.text = playerView.gold.ToString();
+
+                    //currentRegion = Encoding.UTF8.GetString(data, i, 2);
+                    //i += 2;
+                    //enteringPoint = Encoding.UTF8.GetString(data, i, 1);
+                    //Debug.Log("currentRegion: " + currentRegion + " ; enteringPoint: " + enteringPoint);
+                    /*
                     for (i = 0; i < mapPoints.Length; i++)
                     {
                         mapPointName = mapPoints[i].name.Split('_');
@@ -221,10 +270,11 @@ public class MapController : MonoBehaviour {
                             playerObject.image.rectTransform.anchoredPosition = mapPoints[i].rectTransform.anchoredPosition;
                         }
                     }
+                    */
 
                     // !!!
 
-                    TapToRegion("01");
+                    //TapToRegion("01");
 
                     // !!!
 
@@ -238,6 +288,7 @@ public class MapController : MonoBehaviour {
                     if (data.Length >= i + 64)
                     {
                         string enteringToken = Encoding.UTF8.GetString(data, i, 64);
+                        Debug.Log("Region enteringToken: " + enteringToken);
                         loginController.statusCanvas.enabled = true;
                         matchMaker.ConnectWithToken(enteringToken);
                     }

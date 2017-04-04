@@ -867,7 +867,7 @@ public class RegionMoveController : MonoBehaviour {
             animTime -= 6.0f;
         }
 
-        Debug.Log("anim[stay] enabled: " + anim["stay"].enabled + " layer: " + anim["stay"].layer + " weight: " + anim["stay"].weight);
+        //Debug.Log("anim[stay] enabled: " + anim["stay"].enabled + " layer: " + anim["stay"].layer + " weight: " + anim["stay"].weight);
 
         anim["stay"].weight = (1.0f - animMoveWeight) * 100.0f;
         anim["move"].weight = animMoveWeight * 100.0f;
