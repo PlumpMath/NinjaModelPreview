@@ -42,14 +42,20 @@ public class MapController : MonoBehaviour {
 
     public Canvas mapCanvas;
     public Button mapOpenProfileButton;
-
-    public Canvas profileCanvas;
-    public Button profileCloseButton;
-    public Text profileNicknameLabel;
-    public Text profileGoldLabel;
+    public Text staticGoldLabel;
 
 
-
+    public BankView bankView;
+    public BlacksmithView blacksmithView;
+    public DailyBonusView dailyBonusView;
+    public EffectsView effectsView;
+    public JournalView journalView;
+    public ProfileView profileView;
+    public SanctuaryView sanctuaryView;
+    public SettingsView settingsView;
+    public ShopView shopView;
+    public TeahouseView teahouseView;
+    public WheelOfLuckView wheelOfLuckView;
 
 
 
@@ -64,6 +70,7 @@ public class MapController : MonoBehaviour {
         string[] mapPointName;
 
         matchMaker = GameObject.Find("GameNetwork").GetComponent<GameMatchMaker>();
+        //mapSocket = matchMaker.mapSocket;
         loginController = matchMaker.loginController;
 
         PlayerPrefs.SetInt("MapObjectState_01_1", 1);
@@ -149,16 +156,9 @@ public class MapController : MonoBehaviour {
         });
 
         mapOpenProfileButton.onClick.AddListener(delegate() {
-            mapCanvas.enabled = false;
-            profileCanvas.enabled = true;
+            profileView.Open();
+            Close();
         });
-
-        profileCloseButton.onClick.AddListener(delegate() {
-            mapCanvas.enabled = true;
-            profileCanvas.enabled = false;
-        });
-
-        profileCanvas.enabled = false;
 
         if(loginController.IsConnected())
         {
@@ -168,13 +168,42 @@ public class MapController : MonoBehaviour {
         
     }
 
+    public void Close()
+    {
+        int i;
+        for(i = 0; i < mapRegions.Length; i++)
+        {
+            mapRegions[i].enabled = false;
+        }
+        mapCanvas.enabled = false;
+    }
+
+    public void Open()
+    {
+        int i;
+        for (i = 0; i < mapRegions.Length; i++)
+        {
+            mapRegions[i].enabled = true;
+        }
+        mapCanvas.enabled = true;
+    }
+
+    /*
     public void Connect(string host, int port, string token)
     {
         storedHost = host;
         storedPort = port;
         authToken = token;
         mapSocket = new TcpClient();
-        mapSocket.BeginConnect(storedHost, storedPort, new AsyncCallback(ConnectCallback), mapSocket);
+        //mapSocket = matchMaker.mapSocket;
+        if (mapSocket == null)
+        {
+            mapSocket.BeginConnect(storedHost, storedPort, new AsyncCallback(ConnectCallback), mapSocket);
+        }
+        else
+        {
+            mapSocket.Client.BeginReceive(socketBuffer, 2048, 2048, SocketFlags.None, new AsyncCallback(ReceiveCallback), socketBuffer);
+        }
     }
 
     void ConnectCallback(IAsyncResult result)
@@ -184,6 +213,9 @@ public class MapController : MonoBehaviour {
         int dataLength = 0;
         mapSocket.Client.EndConnect(result);
         Debug.Log("End connect");
+
+        mapSocket.Client.BeginReceive(socketBuffer, 2048, 2048, SocketFlags.None, new AsyncCallback(ReceiveCallback), socketBuffer);
+
         socketBuffer = new byte[4096];
         Debug.Log("Authenticate with token");
         byte[] tokenData = Encoding.UTF8.GetBytes(authToken);
@@ -202,20 +234,23 @@ public class MapController : MonoBehaviour {
     void SendCallback(IAsyncResult result)
     {
         mapSocket.Client.EndSend(result);
-        mapSocket.Client.BeginReceive(socketBuffer, 2048, 2048, SocketFlags.None, new AsyncCallback(ReceiveCallback), socketBuffer);
     }
 
     void ReceiveCallback(IAsyncResult result)
     {
         byte[] rawData;
         mapSocket.Client.EndReceive(result);
+        mapSocket.Client.BeginReceive(socketBuffer, 2048, 2048, SocketFlags.None, new AsyncCallback(ReceiveCallback), socketBuffer);
         rawData = new byte[2048];
         Buffer.BlockCopy(socketBuffer, 2048, rawData, 0, 2048);
+        Debug.Log("mapSocket data received [" + rawData[0] + ",...]");
         messageQueue.AddLast(new ByteArrayContainer(rawData));
     }
+    */
 
     public void AddMessage(ByteArrayContainer data)
     {
+        Debug.Log("MapController.AddMessage()");
         messageQueue.AddLast(data);
     }
 
@@ -252,10 +287,16 @@ public class MapController : MonoBehaviour {
                     PlayerViewMessage playerView = new PlayerViewMessage();
                     playerView.Unpack(messageData);
 
+                    loginController.playerView = playerView;
+
                     Debug.Log("PLAYER: " + playerView.nickname + "[" + playerView.country + "] gold: " + playerView.gold);
 
-                    profileNicknameLabel.text = playerView.nickname;
-                    profileGoldLabel.text = playerView.gold.ToString();
+                    profileView.Reset(playerView);
+
+                    staticGoldLabel.text = playerView.gold.ToString();
+
+                    //mapCanvas.enabled = true;
+
 
                     //currentRegion = Encoding.UTF8.GetString(data, i, 2);
                     //i += 2;

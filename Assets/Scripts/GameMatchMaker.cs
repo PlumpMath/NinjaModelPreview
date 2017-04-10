@@ -6,6 +6,7 @@ using UnityEngine.Networking.Match;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using System;
+using System.Net.Sockets;
 using System.Text;
 using System.Collections;
 using System.Collections.Generic;
@@ -48,6 +49,10 @@ public class GameMatchMaker : Photon.PunBehaviour
     public int joinAttempts = 0;
 
     public static bool created = false;
+    public static int lastInstanceId = 0;
+    private bool initialized = false;
+    private int instanceId = -1;
+
 
     private Dictionary<int, string> langNotices = new Dictionary<int, string>();
     private LinkedList<BaseObjectMessage> delayedMessages = new LinkedList<BaseObjectMessage>();
@@ -58,6 +63,8 @@ public class GameMatchMaker : Photon.PunBehaviour
     private int abilitySecond = 2;
 
     public int gameMode = 1;
+
+    //public TcpClient mapSocket = null;
 
     public float GetRemoteTimestamp()
     {
@@ -183,6 +190,9 @@ public class GameMatchMaker : Photon.PunBehaviour
 
         Application.runInBackground = true;
 
+        lastInstanceId++;
+        instanceId = lastInstanceId;
+
         langNotices.Clear();
         langNotices.Add(0, "");
         langNotices.Add(1, "К");
@@ -213,7 +223,9 @@ public class GameMatchMaker : Photon.PunBehaviour
                 Debug.Log("MAP LOADED!!!");
                 gameMode = 1;
                 loginController.statusCanvas.enabled = false;
-                loginController.map = GameObject.Find("Main Camera").GetComponent<MapController>();
+                loginController.map = GameObject.Find("CanvasMap").GetComponent<MapController>();
+                loginController.enabled = true;
+                loginController.ResetReceive();
                 break;
             case "region":
                 Debug.Log("REGION LOADED!!!");
@@ -227,7 +239,9 @@ public class GameMatchMaker : Photon.PunBehaviour
                 Debug.Log("DUEL LOADED!!!");
                 gameMode = 3;
                 loginController.statusCanvas.enabled = false;
-                duelController.camera = (Camera)GameObject.Find("Main Camera").GetComponent<Camera>();
+                duelController = GameObject.Find("Canvas").GetComponent<DuelController>();
+                duelController.gameMatchMaker = this;
+                duelController.camera = GameObject.Find("Main Camera").gameObject.GetComponent<Camera>();
                 if(duelController.location != null)
                 {
                     duelController.location.Cleanup();
@@ -237,7 +251,8 @@ public class GameMatchMaker : Photon.PunBehaviour
                 Swipe swipe = duelController.camera.gameObject.GetComponent<Swipe>();
                 swipe.duelController = duelController;
                 duelController.swipeController = swipe.swipeController;
-                duelController.duelUI = (DuelUI)duelController.camera.gameObject.GetComponent<DuelUI>();
+                duelController.swipeController.OnInvokeAction += duelController.OnThrow;
+                duelController.duelUI = (DuelUI)duelController.gameObject.GetComponent<DuelUI>();
                 canvasPlay = (Canvas)GameObject.Find("Canvas").GetComponent<Canvas>();
                 GameObject.Destroy(GameObject.Find("body1_new"));
                 HelloDuelMessage helloDuelMessage = new HelloDuelMessage();
@@ -258,13 +273,19 @@ public class GameMatchMaker : Photon.PunBehaviour
     {
         if (!created)
         {
+            Debug.Log("GameNetwork.Initialize[" + instanceId + "]");
             DontDestroyOnLoad(this.gameObject);
             created = true;
+            initialized = true;
         }
 
         else
         {
-            //Destroy(this.gameObject);
+            if (!initialized)
+            {
+                Debug.Log("GameNetwork.Destroy[" + instanceId + "]");
+                Destroy(this.gameObject);
+            }
         }
     }
 
@@ -277,7 +298,7 @@ public class GameMatchMaker : Photon.PunBehaviour
     {
         if (level == 0 && this.gameObject.scene.name != "DontDestroyOnLoad")
         {
-            Destroy(this.gameObject);
+            //Destroy(this.gameObject);
         }
     }
 
@@ -679,8 +700,15 @@ public class GameMatchMaker : Photon.PunBehaviour
                 switch(objMessageNode.Value.eventCode)
                 {
                     case 3:
-                        SpawnObjectMessage spawnObjectMessage = (SpawnObjectMessage)objMessageNode.Value;
-                        duelController.RpcSpawnObject(spawnObjectMessage.objectId, spawnObjectMessage.objectType, spawnObjectMessage.newPosition, spawnObjectMessage.newVelocity, spawnObjectMessage.newAcceleration, spawnObjectMessage.newTorsion, spawnObjectMessage.newFloat, spawnObjectMessage.visualId);
+                        try
+                        {
+                            SpawnObjectMessage spawnObjectMessage = (SpawnObjectMessage)objMessageNode.Value;
+                            duelController.RpcSpawnObject(spawnObjectMessage.objectId, spawnObjectMessage.objectType, spawnObjectMessage.newPosition, spawnObjectMessage.newVelocity, spawnObjectMessage.newAcceleration, spawnObjectMessage.newTorsion, spawnObjectMessage.newFloat, spawnObjectMessage.visualId);
+                        }
+                        catch(Exception ex)
+                        {
+
+                        }
                         break;
                     case 4:
                         DestroyObjectMessage destroyObjectMessage = (DestroyObjectMessage)objMessageNode.Value;

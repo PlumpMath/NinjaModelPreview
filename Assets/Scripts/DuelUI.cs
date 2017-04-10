@@ -8,6 +8,7 @@ public class DuelUI : MonoBehaviour {
 
     public EventHandler<EventArgs> OnThrow;
 
+
     public Image bloodScreen;
     public Image bloodScreenVeins;
     public Image staminaBar;
@@ -199,17 +200,17 @@ public class DuelUI : MonoBehaviour {
         {
             staminaInsufficient = true;
             staminaBar.color = Color.red;
-            staminaIcon.color = new Color(0.5f, 0.05f, 0.05f, 1.0f);
-            staminaLabel.color = new Color(0.5f, 0.05f, 0.05f, 1.0f);
+            //staminaIcon.color = new Color(0.5f, 0.05f, 0.05f, 1.0f);
+            //staminaLabel.color = new Color(0.5f, 0.05f, 0.05f, 1.0f);
         }
         else if (staminaInsufficient && stamina >=33.0f)
         {
             staminaInsufficient = false;
             staminaBar.color = Color.white;
-            staminaIcon.color = Color.white;
-            staminaLabel.color = Color.white;
+            //staminaIcon.color = Color.white;
+            //staminaLabel.color = Color.white;
         }
-        staminaLabel.text = "x " + Mathf.Floor(stamina / 33.0f);
+        //staminaLabel.text = "x " + Mathf.Floor(stamina / 33.0f);
     }
 
     public void Hit (float y)

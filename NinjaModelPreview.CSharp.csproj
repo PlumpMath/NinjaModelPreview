@@ -169,6 +169,7 @@
     <Compile Include="Assets\Scripts\RegionTimedIcon.cs" />
     <Compile Include="Assets\Scripts\ScreenCapture.cs" />
     <Compile Include="Assets\Scripts\ScreenEffectsController.cs" />
+    <Compile Include="Assets\Scripts\SelectorController.cs" />
     <Compile Include="Assets\Scripts\SmileyButton.cs" />
     <Compile Include="Assets\Scripts\SparksController.cs" />
     <Compile Include="Assets\Scripts\Structures.cs" />
@@ -178,6 +179,17 @@
     <Compile Include="Assets\Scripts\UI\SetPropertyUtility.cs" />
     <Compile Include="Assets\Scripts\UI\UILineTextureRenderer.cs" />
     <Compile Include="Assets\Scripts\UI\UIPrimitiveBase.cs" />
+    <Compile Include="Assets\Scripts\UI\Views\BankView.cs" />
+    <Compile Include="Assets\Scripts\UI\Views\BlacksmithView.cs" />
+    <Compile Include="Assets\Scripts\UI\Views\DailyBonusView.cs" />
+    <Compile Include="Assets\Scripts\UI\Views\EffectsView.cs" />
+    <Compile Include="Assets\Scripts\UI\Views\JournalView.cs" />
+    <Compile Include="Assets\Scripts\UI\Views\ProfileView.cs" />
+    <Compile Include="Assets\Scripts\UI\Views\SanctuaryView.cs" />
+    <Compile Include="Assets\Scripts\UI\Views\SettingsView.cs" />
+    <Compile Include="Assets\Scripts\UI\Views\ShopView.cs" />
+    <Compile Include="Assets\Scripts\UI\Views\TeahouseView.cs" />
+    <Compile Include="Assets\Scripts\UI\Views\WheelOfLuckView.cs" />
     <Compile Include="Assets\Scripts\WayPoint.cs" />
   </ItemGroup>
   <ItemGroup>

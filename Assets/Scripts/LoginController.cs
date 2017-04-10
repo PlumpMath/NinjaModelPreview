@@ -34,8 +34,14 @@ public class LoginController : MonoBehaviour {
     private Vector2 basePasswordFieldPosition;
     private Vector2 baseSubmitButtonPosition;
 
+    private int updates = 0;
+
+    public PlayerViewMessage playerView = null;
+
     // Use this for initialization
     void Start () {
+
+        Debug.Log("LoginController.Start()");
 
         baseLoginFieldPosition = loginField.image.rectTransform.anchoredPosition;
         basePasswordFieldPosition = passwordField.image.rectTransform.anchoredPosition;
@@ -61,11 +67,11 @@ public class LoginController : MonoBehaviour {
         //serverHost = "localhost";
         //
 
-        if (PlayerPrefs.GetInt("LastVersion", 2) < 3)
+        if (PlayerPrefs.GetInt("LastVersion", 5) < 6)
         {
             storedKey = "";
             storedSecret = "";
-            PlayerPrefs.SetInt("LastVersion", 3);
+            PlayerPrefs.SetInt("LastVersion", 6);
             PlayerPrefs.SetString("CredentialsKey", "");
             PlayerPrefs.SetString("CredentialsSecret", "");
         }
@@ -85,7 +91,7 @@ public class LoginController : MonoBehaviour {
         statusText.text = "Connecting...";
         Connect();
 
-
+        statusCanvas.enabled = true;
 
     }
 
@@ -99,6 +105,7 @@ public class LoginController : MonoBehaviour {
 
     public void Connect(string host, int port, string token)
     {
+        Debug.Log("Connecting to map server...");
         statusCanvas.enabled = true;
         storedHost = host;
         storedPort = port;
@@ -185,6 +192,9 @@ public class LoginController : MonoBehaviour {
         gameSocket.Client.EndConnect(result);
         Debug.Log("End connect");
         socketBuffer = new byte[4096];
+
+        ResetReceive();
+
         Debug.Log("Authenticate with token");
         byte[] tokenData = Encoding.UTF8.GetBytes(authToken);
         dataLength = 2 + 2 + tokenData.Length;
@@ -216,16 +226,22 @@ public class LoginController : MonoBehaviour {
     void GameSendCallback(IAsyncResult result)
     {
         gameSocket.Client.EndSend(result);
-        gameSocket.Client.BeginReceive(socketBuffer, 2048, 2048, SocketFlags.None, new AsyncCallback(GameReceiveCallback), socketBuffer);
     }
 
     void GameReceiveCallback(IAsyncResult result)
     {
+        Debug.Log("GameReceiveCallback() game:" + (gameSocket != null) + " ; updates:" + updates);
         byte[] rawData;
         gameSocket.Client.EndReceive(result);
         rawData = new byte[2048];
         Buffer.BlockCopy(socketBuffer, 2048, rawData, 0, 2048);
+        ResetReceive();
         messageQueue.AddLast(new ByteArrayContainer(rawData));
+    }
+
+    public void ResetReceive()
+    {
+        gameSocket.Client.BeginReceive(socketBuffer, 2048, 2048, SocketFlags.None, new AsyncCallback(GameReceiveCallback), socketBuffer);
     }
 
     void SignPhrase(ref byte[] data, byte[] secret)
@@ -263,7 +279,8 @@ public class LoginController : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
-        if(gameSocket != null)
+        updates++;
+        if (gameSocket != null)
         {
             ProcessGameMessageQueue();
         }
@@ -406,12 +423,18 @@ public class LoginController : MonoBehaviour {
         LinkedListNode<ByteArrayContainer> byteArrayNode;
         LinkedListNode<ByteArrayContainer> byteArrayNodeNext;
 
+        if(map == null)
+        {
+            return;
+        }
+
         byteArrayNode = messageQueue.First;
         while (byteArrayNode != null)
         {
             byteArrayNodeNext = byteArrayNode.Next;
             map.AddMessage(byteArrayNode.Value);
             short messageCode = BitConverter.ToInt16(byteArrayNode.Value.value, 0);
+            Debug.Log("ProcessGameMessage[" + messageCode + "]");
             switch (messageCode)
             {
                 case 900:
@@ -439,6 +462,30 @@ public class LoginController : MonoBehaviour {
         Buffer.BlockCopy(BitConverter.GetBytes((short)1002), 0, socketBuffer, i, 2);
         i += 2;
         Buffer.BlockCopy(regionIdData, 0, socketBuffer, i, regionId.Length); // Region ID
+        gameSocket.Client.BeginSend(socketBuffer, 0, dataLength, SocketFlags.None, new AsyncCallback(GameSendCallback), null);
+    }
+
+    public void ChangeCloth(int clothId)
+    {
+        uint value = (uint)clothId;
+        int i;
+        int dataLength = 6;
+        i = 0;
+        Buffer.BlockCopy(BitConverter.GetBytes((short)1004), 0, socketBuffer, i, 2);
+        i += 2;
+        Buffer.BlockCopy(BitConverter.GetBytes(value), 0, socketBuffer, i, 4);
+        gameSocket.Client.BeginSend(socketBuffer, 0, dataLength, SocketFlags.None, new AsyncCallback(GameSendCallback), null);
+    }
+
+    public void ChangeWeapon(int weaponId)
+    {
+        uint value = (uint)weaponId;
+        int i;
+        int dataLength = 6;
+        i = 0;
+        Buffer.BlockCopy(BitConverter.GetBytes((short)1005), 0, socketBuffer, i, 2);
+        i += 2;
+        Buffer.BlockCopy(BitConverter.GetBytes(value), 0, socketBuffer, i, 4);
         gameSocket.Client.BeginSend(socketBuffer, 0, dataLength, SocketFlags.None, new AsyncCallback(GameSendCallback), null);
     }
 

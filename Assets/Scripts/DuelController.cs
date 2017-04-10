@@ -47,8 +47,8 @@ public class DuelController : MonoBehaviour {
     public Location location;
     public SwipeController swipeController = new SwipeController();
     public int playerId = -1;
-    public int myMissileId = 1;
-    public int opponentMissileId = 1;
+    public int myMissileId = 0;
+    public int opponentMissileId = 0;
     public bool isLocal = false;
     public bool ready = false;
     public bool updating = false;
@@ -683,14 +683,14 @@ public class DuelController : MonoBehaviour {
     void Start()
     {
         /*
+        if (gameMatchMaker == null)
+        {
+            gameMatchMaker = GameObject.Find("GameNetwork").GetComponent<GameMatchMaker>();
+            camera = GameObject.Find("Main Camera").GetComponent<Camera>();
+        }
         location = new Location();
         location.SetNetworkBehavior(this);
         //Debug.Log("Start SERVER=" + isServer);
-        if (gameMatchMaker == null)
-        {
-            gameMatchMaker = GameObject.Find("NetworkManager").GetComponent<GameMatchMaker>();
-            camera = GameObject.Find("Camera").GetComponent<Camera>();
-        }
         armedMissile = GameObject.Find("ArmedMissile").GetComponent<ArmedMissileController>();
         screenEffects = GameObject.Find("ScreenEffects").GetComponent<ScreenEffectsController>();
         */
@@ -714,8 +714,10 @@ public class DuelController : MonoBehaviour {
         });
         */
 
+        //swipeController.OnInvokeAction += OnThrow;
+
         /*
-        swipeController.OnInvokeAction += OnThrow;
+        
         if (!isServer)
         {
             ClientInit();
@@ -734,6 +736,18 @@ public class DuelController : MonoBehaviour {
             gameMatchMaker.canvasPlay.enabled = true;
         }
         */
+
+        GameObject.Destroy(armedMissile.GetComponent<MeshFilter>());
+        GameObject.Destroy(armedMissile.GetComponent<MeshRenderer>());
+        MeshRenderer missile = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/Missiles/missile" + gameMatchMaker.loginController.playerView.weapon + "_" + gameMatchMaker.loginController.playerView.weaponSkin)).GetComponent<MeshRenderer>();
+        missile.gameObject.transform.parent = armedMissile.transform;
+        missile.gameObject.transform.localPosition = Vector3.zero;
+        missile.gameObject.transform.localRotation = Quaternion.identity;
+        missile.gameObject.transform.localScale = Vector3.one * 1.3f;
+        //armedMissile.SetMissile((int)gameMatchMaker.loginController.playerView.weapon + 1);
+
+        //myMissileId = ((int)gameMatchMaker.loginController.playerView.weapon - 1 * 3) + 1 + (int)gameMatchMaker.loginController.playerView.weaponSkin;
+
     }
 
     public void ClientInit()
@@ -1151,7 +1165,7 @@ public class DuelController : MonoBehaviour {
             if (playerObject.stamina >= staminaConsumption)
             {
                 playerObject.stamina -= staminaConsumption;
-                missileController = (Instantiate(missilePrefabs[myMissileId])).GetComponent<MissileController>();
+                missileController = (Instantiate(missilePrefabs[myMissileId])).AddComponent<MissileController>();
                 missileController.duelController = this;
                 missileObject = new MissileObject();
                 //missileObject.position = new Vector3(playerLocationObject.position.x, 0.2f + angle.y * 0.2f, 0.1f);
