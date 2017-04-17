@@ -42,6 +42,7 @@ public class MapController : MonoBehaviour {
 
     public Canvas mapCanvas;
     public Button mapOpenProfileButton;
+    public Button mapOpenStoreButton;
     public Text staticGoldLabel;
 
 
@@ -53,9 +54,10 @@ public class MapController : MonoBehaviour {
     public ProfileView profileView;
     public SanctuaryView sanctuaryView;
     public SettingsView settingsView;
-    public ShopView shopView;
+    public StoreView storeView;
     public TeahouseView teahouseView;
     public WheelOfLuckView wheelOfLuckView;
+    public ErrorNoticeView errorNoticeView;
 
 
 
@@ -160,7 +162,12 @@ public class MapController : MonoBehaviour {
             Close();
         });
 
-        if(loginController.IsConnected())
+        mapOpenStoreButton.onClick.AddListener(delegate() {
+            storeView.Open();
+            Close();
+        });
+
+        if (loginController.IsConnected())
         {
             short messageCode = 1003;
             loginController.SendGameMessage(BitConverter.GetBytes(messageCode));
@@ -333,6 +340,10 @@ public class MapController : MonoBehaviour {
                         loginController.statusCanvas.enabled = true;
                         matchMaker.ConnectWithToken(enteringToken);
                     }
+                    break;
+                case 1004: // Daily bonus
+                    int bonusDay = (int)BitConverter.ToUInt32(data, i);
+                    dailyBonusView.Open(bonusDay);
                     break;
             }
             byteArrayNode = byteArrayNode.Next;

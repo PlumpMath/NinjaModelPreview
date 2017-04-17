@@ -6,8 +6,8 @@ using System.Collections.Generic;
 
 public class SelectorController : MonoBehaviour {
 
-    public GameObject basicPresentContainer;
-    public Text basicPresentLabel;
+    //public GameObject basicPresentContainer;
+    //public Text basicPresentLabel;
 
     public Canvas canvas;
     public Button closeButton;
@@ -17,20 +17,23 @@ public class SelectorController : MonoBehaviour {
 
     public LinkedList<SelectorItem> items;
 
-    public int Length = 0;
 
-    public int position = 0;
 
     public float objectMarginStep = 5.0f;
     public float descriptionMarginStep = 800.0f;
-    public float marginX = 0.0f;
-    public float lastPointerPositionX = 0.0f;
-    public float pointerSpeedX = 0.0f;
-    public float pointerTime = 0.0f;
+
+    private int itemsCount = 0;
+    private int position = 0;
+    private int selectedIndex = -1;
+    private float marginX = 0.0f;
+    private float lastPointerPositionX = 0.0f;
+    private float pointerSpeedX = 0.0f;
+    private float pointerTime = 0.0f;
 
     public event EventHandler<EventArgs> OnClose;
     public event EventHandler<SelectorCounterEventArgs> OnPositionUpdate;
     public event EventHandler<SelectorCounterEventArgs> OnItemActivate;
+    public event EventHandler<SelectorCounterEventArgs> OnItemActivateHolding;
 
     // Use this for initialization
     void Start () {
@@ -51,15 +54,6 @@ public class SelectorController : MonoBehaviour {
 
     }
 
-    public void Close()
-    {
-        CleanupList();
-        selectionEffect.enabled = false;
-        canvas.enabled = false;
-        enabled = false;
-    }
-
-    // Update is called once per frame
     void Update () {
 
         float f;
@@ -81,23 +75,28 @@ public class SelectorController : MonoBehaviour {
             marginX += f;
             pointerSpeedX = pointerSpeedX * Mathf.Max(0.0f, 1.0f - Time.deltaTime * 5.0f) + f * 0.5f / Time.deltaTime;
             pointerTime += Time.deltaTime;
+            if (pointerTime > 1.0f && Mathf.Abs(marginX) < 0.02f && Mathf.Abs(pointerSpeedX) < 0.1f)
+            {
+                ActivateItem(true);
+            }
         }
         if (Input.GetMouseButtonUp(0))
         {
-            if(pointerTime <= 0.2f && Mathf.Abs(marginX) < 0.1f)
+            if(pointerTime < 0.2f && Mathf.Abs(marginX) < 0.02f && Mathf.Abs(pointerSpeedX) < 0.2f)
             {
                 ActivateItem();
             }
             if(Mathf.Abs(marginX) < 0.15f)
             {
-                pointerSpeedX = 0.0f;
+                //pointerSpeedX = 0.0f;
             }
             f = pointerSpeedX * 0.4f;
-            f = f / Mathf.Abs(f) * Mathf.Max(0.0f, Mathf.Abs(f) - 5.0f);
-            position -= (int)Mathf.Round(marginX + marginX / Mathf.Abs(marginX) * 0.2f) + (int)(Mathf.Round(Mathf.Abs(marginX)) * f);
-            if (position > Length - 1)
+            f = f / Mathf.Max(0.0001f, Mathf.Abs(f)) * Mathf.Max(0.0f, Mathf.Abs(f) - 3.0f);
+            Debug.Log("pointerSpeedX: " + pointerSpeedX + " ; " + Mathf.Min(0.5f, 0.2f + Mathf.Abs(pointerSpeedX * 0.2f)));
+            position -= (int)Mathf.Round(marginX + marginX / Mathf.Max(0.0001f, Mathf.Abs(marginX)) * Mathf.Min(0.5f, 0.2f + Mathf.Abs(pointerSpeedX * 0.2f))) + (int)(Mathf.Round(Mathf.Abs(marginX)) * f);
+            if (position > itemsCount - 1)
             {
-                position = Length - 1;
+                position = itemsCount - 1;
             }
             if (position < 0)
             {
@@ -113,11 +112,26 @@ public class SelectorController : MonoBehaviour {
 
     void ActivateItem()
     {
-        EventHandler<SelectorCounterEventArgs> handler = OnItemActivate;
+        ActivateItem(false);
+    }
+
+    void ActivateItem(bool holding)
+    {
+        Debug.Log("ACTIVATE ITEM: " + holding);
+        EventHandler<SelectorCounterEventArgs> handler;
+        if (holding)
+        {
+            handler = OnItemActivateHolding;
+        }
+        else
+        {
+            handler = OnItemActivate;
+        }
         if (handler != null)
         {
-            handler(this, new SelectorCounterEventArgs(GetActiveItem(), Length));
+            handler(this, new SelectorCounterEventArgs(GetActiveItem(), itemsCount));
         }
+        pointerTime = 0.0f;
     }
 
     void UpdatePosition()
@@ -125,7 +139,7 @@ public class SelectorController : MonoBehaviour {
         EventHandler<SelectorCounterEventArgs> handler = OnPositionUpdate;
         if(handler != null)
         {
-            handler(this, new SelectorCounterEventArgs(GetActiveItem(), Length));
+            handler(this, new SelectorCounterEventArgs(GetActiveItem(), itemsCount));
         }
     }
 
@@ -134,8 +148,9 @@ public class SelectorController : MonoBehaviour {
         LinkedListNode<SelectorItem> node = items.First;
         while (node != null)
         {
-            GameObject.Destroy(node.Value.present);
-            GameObject.Destroy(node.Value.label.gameObject);
+            node.Value.Destroy();
+            //GameObject.Destroy(node.Value.present);
+            //GameObject.Destroy(node.Value.label.gameObject);
             node = node.Next;
         }
         items.Clear();
@@ -160,13 +175,31 @@ public class SelectorController : MonoBehaviour {
         return null;
     }
 
-    public void Open(string pathPrefix, string[] names, string[] values, string[] titles, string selected)
+    public void Open(/*string pathPrefix, string[] names, string[] values, string[] titles, */ string selected)
     {
-        int i;
-        GameObject obj;
+        int i = 0;
+        //GameObject obj;
         SelectorItem item;
+        LinkedListNode<SelectorItem> itemNode;
         position = 0;
         selectionEffect.enabled = false;
+        itemNode = items.First;
+        while(itemNode != null)
+        {
+            item = itemNode.Value;
+            item.position = i;
+            item.Setup(objectTransform, ((float)i) * objectMarginStep, descriptionTransform, ((float)i) * descriptionMarginStep);
+            if (selected == item.value)
+            {
+                selectionEffect.transform.localPosition += Vector3.right * (((float)i) * objectMarginStep - selectionEffect.transform.localPosition.x);
+                selectionEffect.enabled = true;
+                position = i;
+                selectedIndex = position;
+            }
+            itemNode = itemNode.Next;
+            i++;
+        }
+        /*
         for (i = 0; i < names.Length; i++)
         {
             item = new SelectorItem();
@@ -192,9 +225,11 @@ public class SelectorController : MonoBehaviour {
                 selectionEffect.transform.localPosition += Vector3.right * (((float)i) * objectMarginStep - selectionEffect.transform.localPosition.x);
                 selectionEffect.enabled = true;
                 position = i;
+                selectedIndex = position;
             }
         }
-        Length = items.Count;
+        */
+        itemsCount = items.Count;
         UpdatePosition();
 
         lastPointerPositionX = Input.mousePosition.x;
@@ -207,9 +242,18 @@ public class SelectorController : MonoBehaviour {
 
     }
 
+    public void Close()
+    {
+        CleanupList();
+        selectionEffect.enabled = false;
+        canvas.enabled = false;
+        enabled = false;
+    }
+
 }
 
-public class SelectorItem
+/*
+public class SelectorItem1
 {
 
     public int position = -1;
@@ -219,6 +263,7 @@ public class SelectorItem
     public Text label;
 
 }
+*/
 
 public class SelectorCounterEventArgs : EventArgs
 {

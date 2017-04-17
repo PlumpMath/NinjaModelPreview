@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class ShopView : MonoBehaviour {
+public class EffectViewItem : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
