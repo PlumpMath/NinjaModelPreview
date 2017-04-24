@@ -35,7 +35,7 @@ public class MapController : MonoBehaviour {
     private string storedHost = "";
     private int storedPort = 0;
 
-
+    private float checkGeoCooldown = 0.0f;
 
 
 
@@ -43,6 +43,7 @@ public class MapController : MonoBehaviour {
     public Canvas mapCanvas;
     public Button mapOpenProfileButton;
     public Button mapOpenStoreButton;
+    public Button mapOpenTeahouseButton;
     public Text staticGoldLabel;
 
 
@@ -59,6 +60,7 @@ public class MapController : MonoBehaviour {
     public WheelOfLuckView wheelOfLuckView;
     public ErrorNoticeView errorNoticeView;
 
+    public EventHandler<PlayerDataEventArgs> OnPlayerViewLoaded;
 
 
 
@@ -167,9 +169,28 @@ public class MapController : MonoBehaviour {
             Close();
         });
 
+        mapOpenTeahouseButton.onClick.AddListener(delegate () {
+            //storeView.Open();
+            int index = 0;
+            BaseObjectMessage message = new BaseObjectMessage();
+            double lattitude = (double)Input.location.lastData.latitude;
+            double longitude = (double)Input.location.lastData.longitude;
+            Debug.Log("long/lat: " + lattitude + " ; " + longitude);
+            byte[] data = new byte[2 + 8 + 8];
+            Buffer.BlockCopy(BitConverter.GetBytes((short)1203), 0, data, 0, 2);
+            index = 2;
+            message.PutDouble(data, lattitude, ref index);
+            message.PutDouble(data, longitude, ref index);
+            //Buffer.BlockCopy(BitConverter.GetBytes(lattitude), 0, data, 2, 8);
+            //Buffer.BlockCopy(BitConverter.GetBytes(longitude), 0, data, 10, 8);
+            loginController.SendGameMessage(data);
+            loginController.statusCanvas.enabled = true;
+            loginController.statusText.text = "Open teahouse...";
+        });
+
         if (loginController.IsConnected())
         {
-            short messageCode = 1003;
+            short messageCode = 1201;
             loginController.SendGameMessage(BitConverter.GetBytes(messageCode));
         }
         
@@ -265,14 +286,20 @@ public class MapController : MonoBehaviour {
     void Update () {
 
         int i;
+        int j;
         int l;
+        int index;
         byte[] data;
+        byte[] messageData;
+        byte[] sendMessageData;
         string regionId;
         string currentRegion;
         string enteringPoint;
         string[] mapPointName;
         Vector2[] points;
         MapPoint point;
+        PlayerViewMessage playerView;
+        BaseObjectMessage message;
         LinkedListNode<MapPoint> pointNode;
         LinkedListNode<ByteArrayContainer> byteArrayNode;
 
@@ -289,9 +316,9 @@ public class MapController : MonoBehaviour {
                 case 1001: // Initial message. Coordinates and global variables received
 
 
-                    byte[] messageData = new byte[data.Length - i];
+                    messageData = new byte[data.Length - i];
                     Buffer.BlockCopy(data, i, messageData, 0, messageData.Length);
-                    PlayerViewMessage playerView = new PlayerViewMessage();
+                    playerView = new PlayerViewMessage();
                     playerView.Unpack(messageData);
 
                     loginController.playerView = playerView;
@@ -344,6 +371,62 @@ public class MapController : MonoBehaviour {
                 case 1004: // Daily bonus
                     int bonusDay = (int)BitConverter.ToUInt32(data, i);
                     dailyBonusView.Open(bonusDay);
+                    break;
+                case 1005: // Open teahouse nearby players list
+                    LinkedListNode<NearbyPlayerNode> nearbyPlayerNode;
+                    LinkedListNode<TeahouseNearbyPlayerItem> nearbyPlayerItemNode;
+                    NearbyPlayersListMessage listMessage = new NearbyPlayersListMessage();
+                    listMessage.Unpack(data);
+                    Debug.Log("Opponents amount: " + listMessage.list.Count);
+                    nearbyPlayerItemNode = teahouseView.nearbyPlayerList.First;
+                    while(nearbyPlayerItemNode != null)
+                    {
+                        nearbyPlayerItemNode.Value.OnRequestDuel -= teahouseView.OnRequestDuel;
+                        GameObject.Destroy(nearbyPlayerItemNode.Value.gameObject);
+                        nearbyPlayerItemNode = nearbyPlayerItemNode.Next;
+                    }
+                    teahouseView.nearbyPlayerList.Clear();
+                    teahouseView.Open();
+                    message = new BaseObjectMessage();
+                    nearbyPlayerNode = listMessage.list.First;
+                    while(nearbyPlayerNode != null)
+                    {
+                        Debug.Log("Opponent[" + nearbyPlayerNode.Value.playerId + "]: " + nearbyPlayerNode.Value.distance + " m.");
+                        TeahouseNearbyPlayerItem item = GameObject.Instantiate<GameObject>(teahouseView.nearbyPlayerItemPrefab.gameObject).GetComponent<TeahouseNearbyPlayerItem>();
+                        item.rectTransform.parent = teahouseView.listContainer;
+                        item.rectTransform.anchoredPosition = new Vector2(0.0f, teahouseView.nearbyPlayerList.Count * -60.0f);
+                        item.data = nearbyPlayerNode.Value;
+                        teahouseView.nearbyPlayerList.AddLast(item);
+                        item.OnRequestDuel += teahouseView.OnRequestDuel;
+
+                        sendMessageData = new byte[2 + 8];
+                        index = 0;
+                        long playerId = (long)nearbyPlayerNode.Value.playerId;
+                        Buffer.BlockCopy(BitConverter.GetBytes((short)1201), 0, sendMessageData, 0, 2);
+                        index = 2;
+                        message.PutULong(sendMessageData, (ulong)playerId, ref index);
+                        loginController.SendGameMessage(sendMessageData);
+
+                        nearbyPlayerNode = nearbyPlayerNode.Next;
+                    }
+                    loginController.statusCanvas.enabled = false;
+
+                    break;
+                case 1006:
+                    messageData = new byte[data.Length - i];
+                    Buffer.BlockCopy(data, i, messageData, 0, messageData.Length);
+                    playerView = new PlayerViewMessage();
+                    playerView.Unpack(messageData);
+
+                    Debug.Log("RECEIVE PLAYER DATA[" + playerView.nickname + "]");
+
+                    EventHandler<PlayerDataEventArgs> playerDataHandler = OnPlayerViewLoaded;
+                    if(playerDataHandler != null)
+                    {
+                        PlayerDataEventArgs playerDataEventArgs = new PlayerDataEventArgs();
+                        playerDataEventArgs.playerView = playerView;
+                        playerDataHandler(this, playerDataEventArgs);
+                    }
                     break;
             }
             byteArrayNode = byteArrayNode.Next;
@@ -412,7 +495,23 @@ public class MapController : MonoBehaviour {
             }
         }
 
-	}
+        checkGeoCooldown -= Time.deltaTime;
+        if(checkGeoCooldown <= 0.0f)
+        {
+            Input.location.Start();
+            Debug.Log("location status: " + Input.location.status.ToString());
+            Debug.Log("location enabled: " + Input.location.isEnabledByUser.ToString());
+            Debug.Log("location lat/lon: " + Input.location.lastData.latitude.ToString() + " ; " + Input.location.lastData.longitude.ToString());
+            //if()
+            checkGeoCooldown += 60.0f;
+        }
+
+    }
+
+    public void Dispose()
+    {
+        Input.location.Stop();
+    }
 
     public void TapToRegion (string regionId)
     {
@@ -556,5 +655,8 @@ public class MapRoute
     }
 }
 
-
+public class PlayerDataEventArgs : EventArgs
+{
+    public PlayerViewMessage playerView;
+}
 

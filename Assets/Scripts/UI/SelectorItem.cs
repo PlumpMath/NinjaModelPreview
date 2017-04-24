@@ -9,6 +9,8 @@ public class SelectorItem : MonoBehaviour {
     public int position = -1;
     public string value = "";
 
+    protected SelectorController selectorController;
+
     void Start () {
 	
 	}
@@ -16,6 +18,11 @@ public class SelectorItem : MonoBehaviour {
 	void Update () {
 	
 	}
+
+    public void SetSelectorController(SelectorController controller)
+    {
+        selectorController = controller;
+    }
 
     public virtual void Setup(Transform presentContainer, float presentShift, RectTransform descriptionContainer, float descriptionShift)
     {

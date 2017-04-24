@@ -1625,9 +1625,19 @@ public class BaseObjectMessage
         return value;
     }
 
+    public long GetLong(byte[] data, ref int index)
+    {
+        long value = BitConverter.ToInt64(data, index);
+        index += 8;
+        return value;
+    }
+
     public ulong GetULong(byte[] data, ref int index)
     {
-        ulong value = BitConverter.ToUInt64(data, index);
+        byte[] b8 = new byte[8];
+        Buffer.BlockCopy(data, index, b8, 0, 8);
+        Array.Reverse(b8, 0, 8);
+        ulong value = BitConverter.ToUInt64(b8, 0);
         index += 8;
         return value;
     }
@@ -1683,6 +1693,15 @@ public class BaseObjectMessage
     public void PutULong(byte[] data, ulong value, ref int index)
     {
         byte[] b8 = BitConverter.GetBytes(value);
+        Array.Reverse(b8, 0, 8);
+        Buffer.BlockCopy(b8, 0, data, index, 8);
+        index += 8;
+    }
+
+    public void PutDouble(byte[] data, double value, ref int index)
+    {
+        byte[] b8 = BitConverter.GetBytes(value);
+        Array.Reverse(b8, 0, 8);
         Buffer.BlockCopy(b8, 0, data, index, 8);
         index += 8;
     }
@@ -2579,6 +2598,7 @@ public class RegionPlayerDataMessage : BaseObjectMessage
 public class PlayerViewMessage : BaseObjectMessage
 {
 
+    public ulong playerId = 0;
     public string nickname = "";
     public string country = "";
     public uint gold = 0;
@@ -2607,6 +2627,7 @@ public class PlayerViewMessage : BaseObjectMessage
     {
         int index = 0;
         //UnpackBase(ref data, ref index);
+        playerId = GetULong(data, ref index);
         nickname = GetSString(data, ref index);
         country = GetSString(data, ref index);
         gold = GetUInt(data, ref index);
@@ -2615,6 +2636,51 @@ public class PlayerViewMessage : BaseObjectMessage
         cloth = GetUInt(data, ref index);
         weapon = GetUInt(data, ref index);
         weaponSkin = GetUInt(data, ref index);
+    }
+
+}
+
+public class NearbyPlayerNode
+{
+    public long playerId = 0;
+    public long distance = 0;
+}
+
+public class NearbyPlayersListMessage : BaseObjectMessage
+{
+
+    public LinkedList<NearbyPlayerNode> list;
+
+    public NearbyPlayersListMessage() : base()
+    {
+        list = new LinkedList<NearbyPlayerNode>();
+    }
+
+    public NearbyPlayersListMessage(float currentTimestamp, float targetTimemark) : base(currentTimestamp, targetTimemark)
+    {
+    }
+
+    public override byte[] Pack()
+    {
+        int index = 0;
+        byte[] data = new byte[0];
+        return data;
+    }
+
+    public override void Unpack(byte[] data)
+    {
+        Debug.Log(data);
+        int i;
+        NearbyPlayerNode node;
+        int index = 2;
+        int amount = (int)GetUInt(data, ref index);
+        for(i = 0; i < amount; i++)
+        {
+            node = new NearbyPlayerNode();
+            node.playerId = (long)GetULong(data, ref index);
+            node.distance = (long)GetULong(data, ref index);
+            list.AddLast(node);
+        }
     }
 
 }

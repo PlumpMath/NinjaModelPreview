@@ -48,6 +48,7 @@ public class GameMatchMaker : Photon.PunBehaviour
 
     public int joinAttempts = 0;
 
+    public bool isInBackground = false;
     public static bool created = false;
     public static int lastInstanceId = 0;
     private bool initialized = false;
@@ -65,6 +66,26 @@ public class GameMatchMaker : Photon.PunBehaviour
     public int gameMode = 1;
 
     //public TcpClient mapSocket = null;
+
+    public EventHandler<EventArgs> OnBackground;
+
+    void OnApplicationPause(bool paused)
+    {
+        isInBackground = paused;
+        if (!paused)
+        {
+            EventHandler<EventArgs> handler = OnBackground;
+            if(handler != null)
+            {
+                handler(this, new EventArgs());
+            }
+        }
+    }
+
+    public void CheckConnection(object sender, EventArgs e)
+    {
+        loginController.CheckConnection();
+    }
 
     public float GetRemoteTimestamp()
     {
@@ -211,6 +232,8 @@ public class GameMatchMaker : Photon.PunBehaviour
 
         SceneManager.activeSceneChanged += SceneChanged;
 
+        OnBackground += CheckConnection;
+
     }
 
     public void SceneChanged(Scene lastScene, Scene currentScene)
@@ -226,6 +249,8 @@ public class GameMatchMaker : Photon.PunBehaviour
                 loginController.map = GameObject.Find("CanvasMap").GetComponent<MapController>();
                 loginController.enabled = true;
                 loginController.ResetReceive();
+                //loginController.map.enabled = true;
+                //loginController.map.mapCanvas.enabled = true;
                 break;
             case "region":
                 Debug.Log("REGION LOADED!!!");

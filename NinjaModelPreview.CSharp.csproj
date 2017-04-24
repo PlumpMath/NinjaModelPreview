@@ -185,6 +185,7 @@
     <Compile Include="Assets\Scripts\UI\SelectorItems\ClothStoreItem.cs" />
     <Compile Include="Assets\Scripts\UI\SelectorItems\EffectViewItem.cs" />
     <Compile Include="Assets\Scripts\UI\SelectorItems\LockpickStoreItem.cs" />
+    <Compile Include="Assets\Scripts\UI\SelectorItems\TeahouseNearbyPlayerItem.cs" />
     <Compile Include="Assets\Scripts\UI\SelectorItems\WeaponBookItem.cs" />
     <Compile Include="Assets\Scripts\UI\SelectorItems\WeaponCraftItem.cs" />
     <Compile Include="Assets\Scripts\UI\SelectorItems\WeaponEquipItem.cs" />

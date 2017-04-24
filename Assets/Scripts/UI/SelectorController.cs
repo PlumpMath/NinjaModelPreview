@@ -12,6 +12,7 @@ public class SelectorController : MonoBehaviour {
     public Canvas canvas;
     public Button closeButton;
     public Transform objectTransform;
+    public Vector3 objectTransformDirection = Vector3.right;
     public RectTransform descriptionTransform;
     public MeshRenderer selectionEffect;
 
@@ -26,9 +27,15 @@ public class SelectorController : MonoBehaviour {
     private int position = 0;
     private int selectedIndex = -1;
     private float marginX = 0.0f;
+    private float marginY = 0.0f;
     private float lastPointerPositionX = 0.0f;
+    private float lastPointerPositionY = 0.0f;
     private float pointerSpeedX = 0.0f;
+    private float pointerSpeedY = 0.0f;
     private float pointerTime = 0.0f;
+
+    private Vector3 objectBasePosition = Vector3.zero;
+    private Vector3 selectionEffectBasePosition = Vector3.zero;
 
     public event EventHandler<EventArgs> OnClose;
     public event EventHandler<SelectorCounterEventArgs> OnPositionUpdate;
@@ -39,6 +46,10 @@ public class SelectorController : MonoBehaviour {
     void Start () {
 
         items = new LinkedList<SelectorItem>();
+
+        objectBasePosition = objectTransform.localPosition;
+        objectTransformDirection.Normalize();
+        selectionEffectBasePosition = selectionEffect.transform.localPosition;
 
         closeButton.onClick.AddListener(delegate() {
             Close();
@@ -58,22 +69,33 @@ public class SelectorController : MonoBehaviour {
 
         float f;
 
-        objectTransform.localPosition += Vector3.right * Mathf.Max(-objectMarginStep * 0.5f, Mathf.Min(objectMarginStep * 0.5f, ((float)position - marginX) * -objectMarginStep - objectTransform.localPosition.x)) * Time.deltaTime * 10.0f;
+        float xStep = objectMarginStep * objectTransformDirection.x;
+
+        objectTransform.localPosition += objectTransformDirection * Mathf.Max(-xStep * 0.5f, Mathf.Min(xStep * 0.5f, ((float)position - marginX) * -xStep - objectTransform.localPosition.x)) * Time.deltaTime * 10.0f;
         descriptionTransform.anchoredPosition += Vector2.right * Mathf.Max(-descriptionMarginStep * 0.5f, Mathf.Min(descriptionMarginStep * 0.5f, ((float)position - marginX) * -descriptionMarginStep - descriptionTransform.anchoredPosition.x)) * Time.deltaTime * 10.0f;
 
         if (Input.GetMouseButtonDown(0))
         {
             lastPointerPositionX = Input.mousePosition.x;
+            lastPointerPositionY = Input.mousePosition.y;
             marginX = 0.0f;
             pointerSpeedX = 0.0f;
+            marginY = 0.0f;
+            pointerSpeedY = 0.0f;
             pointerTime = 0.0f;
         }
         if (Input.GetMouseButton(0))
         {
+            f = (Input.mousePosition.y - lastPointerPositionY) / (float)Screen.width;
+            lastPointerPositionY = Input.mousePosition.y;
+            marginY += f;
+            pointerSpeedY = pointerSpeedY * Mathf.Max(0.0f, 1.0f - Time.deltaTime * 5.0f) + f * 0.5f / Time.deltaTime;
+
             f = (Input.mousePosition.x - lastPointerPositionX) / (float)Screen.width;
             lastPointerPositionX = Input.mousePosition.x;
             marginX += f;
             pointerSpeedX = pointerSpeedX * Mathf.Max(0.0f, 1.0f - Time.deltaTime * 5.0f) + f * 0.5f / Time.deltaTime;
+
             pointerTime += Time.deltaTime;
             if (pointerTime > 1.0f && Mathf.Abs(marginX) < 0.02f && Mathf.Abs(pointerSpeedX) < 0.1f)
             {
@@ -93,7 +115,10 @@ public class SelectorController : MonoBehaviour {
             f = pointerSpeedX * 0.4f;
             f = f / Mathf.Max(0.0001f, Mathf.Abs(f)) * Mathf.Max(0.0f, Mathf.Abs(f) - 3.0f);
             Debug.Log("pointerSpeedX: " + pointerSpeedX + " ; " + Mathf.Min(0.5f, 0.2f + Mathf.Abs(pointerSpeedX * 0.2f)));
-            position -= (int)Mathf.Round(marginX + marginX / Mathf.Max(0.0001f, Mathf.Abs(marginX)) * Mathf.Min(0.5f, 0.2f + Mathf.Abs(pointerSpeedX * 0.2f))) + (int)(Mathf.Round(Mathf.Abs(marginX)) * f);
+            if (Mathf.Abs(marginY) < Mathf.Abs(marginX))
+            {
+                position -= (int)Mathf.Round(marginX + marginX / Mathf.Max(0.0001f, Mathf.Abs(marginX)) * Mathf.Min(0.5f, 0.2f + Mathf.Abs(pointerSpeedX * 0.2f))) + (int)(Mathf.Round(Mathf.Abs(marginX)) * f);
+            }
             if (position > itemsCount - 1)
             {
                 position = itemsCount - 1;
@@ -104,6 +129,8 @@ public class SelectorController : MonoBehaviour {
             }
             marginX = 0.0f;
             pointerSpeedX = 0.0f;
+            marginY = 0.0f;
+            pointerSpeedY = 0.0f;
             pointerTime = 0.0f;
             UpdatePosition();
         }
@@ -191,7 +218,7 @@ public class SelectorController : MonoBehaviour {
             item.Setup(objectTransform, ((float)i) * objectMarginStep, descriptionTransform, ((float)i) * descriptionMarginStep);
             if (selected == item.value)
             {
-                selectionEffect.transform.localPosition += Vector3.right * (((float)i) * objectMarginStep - selectionEffect.transform.localPosition.x);
+                selectionEffect.transform.localPosition = selectionEffectBasePosition + objectTransformDirection * (((float)i) * objectMarginStep);;
                 selectionEffect.enabled = true;
                 position = i;
                 selectedIndex = position;

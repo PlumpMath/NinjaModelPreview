@@ -138,12 +138,14 @@ public class ProfileView : MonoBehaviour {
         item.value = "1";
         item.label.text = "Одеяние Пустынных Бомжей";
         item.LoadMesh(pathPrefix, "body1");
+        item.SetSelectorController(clothSelector);
         clothSelector.items.AddLast(item);
 
         item = GameObject.Instantiate<GameObject>(clothEquipItemPrefab.gameObject).GetComponent<ClothEquipItem>();
         item.value = "2";
         item.label.text = "Куртка Кожи с Жопы Дракона";
         item.LoadMesh(pathPrefix, "body2");
+        item.SetSelectorController(clothSelector);
         clothSelector.items.AddLast(item);
 
         clothSelector.Open(clothId.ToString());
@@ -161,36 +163,42 @@ public class ProfileView : MonoBehaviour {
         item.value = "1_0";
         item.label.text = "Круглый сюрикен";
         item.LoadMesh(pathPrefix, "missile1_0");
+        item.SetSelectorController(weaponSelector);
         weaponSelector.items.AddLast(item);
 
         item = GameObject.Instantiate<GameObject>(weaponEquipItemPrefab.gameObject).GetComponent<WeaponEquipItem>();
         item.value = "2_0";
         item.label.text = "Круглый камуфляжный сюрикен";
         item.LoadMesh(pathPrefix, "missile2_0");
+        item.SetSelectorController(weaponSelector);
         weaponSelector.items.AddLast(item);
 
         item = GameObject.Instantiate<GameObject>(weaponEquipItemPrefab.gameObject).GetComponent<WeaponEquipItem>();
         item.value = "3_0";
         item.label.text = "Круглый узорчатый сюрикен";
         item.LoadMesh(pathPrefix, "missile3_0");
+        item.SetSelectorController(weaponSelector);
         weaponSelector.items.AddLast(item);
 
         item = GameObject.Instantiate<GameObject>(weaponEquipItemPrefab.gameObject).GetComponent<WeaponEquipItem>();
         item.value = "4_0";
         item.label.text = "Острый сюрикен";
         item.LoadMesh(pathPrefix, "missile4_0");
+        item.SetSelectorController(weaponSelector);
         weaponSelector.items.AddLast(item);
 
         item = GameObject.Instantiate<GameObject>(weaponEquipItemPrefab.gameObject).GetComponent<WeaponEquipItem>();
         item.value = "5_0";
         item.label.text = "Острый камуфляжный сюрикен";
         item.LoadMesh(pathPrefix, "missile5_0");
+        item.SetSelectorController(weaponSelector);
         weaponSelector.items.AddLast(item);
 
         item = GameObject.Instantiate<GameObject>(weaponEquipItemPrefab.gameObject).GetComponent<WeaponEquipItem>();
         item.value = "6_0";
         item.label.text = "Острый узорчатый сюрикен";
         item.LoadMesh(pathPrefix, "missile6_0");
+        item.SetSelectorController(weaponSelector);
         weaponSelector.items.AddLast(item);
 
         weaponSelector.Open(weaponId + "_" + weaponSkinId);

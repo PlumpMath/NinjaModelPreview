@@ -36,6 +36,9 @@ public class LoginController : MonoBehaviour {
 
     private int updates = 0;
 
+    private bool waitingForInternet = false;
+    private int waitingConnectType = -1;
+
     public PlayerViewMessage playerView = null;
 
     // Use this for initialization
@@ -95,24 +98,52 @@ public class LoginController : MonoBehaviour {
 
     }
 
+    public void CheckConnection()
+    {
+        if(gameSocket != null && !gameSocket.Client.Connected)
+        {
+            Connect(storedHost, storedPort, authToken);
+        }
+    }
+
     void Connect()
     {
+        waitingConnectType = -1;
+        waitingForInternet = false;
         statusCanvas.enabled = true;
+        messageQueue.Clear();
+        statusText.text = "Connecting...";
+        if (Application.internetReachability == NetworkReachability.NotReachable)
+        {
+            statusText.text = "Internet not reachable";
+            waitingConnectType = 1;
+            waitingForInternet = true;
+            return;
+        }
         loginSocket = new TcpClient();
         loginSocket.BeginConnect(serverHost, serverPort, new AsyncCallback(LoginConnectCallback), loginSocket);
-        messageQueue.Clear();
     }
 
     public void Connect(string host, int port, string token)
     {
         Debug.Log("Connecting to map server...");
+        waitingConnectType = -1;
+        waitingForInternet = false;
         statusCanvas.enabled = true;
         storedHost = host;
         storedPort = port;
         authToken = token;
+        messageQueue.Clear();
+        statusText.text = "Connecting...";
+        if (Application.internetReachability == NetworkReachability.NotReachable)
+        {
+            statusText.text = "Internet not reachable";
+            waitingConnectType = 2;
+            waitingForInternet = true;
+            return;
+        }
         gameSocket = new TcpClient();
         gameSocket.BeginConnect(storedHost, storedPort, new AsyncCallback(GameConnectCallback), gameSocket);
-        messageQueue.Clear();
     }
 
     void LoginConnectCallback(IAsyncResult result)
@@ -218,9 +249,21 @@ public class LoginController : MonoBehaviour {
         return gameSocket.Connected;
     }
 
-    public void SendGameMessage(byte[] buf)
+    public void SendGameMessage(byte[] buffer)
     {
-        gameSocket.Client.BeginSend(buf, 0, buf.Length, SocketFlags.None, new AsyncCallback(GameSendCallback), null);
+        SendGameMessage(buffer, 0, buffer.Length, new AsyncCallback(GameSendCallback));
+    }
+
+    public void SendGameMessage(byte[] buffer, int offset, int length, AsyncCallback callback)
+    {
+        try
+        {
+            gameSocket.Client.BeginSend(buffer, offset, length, SocketFlags.None, callback, null);
+        }
+        catch(Exception ex)
+        {
+            Connect(storedHost, storedPort, authToken);
+        }
     }
 
     void GameSendCallback(IAsyncResult result)
@@ -280,6 +323,18 @@ public class LoginController : MonoBehaviour {
     // Update is called once per frame
     void Update() {
         updates++;
+        if(waitingForInternet)
+        {
+            if(waitingConnectType == 1)
+            {
+                Connect();
+            }
+            else if(waitingConnectType == 2)
+            {
+                Connect(storedHost, storedPort, authToken);
+            }
+            return;
+        }
         if (gameSocket != null)
         {
             ProcessGameMessageQueue();
@@ -459,10 +514,10 @@ public class LoginController : MonoBehaviour {
         int dataLength = 4;
         byte[] regionIdData = Encoding.UTF8.GetBytes(regionId);
         i = 0;
-        Buffer.BlockCopy(BitConverter.GetBytes((short)1002), 0, socketBuffer, i, 2);
+        Buffer.BlockCopy(BitConverter.GetBytes((short)1101), 0, socketBuffer, i, 2);
         i += 2;
         Buffer.BlockCopy(regionIdData, 0, socketBuffer, i, regionId.Length); // Region ID
-        gameSocket.Client.BeginSend(socketBuffer, 0, dataLength, SocketFlags.None, new AsyncCallback(GameSendCallback), null);
+        SendGameMessage(socketBuffer, 0, dataLength, new AsyncCallback(GameSendCallback));
     }
 
     public void ChangeCloth(int clothId)
@@ -471,10 +526,10 @@ public class LoginController : MonoBehaviour {
         int i;
         int dataLength = 6;
         i = 0;
-        Buffer.BlockCopy(BitConverter.GetBytes((short)1004), 0, socketBuffer, i, 2);
+        Buffer.BlockCopy(BitConverter.GetBytes((short)1301), 0, socketBuffer, i, 2);
         i += 2;
         Buffer.BlockCopy(BitConverter.GetBytes(value), 0, socketBuffer, i, 4);
-        gameSocket.Client.BeginSend(socketBuffer, 0, dataLength, SocketFlags.None, new AsyncCallback(GameSendCallback), null);
+        SendGameMessage(socketBuffer, 0, dataLength, new AsyncCallback(GameSendCallback));
     }
 
     public void ChangeWeapon(int weaponId)
@@ -483,10 +538,10 @@ public class LoginController : MonoBehaviour {
         int i;
         int dataLength = 6;
         i = 0;
-        Buffer.BlockCopy(BitConverter.GetBytes((short)1005), 0, socketBuffer, i, 2);
+        Buffer.BlockCopy(BitConverter.GetBytes((short)1302), 0, socketBuffer, i, 2);
         i += 2;
         Buffer.BlockCopy(BitConverter.GetBytes(value), 0, socketBuffer, i, 4);
-        gameSocket.Client.BeginSend(socketBuffer, 0, dataLength, SocketFlags.None, new AsyncCallback(GameSendCallback), null);
+        SendGameMessage(socketBuffer, 0, dataLength, new AsyncCallback(GameSendCallback));
     }
 
 }

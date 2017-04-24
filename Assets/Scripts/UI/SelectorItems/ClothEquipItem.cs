@@ -30,7 +30,7 @@ public class ClothEquipItem : SelectorItem
     public override void Setup(Transform presentContainer, float presentShift, RectTransform descriptionContainer, float descriptionShift)
     {
         present.transform.parent = presentContainer;
-        present.transform.localPosition += Vector3.right * (presentShift + presentContainer.transform.localPosition.x);
+        present.transform.localPosition = selectorController.objectTransformDirection * presentShift /* + presentContainer.transform.localPosition */;
         base.Setup(presentContainer, presentShift, descriptionContainer, descriptionShift);
     }
 
