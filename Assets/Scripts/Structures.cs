@@ -1611,6 +1611,13 @@ public class BaseObjectMessage
         return value;
     }
 
+    public short GetShort(byte[] data, ref int index)
+    {
+        short value = BitConverter.ToInt16(data, index);
+        index += 2;
+        return value;
+    }
+
     public int GetInt(byte[] data, ref int index)
     {
         int value = BitConverter.ToInt32(data, index);
@@ -1676,6 +1683,13 @@ public class BaseObjectMessage
         index += 1;
     }
 
+    public void PutShort(byte[] data, short value, ref int index)
+    {
+        byte[] b2 = BitConverter.GetBytes(value);
+        Buffer.BlockCopy(b2, 0, data, index, 2);
+        index += 2;
+    }
+
     public void PutInt(byte[] data, int value, ref int index)
     {
         byte[] b4 = BitConverter.GetBytes(value);
@@ -1719,6 +1733,16 @@ public class BaseObjectMessage
         byte[] b4 = BitConverter.GetBytes(b.Length);
         Buffer.BlockCopy(b4, 0, data, index, 4);
         index += 4;
+        Buffer.BlockCopy(b, 0, data, index, b.Length);
+        index += b.Length;
+    }
+
+    public void PutSString(byte[] data, string value, ref int index)
+    {
+        byte[] b = Encoding.UTF8.GetBytes(value);
+        byte[] b2 = BitConverter.GetBytes(b.Length);
+        Buffer.BlockCopy(b2, 0, data, index, 2);
+        index += 2;
         Buffer.BlockCopy(b, 0, data, index, b.Length);
         index += b.Length;
     }

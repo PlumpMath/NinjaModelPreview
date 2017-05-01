@@ -78,6 +78,7 @@
     <Compile Include="Assets\Plugins\WebSocket\WebSocket.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\Facebook\Scripts\Canvas\Resources\JSSDKBindings.txt" />
     <None Include="Assets\JMO Assets\!JMO Assets Readme.txt" />
     <None Include="Assets\JMO Assets\MatCap Shaders\Shaders\MatCap_Lit.shader" />
     <None Include="Assets\JMO Assets\MatCap Shaders\Shaders\MatCap_Plain.shader" />
@@ -94,6 +95,7 @@
     <None Include="Assets\Photon Unity Networking\changelog.txt" />
     <None Include="Assets\Photon Unity Networking\link.xml" />
     <None Include="Assets\Photon Unity Networking\readme.txt" />
+    <None Include="Assets\Plugins\Android\AndroidManifest.xml" />
     <None Include="Assets\Plugins\Photon3Unity3D.xml" />
     <None Include="Assets\Plugins\release_history.txt" />
     <None Include="Assets\Resources\Maps\map_01_areas.txt" />

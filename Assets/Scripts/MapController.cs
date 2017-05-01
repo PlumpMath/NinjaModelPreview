@@ -46,6 +46,7 @@ public class MapController : MonoBehaviour {
     public Button mapOpenTeahouseButton;
     public Text staticGoldLabel;
 
+    public Button mapOpenSocialFBButton;
 
     public BankView bankView;
     public BlacksmithView blacksmithView;
@@ -58,7 +59,9 @@ public class MapController : MonoBehaviour {
     public StoreView storeView;
     public TeahouseView teahouseView;
     public WheelOfLuckView wheelOfLuckView;
+    public ChangeNicknameView changeNicknameView;
     public ErrorNoticeView errorNoticeView;
+    public SocialFBView socialFBView;
 
     public EventHandler<PlayerDataEventArgs> OnPlayerViewLoaded;
 
@@ -170,22 +173,11 @@ public class MapController : MonoBehaviour {
         });
 
         mapOpenTeahouseButton.onClick.AddListener(delegate () {
-            //storeView.Open();
-            int index = 0;
-            BaseObjectMessage message = new BaseObjectMessage();
-            double lattitude = (double)Input.location.lastData.latitude;
-            double longitude = (double)Input.location.lastData.longitude;
-            Debug.Log("long/lat: " + lattitude + " ; " + longitude);
-            byte[] data = new byte[2 + 8 + 8];
-            Buffer.BlockCopy(BitConverter.GetBytes((short)1203), 0, data, 0, 2);
-            index = 2;
-            message.PutDouble(data, lattitude, ref index);
-            message.PutDouble(data, longitude, ref index);
-            //Buffer.BlockCopy(BitConverter.GetBytes(lattitude), 0, data, 2, 8);
-            //Buffer.BlockCopy(BitConverter.GetBytes(longitude), 0, data, 10, 8);
-            loginController.SendGameMessage(data);
-            loginController.statusCanvas.enabled = true;
-            loginController.statusText.text = "Open teahouse...";
+            StartCoroutine(OpenTeahouse());
+        });
+
+        mapOpenSocialFBButton.onClick.AddListener(delegate() {
+            socialFBView.Open();
         });
 
         if (loginController.IsConnected())
@@ -193,7 +185,7 @@ public class MapController : MonoBehaviour {
             short messageCode = 1201;
             loginController.SendGameMessage(BitConverter.GetBytes(messageCode));
         }
-        
+       
     }
 
     public void Close()
@@ -214,6 +206,65 @@ public class MapController : MonoBehaviour {
             mapRegions[i].enabled = true;
         }
         mapCanvas.enabled = true;
+    }
+
+    public IEnumerator OpenTeahouse()
+    {
+        Debug.Log("#1");
+        if (!Input.location.isEnabledByUser || Input.location.status != LocationServiceStatus.Running)
+        {
+            Debug.Log("#2");
+            loginController.statusCanvas.enabled = true;
+            loginController.statusText.text = "Waiting for geolocation service";
+            Input.location.Start();
+            Debug.Log("#3");
+            checkGeoCooldown = 20.0f;
+            while (checkGeoCooldown > 0.0f)
+            {
+                Debug.Log("#4");
+                checkGeoCooldown -= 1.0f;
+                if (checkGeoCooldown > 5.0f)
+                {
+                    if (Input.location.status == LocationServiceStatus.Failed)
+                    {
+                        Debug.Log("#5");
+                        checkGeoCooldown = 5.0f;
+                        loginController.statusText.text = "Geolocation service failed";
+                    }
+                    if(Input.location.status == LocationServiceStatus.Running)
+                    {
+                        Debug.Log("#6");
+                        break;
+                    }
+                }
+                yield return new WaitForSeconds(1);
+            }
+        }
+        Debug.Log("#7");
+        if (Input.location.status == LocationServiceStatus.Running)
+        {
+            Debug.Log("#8");
+            int index = 0;
+            BaseObjectMessage message = new BaseObjectMessage();
+            double lattitude = (double)Input.location.lastData.latitude;
+            double longitude = (double)Input.location.lastData.longitude;
+            Input.location.Stop();
+            Debug.Log("long/lat: " + lattitude + " ; " + longitude);
+            byte[] data = new byte[2 + 8 + 8];
+            Buffer.BlockCopy(BitConverter.GetBytes((short)1203), 0, data, 0, 2);
+            index = 2;
+            message.PutDouble(data, lattitude, ref index);
+            message.PutDouble(data, longitude, ref index);
+            loginController.SendGameMessage(data);
+            loginController.statusCanvas.enabled = true;
+            loginController.statusText.text = "Open teahouse...";
+            Debug.Log("#9");
+        }
+        else
+        {
+            loginController.statusCanvas.enabled = false;
+            errorNoticeView.Open("Error", "Geolocation not work");
+        }
     }
 
     /*
@@ -495,6 +546,7 @@ public class MapController : MonoBehaviour {
             }
         }
 
+        /*
         checkGeoCooldown -= Time.deltaTime;
         if(checkGeoCooldown <= 0.0f)
         {
@@ -505,12 +557,16 @@ public class MapController : MonoBehaviour {
             //if()
             checkGeoCooldown += 60.0f;
         }
+        */
 
     }
 
     public void Dispose()
     {
-        Input.location.Stop();
+        if (Input.location.status != LocationServiceStatus.Stopped)
+        {
+            Input.location.Stop();
+        }
     }
 
     public void TapToRegion (string regionId)

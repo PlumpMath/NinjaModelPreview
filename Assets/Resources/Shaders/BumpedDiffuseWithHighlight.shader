@@ -17,7 +17,7 @@ Shader "Custom/Bumped/Textured Multiply Highlighted"
 
 		Pass
 		{
-			Tags{ "LightMode" = "Always" }
+			//Tags{ "LightMode" = "Always" }
 
 			CGPROGRAM
 			#pragma vertex vert
@@ -25,7 +25,7 @@ Shader "Custom/Bumped/Textured Multiply Highlighted"
 			#pragma fragmentoption ARB_precision_hint_fastest
 			#pragma shader_feature MATCAP_ACCURATE
 			#include "UnityCG.cginc"
-			#include "Lighting.cginc"
+			//#include "Lighting.cginc"
 
 			struct v2f
 			{
@@ -79,7 +79,7 @@ Shader "Custom/Bumped/Textured Multiply Highlighted"
 			fixed4 frag(v2f i) : COLOR
 			{
 				fixed4 tex = tex2D(_MainTex, i.uv);
-				tex *= _LightColor0;
+				//tex *= _LightColor0;
 				fixed3 normals = UnpackNormal(tex2D(_BumpMap, i.uv_bump));
 
 			#if MATCAP_ACCURATE
@@ -89,10 +89,10 @@ Shader "Custom/Bumped/Textured Multiply Highlighted"
 				worldNorm.y = dot(i.tSpace1.xyz, normals);
 				worldNorm.z = dot(i.tSpace2.xyz, normals);
 				worldNorm = mul((float3x3)UNITY_MATRIX_V, worldNorm);
-				float4 mc = tex2D(_MatCap, worldNorm.xy * 0.5 + 0.5);
+				float4 mc = tex2D(_MatCap, worldNorm.xy * 0.5f + 0.5f);
 			#else
 				half2 capCoord = half2(dot(i.c0, normals), dot(i.c1, normals));
-				float4 mc = tex2D(_MatCap, capCoord*0.5 + 0.5);
+				float4 mc = tex2D(_MatCap, capCoord * 0.5f + 0.5f);
 			#endif
 
 				return tex * mc * 2.0;

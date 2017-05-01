@@ -31,6 +31,8 @@ public class ProfileView : MonoBehaviour {
     public Text clothCounterLabel;
     public Text weaponCounterLabel;
 
+    public Button changeNicknameButton;
+
     private int clothId = -1;
     private int weaponId = -1;
     private int weaponSkinId = -1;
@@ -91,6 +93,10 @@ public class ProfileView : MonoBehaviour {
         weaponSelector.OnClose += CloseSelector;
         weaponSelectionButton.onClick.AddListener(delegate () {
             WeaponSelectorOpen();
+        });
+
+        changeNicknameButton.onClick.AddListener(delegate() {
+            map.changeNicknameView.Open();
         });
 
     }
