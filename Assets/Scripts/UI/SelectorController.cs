@@ -114,7 +114,7 @@ public class SelectorController : MonoBehaviour {
             }
             f = pointerSpeedX * 0.4f;
             f = f / Mathf.Max(0.0001f, Mathf.Abs(f)) * Mathf.Max(0.0f, Mathf.Abs(f) - 3.0f);
-            Debug.Log("pointerSpeedX: " + pointerSpeedX + " ; " + Mathf.Min(0.5f, 0.2f + Mathf.Abs(pointerSpeedX * 0.2f)));
+            //Debug.Log("pointerSpeedX: " + pointerSpeedX + " ; " + Mathf.Min(0.5f, 0.2f + Mathf.Abs(pointerSpeedX * 0.2f)));
             if (Mathf.Abs(marginY) < Mathf.Abs(marginX))
             {
                 position -= (int)Mathf.Round(marginX + marginX / Mathf.Max(0.0001f, Mathf.Abs(marginX)) * Mathf.Min(0.5f, 0.2f + Mathf.Abs(pointerSpeedX * 0.2f))) + (int)(Mathf.Round(Mathf.Abs(marginX)) * f);

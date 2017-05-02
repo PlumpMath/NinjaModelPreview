@@ -292,6 +292,7 @@
     <Compile Include="Assets\Scripts\UI\Views\StoreView.cs" />
     <Compile Include="Assets\Scripts\UI\Views\TeahouseView.cs" />
     <Compile Include="Assets\Scripts\UI\Views\WheelOfLuckView.cs" />
+    <Compile Include="Assets\Scripts\Utility\DebugHandling.cs" />
     <Compile Include="Assets\Scripts\WayPoint.cs" />
   </ItemGroup>
   <ItemGroup>

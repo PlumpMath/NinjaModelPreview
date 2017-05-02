@@ -36,9 +36,9 @@ public class DailyBonusView : MonoBehaviour {
 	
         if(currentShift < rewardListStep * currentReward)
         {
-            Debug.Log("currentShift: " + currentShift);
+            //Debug.Log("currentShift: " + currentShift);
             currentShift += Mathf.Min(0.02f, Time.deltaTime) * (rewardListStep * rewardListStep * currentReward / (currentShift + 3.0f));
-            Debug.Log("newShift: " + currentShift + " ; dt: " + Mathf.Min(0.02f, Time.deltaTime) + " ; d: " + ((rewardListStep * rewardListStep * currentReward / (currentShift + 3.0f))));
+            //Debug.Log("newShift: " + currentShift + " ; dt: " + Mathf.Min(0.02f, Time.deltaTime) + " ; d: " + ((rewardListStep * rewardListStep * currentReward / (currentShift + 3.0f))));
             if (currentShift > rewardListStep * currentReward)
             {
                 currentShift = rewardListStep * currentReward;
