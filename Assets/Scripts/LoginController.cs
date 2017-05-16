@@ -70,11 +70,11 @@ public class LoginController : MonoBehaviour {
         //serverHost = "localhost";
         //
 
-        if (PlayerPrefs.GetInt("LastVersion", 5) < 6)
+        if (PlayerPrefs.GetInt("LastVersion", 7) < 8)
         {
             storedKey = "";
             storedSecret = "";
-            PlayerPrefs.SetInt("LastVersion", 6);
+            PlayerPrefs.SetInt("LastVersion", 8);
             PlayerPrefs.SetString("CredentialsKey", "");
             PlayerPrefs.SetString("CredentialsSecret", "");
         }
@@ -544,6 +544,32 @@ public class LoginController : MonoBehaviour {
         SendGameMessage(socketBuffer, 0, dataLength, new AsyncCallback(GameSendCallback));
     }
 
+    public void BuyItem(int itemId)
+    {
+        uint value = (uint)itemId;
+        int i;
+        int dataLength = 6;
+        i = 0;
+        Buffer.BlockCopy(BitConverter.GetBytes((short)1401), 0, socketBuffer, i, 2);
+        i += 2;
+        Buffer.BlockCopy(BitConverter.GetBytes(value), 0, socketBuffer, i, 4);
+        SendGameMessage(socketBuffer, 0, dataLength, new AsyncCallback(GameSendCallback));
+    }
+
+    public void OpenChest(int chestId, int lockpickId)
+    {
+        uint chestValue = (uint)chestId;
+        uint lockpickValue = (uint)lockpickId;
+        int i;
+        int dataLength = 10;
+        i = 0;
+        Buffer.BlockCopy(BitConverter.GetBytes((short)1602), 0, socketBuffer, i, 2);
+        i += 2;
+        Buffer.BlockCopy(BitConverter.GetBytes(chestValue), 0, socketBuffer, i, 4);
+        i += 4;
+        Buffer.BlockCopy(BitConverter.GetBytes(lockpickValue), 0, socketBuffer, i, 4);
+        SendGameMessage(socketBuffer, 0, dataLength, new AsyncCallback(GameSendCallback));
+    }
 }
 
 public class ByteArrayContainer

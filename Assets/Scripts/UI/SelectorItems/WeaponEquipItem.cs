@@ -30,7 +30,7 @@ public class WeaponEquipItem : SelectorItem {
         //present = GameObject.Instantiate<GameObject>(basicPresentContainer);
         present.transform.parent = presentContainer;
         //present.transform.localPosition += Vector3.right * (presentShift + presentContainer.transform.localPosition.x);
-        present.transform.localPosition = selectorController.objectTransformDirection * presentShift;
+        present.transform.localPosition = selectorController.objectTransformDirection * presentShift + Vector3.up * present.transform.localPosition.y;
         //label = GameObject.Instantiate<GameObject>(basicPresentLabel.gameObject).GetComponent<Text>();
         //label.transform.parent = descriptionContainer;
         //label.rectTransform.localScale = basicPresentLabel.rectTransform.localScale;

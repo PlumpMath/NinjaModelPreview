@@ -18,6 +18,10 @@ public class TeahouseView : MonoBehaviour {
 
     public void OnPlayerDataLoaded(object sender, PlayerDataEventArgs e)
     {
+        //if(!canvas.enabled)
+        //{
+        //    return;
+        //}
         Debug.Log("OnPlayerDataLoaded");
         LinkedListNode<TeahouseNearbyPlayerItem> node = nearbyPlayerList.First;
         while(node != null)

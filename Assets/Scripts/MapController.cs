@@ -35,6 +35,7 @@ public class MapController : MonoBehaviour {
     private string storedHost = "";
     private int storedPort = 0;
 
+    private bool loaded = false;
     private float checkGeoCooldown = 0.0f;
 
 
@@ -44,6 +45,7 @@ public class MapController : MonoBehaviour {
     public Button mapOpenProfileButton;
     public Button mapOpenStoreButton;
     public Button mapOpenTeahouseButton;
+    public Button mapOpenInventoryButton;
     public Text staticGoldLabel;
 
     public Button mapOpenSocialFBButton;
@@ -54,6 +56,7 @@ public class MapController : MonoBehaviour {
     public EffectsView effectsView;
     public JournalView journalView;
     public ProfileView profileView;
+    public InventoryView inventoryView;
     public SanctuaryView sanctuaryView;
     public SettingsView settingsView;
     public StoreView storeView;
@@ -63,7 +66,10 @@ public class MapController : MonoBehaviour {
     public ErrorNoticeView errorNoticeView;
     public SocialFBView socialFBView;
 
+    public PlayerInventoryMessage playerInventory;
+
     public EventHandler<PlayerDataEventArgs> OnPlayerViewLoaded;
+    public EventHandler<PlayerDataEventArgs> OnPlayerInventoryLoaded;
 
 
 
@@ -164,6 +170,11 @@ public class MapController : MonoBehaviour {
 
         mapOpenProfileButton.onClick.AddListener(delegate() {
             profileView.Open();
+            Close();
+        });
+
+        mapOpenInventoryButton.onClick.AddListener(delegate () {
+            inventoryView.Open();
             Close();
         });
 
@@ -350,6 +361,7 @@ public class MapController : MonoBehaviour {
         Vector2[] points;
         MapPoint point;
         PlayerViewMessage playerView;
+        PlayerInventoryMessage inventoryMessage;
         BaseObjectMessage message;
         LinkedListNode<MapPoint> pointNode;
         LinkedListNode<ByteArrayContainer> byteArrayNode;
@@ -371,6 +383,12 @@ public class MapController : MonoBehaviour {
                     Buffer.BlockCopy(data, i, messageData, 0, messageData.Length);
                     playerView = new PlayerViewMessage();
                     playerView.Unpack(messageData);
+
+                    if(!loaded)
+                    {
+                        loaded = true;
+                        Open();
+                    }
 
                     loginController.playerView = playerView;
 
@@ -478,6 +496,37 @@ public class MapController : MonoBehaviour {
                         playerDataEventArgs.playerView = playerView;
                         playerDataHandler(this, playerDataEventArgs);
                     }
+                    break;
+                case 1007:
+                    messageData = new byte[data.Length - i];
+                    Buffer.BlockCopy(data, i, messageData, 0, messageData.Length);
+                    inventoryMessage = new PlayerInventoryMessage();
+                    inventoryMessage.Unpack(messageData);
+
+                    playerInventory = inventoryMessage;
+
+                    Debug.Log("RECEIVE PLAYER INVENTORY. " + playerInventory.items.Count + " items");
+
+                    EventHandler<PlayerDataEventArgs> playerInventoryHandler = OnPlayerInventoryLoaded;
+                    if (playerInventoryHandler != null)
+                    {
+                        PlayerDataEventArgs playerDataEventArgs = new PlayerDataEventArgs();
+                        playerDataEventArgs.playerInventory = playerInventory;
+                        playerInventoryHandler(this, playerDataEventArgs);
+                    }
+                    break;
+                case 1008:
+                    inventoryView.chestCarouselResult = (short)BitConverter.ToUInt16(data, i);
+                    i += 2;
+                    inventoryView.chestCarouselTargetId = ((int)BitConverter.ToUInt32(data, i)).ToString();
+                    int id = Int32.Parse(inventoryView.chestCarouselTargetId);
+                    int pos = id - 10002 - 2;
+                    if (pos < 0)
+                    {
+                        pos += 5;
+                    }
+                    inventoryView.chestCarouselTargetPosition = pos * 0.2f * inventoryView.chestCarouselPeriod;
+                    Debug.Log("CHEST RESULT: " + inventoryView.chestCarouselResult + " ; REWARD ID: " + inventoryView.chestCarouselTargetId + " ; pos: " + inventoryView.chestCarouselTargetPosition);
                     break;
             }
             byteArrayNode = byteArrayNode.Next;
@@ -714,5 +763,6 @@ public class MapRoute
 public class PlayerDataEventArgs : EventArgs
 {
     public PlayerViewMessage playerView;
+    public PlayerInventoryMessage playerInventory;
 }
 

@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 public class StoreView : MonoBehaviour {
 
@@ -50,6 +51,8 @@ public class StoreView : MonoBehaviour {
         storeSelectorControllers[1].OnPositionUpdate += LockpickSelectorUpdate;
         storeSelectorControllers[2].OnPositionUpdate += BottleSelectorUpdate;
 
+        map.OnPlayerInventoryLoaded += OnUpdateInventory;
+
     }
 
     /******************************/
@@ -84,13 +87,50 @@ public class StoreView : MonoBehaviour {
         if (e.item != null)
         {
             lockpickCounterLabel.text = (e.item.position + 1) + " / " + e.count;
-            lockpickAmountLabel.text = ((BottleStoreItem)e.item).amount.ToString();
+            lockpickAmountLabel.text = ((LockpickStoreItem)e.item).amount.ToString();
         }
     }
 
     void CloseSelector(object sender, EventArgs e)
     {
         Close(true);
+    }
+
+    void RefreshLockpickAmount(LockpickStoreItem item)
+    {
+        item.amount = GetItemAmount(item.value);
+    }
+
+    void OnUpdateInventory(object sender, PlayerDataEventArgs e)
+    {
+        Debug.Log("ON UPDATE INVENTORY");
+        int i;
+        SelectorController selector;
+        LinkedListNode<SelectorItem> node;
+        for (i = 0; i < storeSelectorControllers.Length; i++)
+        {
+            selector = storeSelectorControllers[i];
+            if (selector.canvas.enabled)
+            {
+                switch (selector.name)
+                {
+                    case "CanvasLockpickStore":
+                        node = selector.items.First;
+                        while (node != null)
+                        {
+                            RefreshLockpickAmount((LockpickStoreItem)node.Value);
+                            node = node.Next;
+                        }
+                        break;
+                }
+                selector.UpdatePosition();
+            }
+        }
+    }
+
+    void BuyItem(string value)
+    {
+        map.loginController.BuyItem(Int32.Parse(value));
     }
 
     /******************************/
@@ -134,43 +174,121 @@ public class StoreView : MonoBehaviour {
                     {
                         case 0:
                             clothItem = GameObject.Instantiate<GameObject>(clothStoreItemPrefab.gameObject).GetComponent<ClothStoreItem>();
-                            clothItem.value = "1";
-                            clothItem.label.text = "Синий";
+                            clothItem.value = "10001";
+                            clothItem.label.text = "Гимнастерка искателя приключений";
                             clothItem.subLabel.text = "Отличный спортивный костюм из атласной ткани";
-                            clothItem.priceLabel.text = "2 999";
-                            clothItem.LoadMesh("Prefabs/Bodies/", "body1");
+                            clothItem.priceLabel.text = "0";
+                            clothItem.LoadMesh("Prefabs/Bodies/", "body10001");
                             clothItem.SetCurrency(ClothStoreItem.CURRENCY.GOLD);
                             clothItem.HideBuyButton();
+                            clothItem.buyButton.onClick.AddListener(delegate () {
+                                map.errorNoticeView.Open("Ошибка!", "При покупке возникла ошибка.");
+                            });
+                            selector.items.AddLast(clothItem);
+
+                            clothItem = GameObject.Instantiate<GameObject>(clothStoreItemPrefab.gameObject).GetComponent<ClothStoreItem>();
+                            clothItem.value = "10002";
+                            clothItem.label.text = "Пальто стеснительной лягушки";
+                            clothItem.subLabel.text = "Отличный спортивный костюм из атласной ткани";
+                            clothItem.priceLabel.text = "10";
+                            clothItem.LoadMesh("Prefabs/Bodies/", "body10002");
+                            clothItem.SetCurrency(ClothStoreItem.CURRENCY.GOLD);
+                            if (GetItemAmount(clothItem.value) > 0)
+                            {
+                                clothItem.HideBuyButton();
+                            }
                             clothItem.buyButton.onClick.AddListener(delegate() {
                                 map.errorNoticeView.Open("Ошибка!", "При покупке возникла ошибка.");
                             });
                             selector.items.AddLast(clothItem);
 
                             clothItem = GameObject.Instantiate<GameObject>(clothStoreItemPrefab.gameObject).GetComponent<ClothStoreItem>();
-                            clothItem.value = "2";
-                            clothItem.label.text = "Зелёный";
-                            clothItem.subLabel.text = "Маскировочный костюм. Отлично подходит для скрытного передвижения по лесу";
-                            clothItem.priceLabel.text = "3 999";
-                            clothItem.LoadMesh("Prefabs/Bodies/", "body2");
+                            clothItem.value = "10003";
+                            clothItem.label.text = "Мумия возвращается";
+                            clothItem.subLabel.text = "Отличный спортивный костюм из атласной ткани";
+                            clothItem.priceLabel.text = "20";
+                            clothItem.LoadMesh("Prefabs/Bodies/", "body10003");
                             clothItem.SetCurrency(ClothStoreItem.CURRENCY.GOLD);
+                            if (GetItemAmount(clothItem.value) > 0)
+                            {
+                                clothItem.HideBuyButton();
+                            }
                             clothItem.buyButton.onClick.AddListener(delegate () {
                                 map.errorNoticeView.Open("Ошибка!", "При покупке возникла ошибка.");
                             });
                             selector.items.AddLast(clothItem);
 
                             clothItem = GameObject.Instantiate<GameObject>(clothStoreItemPrefab.gameObject).GetComponent<ClothStoreItem>();
-                            clothItem.value = "3";
-                            clothItem.label.text = "Красный";
-                            clothItem.subLabel.text = "Парадный костюм вождя краснокожих";
-                            clothItem.priceLabel.text = "199";
-                            clothItem.LoadMesh("Prefabs/Bodies/", "body3");
+                            clothItem.value = "10004";
+                            clothItem.label.text = "Летняя хоккейная форма";
+                            clothItem.subLabel.text = "Отличный спортивный костюм из атласной ткани";
+                            clothItem.priceLabel.text = "5";
+                            clothItem.LoadMesh("Prefabs/Bodies/", "body10004");
                             clothItem.SetCurrency(ClothStoreItem.CURRENCY.EMERALD);
+                            if (GetItemAmount(clothItem.value) > 0)
+                            {
+                                clothItem.HideBuyButton();
+                            }
+                            clothItem.buyButton.onClick.AddListener(delegate () {
+                                map.errorNoticeView.Open("Ошибка!", "При покупке возникла ошибка.");
+                            });
+                            selector.items.AddLast(clothItem);
+
+                            clothItem = GameObject.Instantiate<GameObject>(clothStoreItemPrefab.gameObject).GetComponent<ClothStoreItem>();
+                            clothItem.value = "10005";
+                            clothItem.label.text = "Сбежавший с полей китаец";
+                            clothItem.subLabel.text = "Отличный спортивный костюм из атласной ткани";
+                            clothItem.priceLabel.text = "10";
+                            clothItem.LoadMesh("Prefabs/Bodies/", "body10005");
+                            clothItem.SetCurrency(ClothStoreItem.CURRENCY.EMERALD);
+                            if (GetItemAmount(clothItem.value) > 0)
+                            {
+                                clothItem.HideBuyButton();
+                            }
                             clothItem.buyButton.onClick.AddListener(delegate () {
                                 map.errorNoticeView.Open("Ошибка!", "При покупке возникла ошибка.");
                             });
                             selector.items.AddLast(clothItem);
                             break;
                         case 1:
+                            lockpickItem = GameObject.Instantiate<GameObject>(lockpickStoreItemPrefab.gameObject).GetComponent<LockpickStoreItem>();
+                            lockpickItem.value = "15001";
+                            lockpickItem.label.text = "Ржавая отмычка";
+                            lockpickItem.subLabel.text = "Шанс взлома - 25%";
+                            lockpickItem.priceLabel.text = "1";
+                            lockpickItem.LoadMesh("Prefabs/Lockpicks/", "lockpick15001");
+                            lockpickItem.amount = GetItemAmount(lockpickItem.value);
+                            lockpickItem.SetCurrency(LockpickStoreItem.CURRENCY.GOLD);
+                            lockpickItem.buyButton.onClick.AddListener(delegate () {
+                                BuyItem("15001");
+                            });
+                            selector.items.AddLast(lockpickItem);
+
+                            lockpickItem = GameObject.Instantiate<GameObject>(lockpickStoreItemPrefab.gameObject).GetComponent<LockpickStoreItem>();
+                            lockpickItem.value = "15002";
+                            lockpickItem.label.text = "Отмычка с бамбуковой ручкой";
+                            lockpickItem.subLabel.text = "Шанс взлома - 50%";
+                            lockpickItem.priceLabel.text = "1";
+                            lockpickItem.LoadMesh("Prefabs/Lockpicks/", "lockpick15002");
+                            lockpickItem.amount = GetItemAmount(lockpickItem.value);
+                            lockpickItem.SetCurrency(LockpickStoreItem.CURRENCY.GOLD);
+                            lockpickItem.buyButton.onClick.AddListener(delegate () {
+                                BuyItem("15002");
+                            });
+                            selector.items.AddLast(lockpickItem);
+
+                            lockpickItem = GameObject.Instantiate<GameObject>(lockpickStoreItemPrefab.gameObject).GetComponent<LockpickStoreItem>();
+                            lockpickItem.value = "15003";
+                            lockpickItem.label.text = "Отмычка в алом шарфе!";
+                            lockpickItem.subLabel.text = "Шанс взлома - 100%";
+                            lockpickItem.priceLabel.text = "1";
+                            lockpickItem.LoadMesh("Prefabs/Lockpicks/", "lockpick15003");
+                            lockpickItem.amount = GetItemAmount(lockpickItem.value);
+                            lockpickItem.SetCurrency(LockpickStoreItem.CURRENCY.GOLD);
+                            lockpickItem.buyButton.onClick.AddListener(delegate () {
+                                BuyItem("15003");
+                            });
+                            selector.items.AddLast(lockpickItem);
                             break;
                         case 2:
                             bottleItem = GameObject.Instantiate<GameObject>(bottleStoreItemPrefab.gameObject).GetComponent<BottleStoreItem>();
@@ -179,7 +297,7 @@ public class StoreView : MonoBehaviour {
                             bottleItem.subLabel.text = "Лучшее средство для облегчения боли";
                             bottleItem.priceLabel.text = "10";
                             bottleItem.LoadMesh("Prefabs/Bottles/", "bottle1");
-                            bottleItem.amount = 0;
+                            bottleItem.amount = GetItemAmount(bottleItem.value);
                             bottleItem.SetCurrency(BottleStoreItem.CURRENCY.GOLD);
                             bottleItem.buyButton.onClick.AddListener(delegate () {
                                 map.errorNoticeView.Open("Ошибка!", "При покупке возникла ошибка.");
@@ -192,7 +310,7 @@ public class StoreView : MonoBehaviour {
                             bottleItem.subLabel.text = "Лечит любые травмы. Применяется после боя";
                             bottleItem.priceLabel.text = "5";
                             bottleItem.LoadMesh("Prefabs/Bottles/", "bottle2");
-                            bottleItem.amount = 5;
+                            bottleItem.amount = GetItemAmount(bottleItem.value);
                             bottleItem.SetCurrency(BottleStoreItem.CURRENCY.EMERALD);
                             bottleItem.buyButton.onClick.AddListener(delegate () {
                                 map.errorNoticeView.Open("Ошибка!", "При покупке возникла ошибка.");
@@ -227,6 +345,23 @@ public class StoreView : MonoBehaviour {
         {
             map.Open();
         }
+    }
+
+    /************************************/
+
+    public int GetItemAmount(string id)
+    {
+        int itemId = Int32.Parse(id);
+        LinkedListNode<PlayerItemNode> node = map.playerInventory.items.First;
+        while(node != null)
+        {
+            if(node.Value.itemId == itemId)
+            {
+                return node.Value.itemAmount;
+            }
+            node = node.Next;
+        }
+        return 0;
     }
 
 }

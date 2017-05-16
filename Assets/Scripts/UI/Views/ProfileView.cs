@@ -129,7 +129,7 @@ public class ProfileView : MonoBehaviour {
             weaponSelector.Close();
             WeaponSelectorOpen();
         }
-        else
+        else if(map.mapCanvas.enabled)
         {
             Close(true);
         }
@@ -141,18 +141,61 @@ public class ProfileView : MonoBehaviour {
         string pathPrefix = "Prefabs/Bodies/";
 
         item = GameObject.Instantiate<GameObject>(clothEquipItemPrefab.gameObject).GetComponent<ClothEquipItem>();
-        item.value = "1";
-        item.label.text = "Одеяние Пустынных Бомжей";
-        item.LoadMesh(pathPrefix, "body1");
+        item.value = "10001";
+        item.label.text = "Гимнастерка искателя приключений";
+        item.LoadMesh(pathPrefix, "body10001");
         item.SetSelectorController(clothSelector);
         clothSelector.items.AddLast(item);
 
-        item = GameObject.Instantiate<GameObject>(clothEquipItemPrefab.gameObject).GetComponent<ClothEquipItem>();
-        item.value = "2";
-        item.label.text = "Куртка Кожи с Жопы Дракона";
-        item.LoadMesh(pathPrefix, "body2");
-        item.SetSelectorController(clothSelector);
-        clothSelector.items.AddLast(item);
+        if (map.storeView.GetItemAmount("10002") > 0)
+        {
+            item = GameObject.Instantiate<GameObject>(clothEquipItemPrefab.gameObject).GetComponent<ClothEquipItem>();
+            item.value = "10002";
+            item.label.text = "Пальто стеснительной лягушки";
+            item.LoadMesh(pathPrefix, "body10002");
+            item.SetSelectorController(clothSelector);
+            clothSelector.items.AddLast(item);
+        }
+
+        if (map.storeView.GetItemAmount("10003") > 0)
+        {
+            item = GameObject.Instantiate<GameObject>(clothEquipItemPrefab.gameObject).GetComponent<ClothEquipItem>();
+            item.value = "10003";
+            item.label.text = "Мумия возвращается";
+            item.LoadMesh(pathPrefix, "body10003");
+            item.SetSelectorController(clothSelector);
+            clothSelector.items.AddLast(item);
+        }
+
+        if (map.storeView.GetItemAmount("10004") > 0)
+        {
+            item = GameObject.Instantiate<GameObject>(clothEquipItemPrefab.gameObject).GetComponent<ClothEquipItem>();
+            item.value = "10004";
+            item.label.text = "Летняя хоккейная форма";
+            item.LoadMesh(pathPrefix, "body10004");
+            item.SetSelectorController(clothSelector);
+            clothSelector.items.AddLast(item);
+        }
+
+        if (map.storeView.GetItemAmount("10005") > 0)
+        {
+            item = GameObject.Instantiate<GameObject>(clothEquipItemPrefab.gameObject).GetComponent<ClothEquipItem>();
+            item.value = "10005";
+            item.label.text = "Сбежавший с полей китаец";
+            item.LoadMesh(pathPrefix, "body10005");
+            item.SetSelectorController(clothSelector);
+            clothSelector.items.AddLast(item);
+        }
+
+        if (map.storeView.GetItemAmount("10006") > 0)
+        {
+            item = GameObject.Instantiate<GameObject>(clothEquipItemPrefab.gameObject).GetComponent<ClothEquipItem>();
+            item.value = "10006";
+            item.label.text = "Растаманская броня";
+            item.LoadMesh(pathPrefix, "body10006");
+            item.SetSelectorController(clothSelector);
+            clothSelector.items.AddLast(item);
+        }
 
         clothSelector.Open(clothId.ToString());
 
@@ -166,44 +209,30 @@ public class ProfileView : MonoBehaviour {
         string pathPrefix = "Prefabs/Missiles/";
 
         item = GameObject.Instantiate<GameObject>(weaponEquipItemPrefab.gameObject).GetComponent<WeaponEquipItem>();
-        item.value = "1_0";
+        item.value = "11001_0";
         item.label.text = "Круглый сюрикен";
-        item.LoadMesh(pathPrefix, "missile1_0");
+        item.LoadMesh(pathPrefix, "missile11001_0");
         item.SetSelectorController(weaponSelector);
         weaponSelector.items.AddLast(item);
 
         item = GameObject.Instantiate<GameObject>(weaponEquipItemPrefab.gameObject).GetComponent<WeaponEquipItem>();
-        item.value = "2_0";
-        item.label.text = "Круглый камуфляжный сюрикен";
-        item.LoadMesh(pathPrefix, "missile2_0");
+        item.value = "11002_0";
+        item.label.text = "Треугольный сюрикен";
+        item.LoadMesh(pathPrefix, "missile11002_0");
         item.SetSelectorController(weaponSelector);
         weaponSelector.items.AddLast(item);
 
         item = GameObject.Instantiate<GameObject>(weaponEquipItemPrefab.gameObject).GetComponent<WeaponEquipItem>();
-        item.value = "3_0";
-        item.label.text = "Круглый узорчатый сюрикен";
-        item.LoadMesh(pathPrefix, "missile3_0");
+        item.value = "11003_0";
+        item.label.text = "Маленький сюрикен";
+        item.LoadMesh(pathPrefix, "missile11003_0");
         item.SetSelectorController(weaponSelector);
         weaponSelector.items.AddLast(item);
 
         item = GameObject.Instantiate<GameObject>(weaponEquipItemPrefab.gameObject).GetComponent<WeaponEquipItem>();
-        item.value = "4_0";
-        item.label.text = "Острый сюрикен";
-        item.LoadMesh(pathPrefix, "missile4_0");
-        item.SetSelectorController(weaponSelector);
-        weaponSelector.items.AddLast(item);
-
-        item = GameObject.Instantiate<GameObject>(weaponEquipItemPrefab.gameObject).GetComponent<WeaponEquipItem>();
-        item.value = "5_0";
-        item.label.text = "Острый камуфляжный сюрикен";
-        item.LoadMesh(pathPrefix, "missile5_0");
-        item.SetSelectorController(weaponSelector);
-        weaponSelector.items.AddLast(item);
-
-        item = GameObject.Instantiate<GameObject>(weaponEquipItemPrefab.gameObject).GetComponent<WeaponEquipItem>();
-        item.value = "6_0";
-        item.label.text = "Острый узорчатый сюрикен";
-        item.LoadMesh(pathPrefix, "missile6_0");
+        item.value = "11004_0";
+        item.label.text = "Звездонутый сюрикен";
+        item.LoadMesh(pathPrefix, "missile11004_0");
         item.SetSelectorController(weaponSelector);
         weaponSelector.items.AddLast(item);
 
@@ -215,15 +244,17 @@ public class ProfileView : MonoBehaviour {
     public void Open()
     {
         canvas.enabled = true;
-        weaponBackQuad.enabled = true;
+        //weaponBackQuad.enabled = true;
 
+        Debug.Log("CLOTH: " + clothId);
         clothObject = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/Bodies/body" + clothId));
         clothObject.transform.parent = clothContainer.transform;
         clothObject.transform.localPosition = Vector3.zero;
         clothObject.transform.localRotation = Quaternion.identity;
         clothObject.transform.localScale = Vector3.one;
-        clothObject.GetComponent<Animation>().Stop();
+        //clothObject.GetComponent<Animation>().Stop();
 
+        Debug.Log("WEAPON: " + weaponId + "_" + weaponSkinId);
         weaponObject = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/Missiles/missile" + weaponId + "_" + weaponSkinId));
         weaponObject.transform.parent = weaponContainer.transform;
         weaponObject.transform.localPosition = Vector3.zero;
@@ -240,7 +271,7 @@ public class ProfileView : MonoBehaviour {
     public void Close(bool leave)
     {
         canvas.enabled = false;
-        weaponBackQuad.enabled = false;
+        //weaponBackQuad.enabled = false;
         GameObject.Destroy(clothObject);
         GameObject.Destroy(weaponObject);
         if (leave)

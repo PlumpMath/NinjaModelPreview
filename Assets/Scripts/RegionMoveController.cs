@@ -91,6 +91,8 @@ public class RegionMoveController : MonoBehaviour {
     private float animTime = 0.0f;
     public float animMoveWeight = 0.0f;
 
+    public Transform[] clothTailTransforms = new Transform[0];
+    
     public void SwitchInputMode(int mode)
     {
         int i;
@@ -333,18 +335,24 @@ public class RegionMoveController : MonoBehaviour {
         }
         */
 
-        anim["stay"].enabled = true;
-        anim["move"].enabled = true;
-        anim["stay"].blendMode = AnimationBlendMode.Blend;
-        anim["move"].blendMode = AnimationBlendMode.Blend;
-        anim["stay"].wrapMode = WrapMode.Loop;
-        anim["move"].wrapMode = WrapMode.Loop;
-        anim["stay"].layer = 1;
-        anim["move"].layer = 1;
-        anim["stay"].weight = 100.0f;
-        anim["move"].weight = 0.0f;
-        anim["stay"].speed = 0.01f;
-        //anim["move"].speed = 4.0f;
+        anim["Idle"].enabled = true;
+        anim["Run"].enabled = true;
+        anim["Idle"].blendMode = AnimationBlendMode.Blend;
+        anim["Run"].blendMode = AnimationBlendMode.Blend;
+        anim["Idle"].wrapMode = WrapMode.Loop;
+        anim["Run"].wrapMode = WrapMode.Loop;
+        anim["Idle"].layer = 1;
+        anim["Run"].layer = 1;
+        anim["Idle"].weight = 100.0f;
+        anim["Run"].weight = 0.0f;
+        anim["Idle"].speed = 0.01f;
+        anim["Run"].speed = 1.0f; //0.3f;
+
+        for (i = 0; i < clothTailTransforms.Length; i++)
+        {
+            //anim["Idle"].RemoveMixingTransform(clothTailTransforms[i]);
+            //anim["Run"].RemoveMixingTransform(clothTailTransforms[i]);
+        }
 
     }
 
@@ -734,18 +742,18 @@ public class RegionMoveController : MonoBehaviour {
                 direction.z = inputDirection.z;
                 //if (inputTargetingCooldown > 0.1f)
                 //{
-                    //inputCooldown = direction.magnitude * 5.3f / speed;
-                    speed = 1.6f;
-                    route = region.GetRoute(transform.position, transform.position + direction, speed, 0.0f);
-                    //direction.Normalize();
-                    inputCooldown = 0.0f;
-                    direction *= 0.0f;
-                    if (route.Count > 0)
-                    {
-                        routePoint = route.First.Value;
-                        direction = (routePoint.destination - transform.position).normalized;
-                        inputCooldown = (routePoint.destination - transform.position).magnitude / speed; // routePoint.timestamp - Time.time;
-                    }
+                //inputCooldown = direction.magnitude * 5.3f / speed;
+                speed = 5.33f; // 1.6f;
+                route = region.GetRoute(transform.position, transform.position + direction, speed, 0.0f);
+                //direction.Normalize();
+                inputCooldown = 0.0f;
+                direction *= 0.0f;
+                if (route.Count > 0)
+                {
+                    routePoint = route.First.Value;
+                    direction = (routePoint.destination - transform.position).normalized;
+                    inputCooldown = (routePoint.destination - transform.position).magnitude / speed; // routePoint.timestamp - Time.time;
+                }
                 //}
                 //else
                 //{
@@ -828,7 +836,7 @@ public class RegionMoveController : MonoBehaviour {
             normalDirection.Normalize();
             v3 = new Vector3(normalDirection.x, 0.0f, normalDirection.z);
             smoothDirection.Normalize();
-            f = Mathf.Min(0.33f, Time.deltaTime * 5.0f);
+            f = Mathf.Min(0.33f, Time.deltaTime * 15.0f);
             smoothDirection = smoothDirection * (1.0f - f) + new Vector3(v3.x, v3.z, 0.0f) * f;
             playerIcon.transform.localRotation = Quaternion.LookRotation(smoothDirection, -Vector3.forward);
         }
@@ -862,17 +870,17 @@ public class RegionMoveController : MonoBehaviour {
             //animTime = 0.0f;
         }
         animTime += Time.deltaTime;
-        if (animTime > 6.0f)
+        if (animTime > 360.0f * 0.3f)
         {
-            animTime -= 6.0f;
+            animTime -= 360.0f * 0.3f;
         }
 
-        //Debug.Log("anim[stay] enabled: " + anim["stay"].enabled + " layer: " + anim["stay"].layer + " weight: " + anim["stay"].weight);
+        //Debug.Log("anim[stay] enabled: " + anim["Idle"].enabled + " layer: " + anim["Idle"].layer + " weight: " + anim["Idle"].weight);
 
-        anim["stay"].weight = (1.0f - animMoveWeight) * 100.0f;
-        anim["move"].weight = animMoveWeight * 100.0f;
-        anim["stay"].time = 0.0f;
-        anim["move"].time = animTime * 1.5f;
+        anim["Idle"].weight = (1.0f - animMoveWeight) * 100.0f;
+        anim["Run"].weight = animMoveWeight * 100.0f;
+        anim["Idle"].time = animTime * 1.0f;
+        //anim["Run"].time = animTime * 0.3f;
 
 
         /*

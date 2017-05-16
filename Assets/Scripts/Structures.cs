@@ -2709,3 +2709,49 @@ public class NearbyPlayersListMessage : BaseObjectMessage
 
 }
 
+public class PlayerItemNode
+{
+    public int itemId = 0;
+    public int itemAmount = 0;
+}
+
+public class PlayerInventoryMessage : BaseObjectMessage
+{
+
+    public LinkedList<PlayerItemNode> items;
+
+    public PlayerInventoryMessage() : base()
+    {
+        items = new LinkedList<PlayerItemNode>();
+    }
+
+    public PlayerInventoryMessage(float currentTimestamp, float targetTimemark) : base(currentTimestamp, targetTimemark)
+    {
+    }
+
+    public override byte[] Pack()
+    {
+        int index = 0;
+        byte[] data = new byte[0];
+        return data;
+    }
+
+    public override void Unpack(byte[] data)
+    {
+        int i;
+        PlayerItemNode node;
+        int index = 8;
+        int amount = (int)GetUInt(data, ref index);
+        Debug.Log("ITEMS AMOUNT: " + amount);
+        for (i = 0; i < amount; i++)
+        {
+            node = new PlayerItemNode();
+            node.itemId = (int)GetUInt(data, ref index);
+            node.itemAmount = (int)GetUInt(data, ref index);
+            Debug.Log("ITEM[" + node.itemId + "]: " + node.itemAmount);
+            items.AddLast(node);
+        }
+    }
+
+}
+

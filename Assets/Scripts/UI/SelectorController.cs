@@ -161,7 +161,7 @@ public class SelectorController : MonoBehaviour {
         pointerTime = 0.0f;
     }
 
-    void UpdatePosition()
+    public void UpdatePosition()
     {
         EventHandler<SelectorCounterEventArgs> handler = OnPositionUpdate;
         if(handler != null)
