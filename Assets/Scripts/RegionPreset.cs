@@ -61,7 +61,7 @@ public class RegionPreset : MonoBehaviour {
         RegionCollider collider = new RegionCollider();
         collider.position = obj.transform.position;
         collider.position.y = 0.0f;
-        collider.radius = obj.transform.localScale.x + 0.1f;
+        collider.radius = obj.transform.localScale.x;
         colliders.AddLast(collider);
     }
 

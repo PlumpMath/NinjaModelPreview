@@ -14,6 +14,10 @@ public class RegionMoveController : MonoBehaviour {
     public Canvas mainCanvas;
     public Animation anim;
     public GameObject playerIcon;
+    public GameObject playerIconOuter;
+    public GameObject playerIconInner;
+    public Transform[] locomotionBones;
+    public Rigidbody[] turbulencedBones = new Rigidbody[0];
     public SpriteRenderer playerIconRenderer;
     public SpriteRenderer playerFaceRenderer;
     public SpriteRenderer battleIcon;
@@ -74,9 +78,11 @@ public class RegionMoveController : MonoBehaviour {
     public Vector3 direction = Vector3.zero;
     public Vector3 normalDirection = Vector3.forward;
     private Vector3 smoothDirection = Vector3.zero;
+    private Vector3 adaptiveSmoothDirection = Vector3.zero;
     public Vector3 inputDirection = Vector3.zero;
     public Vector3 lastInputDirection = Vector3.zero;
     private bool inputTouched = false;
+    public float smoothLean = 0.0f;
     public float battleCooldown = 0.0f;
     private float botActionCooldown = 0.0f;
     private float bushDistanceTraveled = 0.0f;
@@ -92,6 +98,8 @@ public class RegionMoveController : MonoBehaviour {
     public float animMoveWeight = 0.0f;
 
     public Transform[] clothTailTransforms = new Transform[0];
+
+    public float animSpeedScale = 1.0f;
     
     public void SwitchInputMode(int mode)
     {
@@ -335,18 +343,41 @@ public class RegionMoveController : MonoBehaviour {
         }
         */
 
+        anim["Walk"].enabled = false;
         anim["Idle"].enabled = true;
-        anim["Run"].enabled = true;
         anim["Idle"].blendMode = AnimationBlendMode.Blend;
-        anim["Run"].blendMode = AnimationBlendMode.Blend;
         anim["Idle"].wrapMode = WrapMode.Loop;
-        anim["Run"].wrapMode = WrapMode.Loop;
         anim["Idle"].layer = 1;
-        anim["Run"].layer = 1;
         anim["Idle"].weight = 100.0f;
+        anim["Idle"].speed = 1.0f;
+
+        anim["Run"].enabled = true;
+        anim["Run"].blendMode = AnimationBlendMode.Blend;
+        anim["Run"].wrapMode = WrapMode.Loop;
+        anim["Run"].layer = 1;
         anim["Run"].weight = 0.0f;
-        anim["Idle"].speed = 0.01f;
-        anim["Run"].speed = 1.0f; //0.3f;
+        anim["Run"].speed = 0.66f; //0.58f; //0.3f;
+
+        anim["Spear_In"].enabled = false;
+        anim["Spear_In"].blendMode = AnimationBlendMode.Blend;
+        anim["Spear_In"].wrapMode = WrapMode.ClampForever;
+        anim["Spear_In"].layer = 1;
+        anim["Spear_In"].weight = 0.0f;
+        anim["Spear_In"].speed = 1.0f;
+
+        anim["Spear_Out"].enabled = false;
+        anim["Spear_Out"].blendMode = AnimationBlendMode.Blend;
+        anim["Spear_Out"].wrapMode = WrapMode.ClampForever;
+        anim["Spear_Out"].layer = 1;
+        anim["Spear_Out"].weight = 0.0f;
+        anim["Spear_Out"].speed = 1.0f;
+
+        anim["Spear_Idle"].enabled = false;
+        anim["Spear_Idle"].blendMode = AnimationBlendMode.Blend;
+        anim["Spear_Idle"].wrapMode = WrapMode.Loop;
+        anim["Spear_Idle"].layer = 1;
+        anim["Spear_Idle"].weight = 0.0f;
+        anim["Spear_Idle"].speed = 1.0f;
 
         for (i = 0; i < clothTailTransforms.Length; i++)
         {
@@ -417,8 +448,10 @@ public class RegionMoveController : MonoBehaviour {
         bool stop = true;
         bool touched = false;
         float f;
+        float sign;
         float posX = 0.0f;
         float posY = 0.0f;
+        Quaternion q;
         RoutePoint routePoint;
         RegionBotBehavior bot;
         LinkedListNode<RegionBotBehavior> botNode;
@@ -639,7 +672,7 @@ public class RegionMoveController : MonoBehaviour {
                     inputDirection.x = posX / (float)Screen.width - 0.5f;
                     inputDirection.z = Mathf.Max(-0.5f, Mathf.Min(0.5f, (posY - (float)Screen.height * 0.5f) / (float)Screen.width));
                     inputDirection.z *= 1.6f;
-                    Vector3 cameraShift = camera.transform.position - transform.position + Vector3.forward * 10.0f;
+                    Vector3 cameraShift = camera.transform.position - transform.position + Vector3.forward * 5.0f;
                     cameraShift.y = 0.0f;
                     cameraShift.x /= 2.7f * 2.0f;
                     cameraShift.z /= 2.7f * 2.0f;
@@ -658,7 +691,7 @@ public class RegionMoveController : MonoBehaviour {
                 inputDirection.x = posX / (float)Screen.width - 0.5f;
                 inputDirection.z = Mathf.Max(-0.5f, Mathf.Min(0.5f, (posY - (float)Screen.height * 0.5f) / (float)Screen.width));
                 inputDirection.z *= 1.6f;
-                Vector3 cameraShift = camera.transform.position - transform.position + Vector3.forward * 10.0f;
+                Vector3 cameraShift = camera.transform.position - transform.position + Vector3.forward * 5.0f;
                 cameraShift.y = 0.0f;
                 cameraShift.x /= 2.7f * 2.0f;
                 cameraShift.z /= 2.7f * 2.0f;
@@ -743,7 +776,7 @@ public class RegionMoveController : MonoBehaviour {
                 //if (inputTargetingCooldown > 0.1f)
                 //{
                 //inputCooldown = direction.magnitude * 5.3f / speed;
-                speed = 5.33f; // 1.6f;
+                speed = 2.1f; //5.33f; // 1.6f;
                 route = region.GetRoute(transform.position, transform.position + direction, speed, 0.0f);
                 //direction.Normalize();
                 inputCooldown = 0.0f;
@@ -778,7 +811,7 @@ public class RegionMoveController : MonoBehaviour {
         }
 
         Vector2 position2D = new Vector2(transform.position.x, transform.position.z);
-        Vector2 direction2D = new Vector2(direction.x, direction.z);
+        Vector2 direction2D = new Vector2(adaptiveSmoothDirection.x, adaptiveSmoothDirection.z) * direction.magnitude;//new Vector2(direction.x, direction.z);
         Vector2 newPosition2D = position2D + direction2D * speed * Time.deltaTime;
 
         if (inputSendCooldown <= 0.0f)
@@ -836,14 +869,62 @@ public class RegionMoveController : MonoBehaviour {
             normalDirection.Normalize();
             v3 = new Vector3(normalDirection.x, 0.0f, normalDirection.z);
             smoothDirection.Normalize();
-            f = Mathf.Min(0.33f, Time.deltaTime * 15.0f);
-            smoothDirection = smoothDirection * (1.0f - f) + new Vector3(v3.x, v3.z, 0.0f) * f;
-            playerIcon.transform.localRotation = Quaternion.LookRotation(smoothDirection, -Vector3.forward);
+            //f = Mathf.Min(0.1f, Time.deltaTime * 6.0f);
+            //smoothDirection = smoothDirection * (1.0f - f) + new Vector3(v3.x, v3.z, 0.0f) * f;
+            f = Mathf.Min(1.0f, Time.deltaTime * 1.0f);
+            smoothDirection = Vector3.RotateTowards(smoothDirection, v3, f * Mathf.PI, 1.0f);
+            adaptiveSmoothDirection = new Vector3(smoothDirection.x, 0.0f, smoothDirection.z);
+
+            v3 = new Vector3(v3.x, v3.z, 0.0f);
+            q = Quaternion.LookRotation(smoothDirection, Vector3.up);
+
+            float eulerYn = q.eulerAngles.y;
+            float eulerYc = playerIcon.transform.localRotation.eulerAngles.y;
+
+            if (eulerYc - eulerYn > 180.0f)
+            {
+                eulerYc -= 360.0f;
+            }
+            else if(eulerYn - eulerYc > 180.0f)
+            {
+                eulerYc += 360.0f;
+            }
+
+            //Debug.Log("Q2: " + eulerXc + " -> " + eulerXn + " (d: " + (eulerXc - eulerXn) + ")");
+
+            sign = 1.0f;
+            if (eulerYc > eulerYn)
+            {
+                sign = -1.0f;
+            }
+            f = Mathf.Min(0.1f, Time.deltaTime * 5.0f);
+            smoothLean = smoothLean * (1.0f - f) + Mathf.Min(0.33f, Mathf.Max(-0.33f, Vector3.Angle(adaptiveSmoothDirection, normalDirection) * 0.01f * sign)) * f;
+
+            playerIcon.transform.localRotation = q;
+            playerIconInner.transform.localRotation = Quaternion.LookRotation(Vector3.forward, Vector3.up + Vector3.right * smoothLean);
+            //playerIconOuter.transform.localPosition = playerIconOuter.transform.localPosition * Mathf.Max(0.0f, 1.0f - Time.deltaTime * 1.5f);
+            //playerIconOuter.transform.position += adaptiveSmoothDirection * 1.6f * 3.0f * Vector3.Angle(adaptiveSmoothDirection, normalDirection) / 180.0f * Time.deltaTime;
+
+
+            for(i = 0; i < turbulencedBones.Length; i++)
+            {
+                turbulencedBones[i].AddForce((Vector3.up * (Mathf.Sin(Time.time * 15.0f + turbulencedBones[i].transform.position.x * 5.0f) + 0.7f) * 10.0f) * 50.0f * Time.deltaTime);
+            }
+
+        }
+        else
+        {
+            if (Mathf.Abs(smoothLean) > 0.05f)
+            {
+                smoothLean *= (1.0f - Time.deltaTime * 2.0f);
+                playerIconInner.transform.localRotation = Quaternion.LookRotation(Vector3.forward, Vector3.up + Vector3.right * smoothLean);
+            }
         }
 
         ParticleSystem.EmissionModule emission1 = stepsPS1.emission;
         ParticleSystem.EmissionModule emission2 = stepsPS2.emission;
 
+        /*
         if (direction.magnitude <= 0.5f && emission2.enabled)
         {
             emission1.enabled = false;
@@ -859,17 +940,18 @@ public class RegionMoveController : MonoBehaviour {
             emission1.enabled = false;
             emission2.enabled = true;
         }
-
+        */
         if(direction.magnitude > 0.1f)
         {
-            animMoveWeight = Mathf.Min(1.0f, animMoveWeight + Time.deltaTime * 2.0f);
+            animMoveWeight = Mathf.Min(1.0f, animMoveWeight + Time.deltaTime * 5.0f);
         }
         else
         {
-            animMoveWeight = Mathf.Max(0.0f, animMoveWeight - Time.deltaTime * 2.0f);
+            animMoveWeight = Mathf.Max(0.0f, animMoveWeight - Time.deltaTime * 5.0f);
             //animTime = 0.0f;
         }
-        animTime += Time.deltaTime;
+
+        animTime += Time.deltaTime * (1.0f + Mathf.Abs(smoothLean) * 0.5f - Mathf.Max(0.0f, (Vector3.Angle(adaptiveSmoothDirection, normalDirection) - 120.0f) / 60.0f));
         if (animTime > 360.0f * 0.3f)
         {
             animTime -= 360.0f * 0.3f;
@@ -879,8 +961,81 @@ public class RegionMoveController : MonoBehaviour {
 
         anim["Idle"].weight = (1.0f - animMoveWeight) * 100.0f;
         anim["Run"].weight = animMoveWeight * 100.0f;
-        anim["Idle"].time = animTime * 1.0f;
-        //anim["Run"].time = animTime * 0.3f;
+        //anim["Idle"].time = animTime * 1.0f;
+        //anim["Run"].time = animTime * 1.0f;
+
+
+        if (hook.throwing)
+        {
+            if (hook.throwingTime > 0.433f)
+            {
+                if (!anim["Spear_Idle"].enabled)
+                {
+                    anim["Spear_Idle"].time = 0.0f;
+                    anim["Spear_Idle"].weight = 0.0f;
+                    anim["Spear_Idle"].enabled = true;
+                }
+                if (anim["Spear_In"].weight > 0.0f)
+                {
+                    anim["Spear_In"].weight -= 50000.0f * Time.deltaTime;
+                }
+                if (anim["Spear_Idle"].weight < 10000.0f)
+                {
+                    anim["Spear_Idle"].weight += 50000.0f * Time.deltaTime;
+                }
+            }
+            else
+            {
+                if (!anim["Spear_In"].enabled)
+                {
+                    anim["Spear_In"].time = 0.0f;
+                    anim["Spear_In"].weight = 0.0f;
+                    anim["Spear_In"].enabled = true;
+                }
+                if (anim["Spear_In"].weight < 10000.0f)
+                {
+                    anim["Spear_In"].weight += 50000.0f * Time.deltaTime;
+                }
+            }
+        }
+        else
+        {
+            if (hook.rollback)
+            {
+                if (!anim["Spear_Out"].enabled)
+                {
+                    anim["Spear_Out"].time = 0.0f;
+                    anim["Spear_Out"].weight = 0.0f;
+                    anim["Spear_Out"].enabled = true;
+                }
+                if (anim["Spear_Idle"].weight > 0.0f)
+                {
+                    anim["Spear_Idle"].weight -= 50000.0f * Time.deltaTime;
+                }
+                if (anim["Spear_Out"].weight < 10000.0f)
+                {
+                    anim["Spear_Out"].weight += 50000.0f * Time.deltaTime;
+                }
+                anim["Idle"].time = 0.0f;
+            }
+            else
+            {
+                if (anim["Spear_Out"].weight > 0.0f)
+                {
+                    if(anim["Spear_Out"].weight > 500.0f)
+                    {
+                        anim["Spear_Out"].weight = 500.0f;
+                    }
+                    anim["Spear_Out"].weight -= 2000.0f * Time.deltaTime;
+                }
+                else
+                {
+                    anim["Spear_Out"].enabled = false;
+                    anim["Spear_In"].enabled = false;
+                    anim["Spear_Idle"].enabled = false;
+                }
+            }
+        }
 
 
         /*
@@ -943,7 +1098,9 @@ public class RegionMoveController : MonoBehaviour {
         }
         */
 
-        camera.transform.position += new Vector3(transform.position.x - camera.transform.position.x, 0.0f, transform.position.z - camera.transform.position.z - 10.0f) * Time.deltaTime * 5.0f;
+        v3 = transform.position + adaptiveSmoothDirection * direction.magnitude * 1.0f;
+
+        camera.transform.position += new Vector3(v3.x - camera.transform.position.x, 0.0f, v3.z - camera.transform.position.z - 5.0f) * Time.deltaTime * 3.0f;
         if (camera.transform.position.x < -27.0f)
         {
             camera.transform.position += Vector3.right * (-27.0f - camera.transform.position.x);
@@ -1124,6 +1281,14 @@ public class RegionMoveController : MonoBehaviour {
 
     }
 
+    public void LateUpdate()
+    {
+        int i;
+        locomotionBones[0].Rotate(0.0f, -smoothLean * 60.0f, 0.0f);
+        locomotionBones[1].Rotate(smoothLean * 90.0f, 0.0f, 0.0f);
+        locomotionBones[2].Rotate(smoothLean * 90.0f, 0.0f, 0.0f);
+    }
+
     public void SetState(Vector2 destination, float moveTime)
     {
         if (moveTime == 0.0f)
@@ -1229,7 +1394,7 @@ public class RegionMoveController : MonoBehaviour {
         if(!hook.enabled)
         {
             hook.transform.position = transform.position;
-            v3 = (new Vector3(destination.x, hook.transform.position.y, destination.y) - hook.transform.position);
+            v3 = (new Vector3(destination.x, transform.position.y, destination.y) - transform.position);
             hook.velocity = v3.normalized * (v3.magnitude / time);
             //hook.destinationTimemark = time;
             hook.cooldown = 8.0f;
@@ -1238,7 +1403,7 @@ public class RegionMoveController : MonoBehaviour {
         }
         else if(destination.magnitude != 0.0f)
         {
-            v3 = new Vector3(destination.x, 0.0f, destination.y) - hook.transform.position;
+            v3 = new Vector3(destination.x, hook.transform.position.y, destination.y) - hook.transform.position;
             v3.y = 0.0f;
             hook.velocity = v3.normalized * (v3.magnitude / time);
             hook.Move(time);

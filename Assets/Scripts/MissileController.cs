@@ -24,8 +24,12 @@ public class MissileController : MonoBehaviour {
     void Start () {
 
         name = "MissileObject";
-        rigidbody = GetComponent<Rigidbody>();
+        rigidbody = gameObject.GetComponent<Rigidbody>();
+        rigidbody.collisionDetectionMode = CollisionDetectionMode.Continuous;
+        //SphereCollider collider = gameObject.AddComponent<SphereCollider>();
         GameObject.Destroy(gameObject, 20.0f);
+
+        transform.localScale = Vector3.one * 0.02f;
 
     }
 
@@ -57,7 +61,10 @@ public class MissileController : MonoBehaviour {
                     torsion.z = 0.0f;
                 }
                 transform.Rotate(torsion.x * Time.deltaTime, torsion.z * Time.deltaTime /* torsion.y * Time.deltaTime */, -2.0f * torsion.y * Time.deltaTime);
-                meshObject.transform.Rotate(0.0f, 0.0f, -(passiveRotation + 50.0f * torsion.y) * Time.deltaTime);
+                if (meshObject != null)
+                {
+                    meshObject.transform.Rotate(0.0f, 0.0f, -(passiveRotation + 50.0f * torsion.y) * Time.deltaTime);
+                }
             }
             if (rigidbody != null)
             {
@@ -144,7 +151,7 @@ public class MissileController : MonoBehaviour {
             }
             for (i = 0; i < trails.Length; i++)
             {
-                GameObject.Destroy(trails[i].gameObject);
+                //GameObject.Destroy(trails[i].gameObject);
             }
         }
         GameObject.Destroy(gameObject, 1.0f);

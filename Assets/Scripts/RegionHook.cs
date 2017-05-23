@@ -5,14 +5,17 @@ public class RegionHook : MonoBehaviour {
 
     public GameObject hook;
     public MeshRenderer hookMesh;
+    public MeshRenderer hookInHandMesh;
     public LineRenderer chain;
     public GameObject player;
+    public Transform hookHandBone;
     public float targetRank = 0.0f;
 
     public bool throwing = false;
     public bool rollback = false;
     public Vector3 velocity = new Vector3();
 
+    public float throwingTime = 0.0f;
     public float destinationTimemark = 0.0f;
     public float throwTimemark = 0.0f;
     public float rollbackTimemark = 0.0f;
@@ -43,7 +46,18 @@ public class RegionHook : MonoBehaviour {
 
         direction = player.transform.position - hook.transform.position;
 
-        if(destinationTimemark > 0.0f)
+        throwingTime += Time.deltaTime;
+
+        if (throwingTime > 0.311f && !hookMesh.enabled)
+        {
+            transform.position = player.transform.position;
+            hook.transform.position = hookHandBone.transform.position;
+            hookMesh.enabled = true;
+            hookInHandMesh.enabled = false;
+            chain.enabled = true;
+        }
+
+        if (destinationTimemark > 0.0f)
         {
             c = destinationTimemark / Mathf.Max(0.1f, throwTimemark);
             destinationTimemark -= Time.deltaTime;
@@ -58,7 +72,7 @@ public class RegionHook : MonoBehaviour {
         }
 
 
-        if (direction.magnitude < 1.0f && rollback)
+        if ((direction.magnitude < 0.2f || rollbackTimemark <= 1.0f) && rollback)
         {
             Hide();
             return;
@@ -81,12 +95,24 @@ public class RegionHook : MonoBehaviour {
                 rollbackTimemark = 0.0f;
             }
             direction.y = 0.0f;
-            transform.position = transform.position + direction.normalized * (direction.magnitude - startRollbackDistance + startRollbackDistance * (1.0f - rollbackTimemark));
+            transform.position = transform.position + direction.normalized * (direction.magnitude - startRollbackDistance + startRollbackDistance * Mathf.Max(0.0f, Mathf.Min(1.0f, 2.2f - rollbackTimemark)));
             velocity = Vector3.zero; // direction.normalized * velocity.magnitude;
-            c = 1.0f - Mathf.Abs(rollbackTimemark - 0.5f) * 2.0f;
+            c = 1.0f - Mathf.Abs(rollbackTimemark - 1.5f) * 2.0f;
+            if (rollbackTimemark < 1.35f && hook.transform.position.y < hookHandBone.transform.position.y)
+            {
+                hook.transform.position += Vector3.up * Time.deltaTime * (hookHandBone.transform.position.y - hook.transform.position.y) * 20.0f;
+            }
+            else if (hook.transform.position.y > 0.1f)
+            {
+                hook.transform.position -= Vector3.up * Time.deltaTime * 3.0f;
+                if(hook.transform.position.y < 0.1f)
+                {
+                    hook.transform.position += Vector3.up * (0.1f - hook.transform.position.y);
+                }
+            }
         }
 
-        if (velocity.magnitude > 0.0f)
+        if (velocity.magnitude > 0.0f && throwingTime > 0.311f)
         {
             transform.position += velocity * Time.deltaTime;
         }
@@ -96,37 +122,37 @@ public class RegionHook : MonoBehaviour {
         for (i = 0; i < points.Length; i++)
         {
             f = (float)i / (float)points.Length;
-            v3 = player.transform.position - hook.transform.position;// (-Vector3.up * 0.05f - velocity.normalized * 0.2f * direction.magnitude);
+            v3 = hookHandBone.transform.position - hook.transform.position;// (-Vector3.up * 0.05f - velocity.normalized * 0.2f * direction.magnitude);
             v3.Normalize();
             if (!throwing)
             {
                 if (rollback)
                 {
-                    v3 = new Vector3(v3.z, (Mathf.Abs(v3.x) + Mathf.Abs(v3.z)) * 0.1f, -v3.x) * Mathf.Sin(f * l * 2.0f + Time.time * 5.0f) * 0.5f;
-                    points[i] = (hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f) + (player.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f + v3 * (1.0f - Mathf.Abs(f - 0.5f) * 2.0f) * c;
+                    v3 = new Vector3(v3.z, (Mathf.Abs(v3.x) + Mathf.Abs(v3.z)) * 0.1f, -v3.x) * Mathf.Sin(f * l * 2.0f + Time.time * 15.0f) * 0.5f;
+                    points[i] = (hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f) + (hookHandBone.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f + v3 * (1.0f - Mathf.Abs(f - 0.5f) * 2.0f) * c;
                 }
                 else
                 {
-                    if (i < points.Length / 2)
+                    if (i < 0) //(i < points.Length / 2)
                     {
                         f = (float)i / (float)points.Length * 2.0f * (1.0f - wrappingCooldown);
                         v3 = new Vector3(Mathf.Sin(f * 12.0f) * 0.4f, f, Mathf.Cos(f * 12.0f) * 0.4f);
                         f2 = Mathf.Min(1.0f, (1.0f - f) * 8.0f);
                         f3 = 0.0f;
-                        points[i] = (hook.transform.position + v3) * f2 + ((hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f3) + (player.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f3 + v3 * (1.0f - Mathf.Abs(f3 - 0.5f) * 2.0f) * c) * (1.0f - f2);
+                        points[i] = (hook.transform.position + v3) * f2 + ((hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f3) + (hookHandBone.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f3 + v3 * (1.0f - Mathf.Abs(f3 - 0.5f) * 2.0f) * c) * (1.0f - f2);
                     }
                     else
                     {
-                        f = (float)(i - points.Length / 2) / (float)(points.Length / 2);
+                        f = (float)i / (float)(points.Length); //(float)(i - points.Length / 2) / (float)(points.Length / 2);
                         v3 = new Vector3(v3.z, (Mathf.Abs(v3.x) + Mathf.Abs(v3.z)) * 0.1f, -v3.x) * Mathf.Sin(f * l * 2.0f + Time.time * 5.0f) * 0.5f;
-                        points[i] = (hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f) + (player.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f + v3 * (1.0f - Mathf.Abs(f - 0.5f) * 2.0f) * c;
+                        points[i] = (hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f) + (hookHandBone.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f + v3 * (1.0f - Mathf.Abs(f - 0.5f) * 2.0f) * c;
                     }
                 }
             }
             else
             {
                 v3 = new Vector3(Mathf.Sin(f * 4.0f + Time.time * 5.0f), Mathf.Sin(f * 3.0f + Time.time * 5.0f - 0.5f) + 1.0f, Mathf.Cos(f * 4.0f + Time.time * 5.0f)) * (0.2f + direction.magnitude * 0.5f);
-                points[i] = (hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f) + (player.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f + v3 * (1.0f - Mathf.Pow(Mathf.Abs(f - 0.5f) * 2.0f, 4.0f)) * c;
+                points[i] = (hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f) + (hookHandBone.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f + v3 * (1.0f - Mathf.Pow(Mathf.Abs(f - 0.5f) * 2.0f, 4.0f)) * c;
             }
             if (i > 0)
             {
@@ -152,8 +178,10 @@ public class RegionHook : MonoBehaviour {
 
     public void Hide()
     {
+        throwingTime = 0.0f;
         enabled = false;
         hookMesh.enabled = false;
+        hookInHandMesh.enabled = true;
         hook.transform.position = new Vector3(hook.transform.position.x, -10.0f, hook.transform.position.z);
         chain.enabled = false;
         rollback = false;
@@ -166,9 +194,8 @@ public class RegionHook : MonoBehaviour {
         throwTimemark = destinationTimemark;
         Update();
         enabled = true;
-        hookMesh.enabled = true;
-        chain.enabled = true;
         throwing = true;
+        throwingTime = 0.0f;
     }
 
     public void Move(float throwTime)
@@ -178,8 +205,10 @@ public class RegionHook : MonoBehaviour {
         throwTimemark = destinationTimemark;
         Update();
         enabled = true;
+        /*
         hookMesh.enabled = true;
         chain.enabled = true;
+        */
         throwing = false;
         wrappingCooldown = 1.0f;
     }
@@ -190,7 +219,7 @@ public class RegionHook : MonoBehaviour {
         Vector2 direction = new Vector2(direction3D.x, direction3D.z);
         //velocity = direction.normalized * direction.magnitude / 1.5f;
         startRollbackDistance = direction.magnitude;
-        rollbackTimemark = 1.0f;
+        rollbackTimemark = 2.0f;
         rollback = true;
         throwing = false;
     }

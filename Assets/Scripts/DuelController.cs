@@ -117,6 +117,7 @@ public class DuelController : MonoBehaviour {
                         playerController.obj = playerObject;
                         playerObject.visualObject = playerController;
                         playerController.transform.position = playerObject.position * 50.0f;
+                        playerController.transform.Rotate(0.0f, 180.0f, 0.0f);
                         //playerController.transform.localScale *= 20.0f;
                         if (playerObject.position.z < 0.0f)
                         {
@@ -181,6 +182,7 @@ public class DuelController : MonoBehaviour {
                         missileObject.visualObject = missileController;
                         missileController.transform.position = missileObject.position * 50.0f;
                         //missileController.transform.localScale *= 30.0f;
+                        missileController.transform.localScale = Vector3.one * 0.02f;
                         location.AddObject(missileObject);
                     }
                     //if (Mathf.Abs(newPosition.z) < 0.1f)
@@ -737,6 +739,8 @@ public class DuelController : MonoBehaviour {
         }
         */
 
+        // SET ACTUAL ARMED MISSILE
+        /*
         GameObject.Destroy(armedMissile.GetComponent<MeshFilter>());
         GameObject.Destroy(armedMissile.GetComponent<MeshRenderer>());
         MeshRenderer missile = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/Missiles/missile" + gameMatchMaker.loginController.playerView.weapon + "_" + gameMatchMaker.loginController.playerView.weaponSkin)).GetComponent<MeshRenderer>();
@@ -744,6 +748,9 @@ public class DuelController : MonoBehaviour {
         missile.gameObject.transform.localPosition = Vector3.zero;
         missile.gameObject.transform.localRotation = Quaternion.identity;
         missile.gameObject.transform.localScale = Vector3.one * 1.3f;
+        */
+
+
         //armedMissile.SetMissile((int)gameMatchMaker.loginController.playerView.weapon + 1);
 
         //myMissileId = ((int)gameMatchMaker.loginController.playerView.weapon - 1 * 3) + 1 + (int)gameMatchMaker.loginController.playerView.weaponSkin;
@@ -1162,8 +1169,13 @@ public class DuelController : MonoBehaviour {
         {
             playerObject = (PlayerObject)playerLocationObject;
             staminaConsumption = playerObject.staminaConsumption;
+
+            staminaConsumption = 33.33f;
+
             if (playerObject.stamina >= staminaConsumption)
             {
+                return true; // !!!
+
                 playerObject.stamina -= staminaConsumption;
                 missileController = (Instantiate(missilePrefabs[myMissileId])).AddComponent<MissileController>();
                 missileController.duelController = this;
@@ -1200,7 +1212,7 @@ public class DuelController : MonoBehaviour {
                 Debug.Log("ADD LOCAL MISSILE: " + missileObject.id);
                 location.AddObject(missileObject);
                 missileController.transform.position = missileObject.position * 100.0f;
-                missileController.transform.localScale *= 20.0f;
+                missileController.transform.localScale = Vector3.one * 0.02f; // 20.0f;
 
                 DestroyObjectMessage destroyObjectMessage = new DestroyObjectMessage();
                 destroyObjectMessage.id = missileObject.id;
@@ -1234,6 +1246,9 @@ public class DuelController : MonoBehaviour {
         {
             playerObject = (PlayerObject)playerLocationObject;
             staminaConsumption = playerObject.staminaConsumption;
+
+            staminaConsumption = 33.33f;
+
             if (playerObject.stamina >= staminaConsumption)
             {
 
@@ -1326,6 +1341,7 @@ public class DuelController : MonoBehaviour {
         location.AddObject(playerObject);
 
         playerController = (Instantiate(bodyPrefabs[0])).GetComponent<PlayerController>();
+        playerController.transform.Rotate(0.0f, 180.0f, 0.0f);
         playerController.duelController = this;
         playerObject = new PlayerObject();
         playerObject.position = new Vector3(0.0f, 0.0f, 5.0f);

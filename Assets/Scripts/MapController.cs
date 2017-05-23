@@ -46,6 +46,7 @@ public class MapController : MonoBehaviour {
     public Button mapOpenStoreButton;
     public Button mapOpenTeahouseButton;
     public Button mapOpenInventoryButton;
+    public Button mapOpenWheelOfLuckButton;
     public Text staticGoldLabel;
 
     public Button mapOpenSocialFBButton;
@@ -189,6 +190,10 @@ public class MapController : MonoBehaviour {
 
         mapOpenSocialFBButton.onClick.AddListener(delegate() {
             socialFBView.Open();
+        });
+
+        mapOpenWheelOfLuckButton.onClick.AddListener(delegate () {
+            wheelOfLuckView.Open();
         });
 
         if (loginController.IsConnected())
