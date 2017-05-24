@@ -200,6 +200,8 @@ public class MapController : MonoBehaviour {
         {
             short messageCode = 1201;
             loginController.SendGameMessage(BitConverter.GetBytes(messageCode));
+            messageCode = 1205;
+            loginController.SendGameMessage(BitConverter.GetBytes(messageCode));
         }
        
     }

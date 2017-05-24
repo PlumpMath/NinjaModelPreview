@@ -48,6 +48,8 @@ public class RegionMoveController : MonoBehaviour {
     public MeshRenderer[] mapQuads = new MeshRenderer[3];
     public GameObject timedIconPrefab = null;
 
+    public GameObject[] bodies;
+
     public RegionMap map = new RegionMap();
     public RegionMapNode mapNode = null;
 
@@ -1528,6 +1530,31 @@ public class RegionMoveController : MonoBehaviour {
         // ... show new gold and gold change
         goldLabel.text = "+ " + newGold;
         gold = newGold;
+    }
+
+    public void SetCloth(string id)
+    {
+        int i;
+        bool b = false;
+        string clothId = "Body" + id;
+        for (i = 0; i < bodies.Length; i++)
+        {
+            if(bodies[i].name == clothId)
+            {
+                b = true;
+            }
+        }
+        if(!b)
+        {
+            clothId = "Body10001";
+        }
+        for (i = 0; i < bodies.Length; i++)
+        {
+            if (bodies[i].name.Substring(0, clothId.Length) != clothId)
+            {
+                Destroy(bodies[i]);
+            }
+        }
     }
 
 }

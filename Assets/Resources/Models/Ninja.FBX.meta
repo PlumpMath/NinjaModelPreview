@@ -67,6 +67,10 @@ ModelImporter:
     100118: Bip001 Weapon_L
     100120: Bip001 Weapon_R
     100122: Root
+    100124: Bip001 Cloth_RaidenBack
+    100126: Bip001 Cloth_RaidenFront
+    100128: Raiden
+    100130: RaidenCloth
     400000: Bone001
     400002: Bone002
     400004: cat
@@ -129,11 +133,17 @@ ModelImporter:
     400118: Bip001 Weapon_L
     400120: Bip001 Weapon_R
     400122: Root
+    400124: Bip001 Cloth_RaidenBack
+    400126: Bip001 Cloth_RaidenFront
+    400128: Raiden
+    400130: RaidenCloth
     2300000: Root
     3300000: Root
     4300000: Ninja
     4300002: cat
     4300004: Root
+    4300006: Raiden
+    4300008: RaidenCloth
     9500000: //RootNode
     11100000: //RootNode
     11100002: Bip001
@@ -196,6 +206,8 @@ ModelImporter:
     11100116: Root
     13700000: cat
     13700002: Ninja
+    13700004: Raiden
+    13700006: RaidenCloth
   materials:
     importMaterials: 1
     materialName: 0
@@ -236,9 +248,9 @@ ModelImporter:
     secondaryUVPackMargin: 4
     useFileScale: 1
   tangentSpace:
-    normalSmoothAngle: 60
+    normalSmoothAngle: 0
     normalImportMode: 0
-    tangentImportMode: 3
+    tangentImportMode: 0
   importAnimation: 0
   copyAvatar: 0
   humanDescription:
@@ -251,7 +263,7 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
-    rootMotionBoneName: Bip001
+    rootMotionBoneName: 
     hasTranslationDoF: 1
   lastHumanDescriptionAvatarSource: {instanceID: 0}
   animationType: 1

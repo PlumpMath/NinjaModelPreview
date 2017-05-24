@@ -78,6 +78,8 @@ public class TeahouseView : MonoBehaviour {
         canvas.enabled = false;
         enabled = false;
         map.OnPlayerViewLoaded -= OnPlayerDataLoaded;
+        short messageCode = 1204;
+        map.loginController.SendGameMessage(BitConverter.GetBytes(messageCode));
     }
 
 }

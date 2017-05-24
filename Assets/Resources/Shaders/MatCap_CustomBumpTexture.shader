@@ -78,6 +78,7 @@ Shader "Custom/Bumped/Textured Bumped Add"
 			{
 				fixed4 tex = tex2D(_MainTex, i.uv);
 				fixed3 normals = UnpackNormal(tex2D(_BumpMap, i.uv_bump));
+				normals = fixed3(normals.y, normals.x, normals.z);
 
 			#if MATCAP_ACCURATE
 				//Rotate normals from tangent space to world space
@@ -96,6 +97,8 @@ Shader "Custom/Bumped/Textured Bumped Add"
 
 				fixed avgc = 0.25 + (tex.r + tex.g + tex.b) / 6.0;
 				fixed4 avg = fixed4(avgc, avgc, avgc, 1.0);
+
+				//return fixed4(normals.x, normals.y, normals.z, 1.0f);
 
 				return fixed4((tex.rgb + (mc.rgb*2.0) - 1.0) * mc.a * 1.0 + (avg.rgb * 1.0 + ((mc.rgb*2.0) - 1.0)*1.0) * (1.0 - mc.a), 1.0);
 			}

@@ -277,6 +277,7 @@
     <Compile Include="Assets\Scripts\UI\SelectorItems\WeaponSkinStoreItem.cs" />
     <Compile Include="Assets\Scripts\UI\SetPropertyUtility.cs" />
     <Compile Include="Assets\Scripts\UI\SlotBar.cs" />
+    <Compile Include="Assets\Scripts\UI\UIButton.cs" />
     <Compile Include="Assets\Scripts\UI\UILineTextureRenderer.cs" />
     <Compile Include="Assets\Scripts\UI\UIPrimitiveBase.cs" />
     <Compile Include="Assets\Scripts\UI\Views\BankView.cs" />

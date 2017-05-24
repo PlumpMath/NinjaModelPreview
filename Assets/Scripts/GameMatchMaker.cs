@@ -525,11 +525,13 @@ public class GameMatchMaker : Photon.PunBehaviour
                 //Debug.Log("TIMED ICON MESSAGE");
                 playerDataMessage = new RegionPlayerDataMessage();
                 playerDataMessage.Unpack((byte[])content);
-                regionMoveController.SetGold((int)playerDataMessage.sessionGold);
                 Debug.Log("PlayerData[" + playerDataMessage.playerId + "].playerId: " + playerDataMessage.playerId);
+                Debug.Log("PlayerData[" + playerDataMessage.playerId + "].cloth: " + playerDataMessage.cloth);
                 Debug.Log("PlayerData[" + playerDataMessage.playerId + "].gold: " + playerDataMessage.gold);
                 Debug.Log("PlayerData[" + playerDataMessage.playerId + "].sessionGold: " + playerDataMessage.sessionGold);
                 Debug.Log("PlayerData[" + playerDataMessage.playerId + "].emerald: " + playerDataMessage.emerald);
+                regionMoveController.SetGold((int)playerDataMessage.sessionGold);
+                regionMoveController.SetCloth(playerDataMessage.cloth.ToString());
                 //regionMoveController.ShowEffect(effectMessage.position, effectMessage.iconId);
                 break;
         }
