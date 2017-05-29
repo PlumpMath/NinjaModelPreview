@@ -22,14 +22,34 @@ public class RegionHook : MonoBehaviour {
     public float cooldown = 0.0f;
     public float wrappingCooldown = 0.0f;
 
+    private RegionBodyController body = null;
     private float startRollbackDistance = 0.0f;
 
     private Vector3[] points = new Vector3[60];
 
+    public float ropeScale = 3.5f;
+
     // Use this for initialization
     void Start () {
-	
-	}
+
+        if (player.tag == "Enemy")
+        {
+            RegionBotBehavior target = player.gameObject.GetComponent<RegionBotBehavior>();
+            if (target != null)
+            {
+                body = target.body;
+            }
+        }
+        else if (player.tag == "Player")
+        {
+            RegionMoveController target = player.gameObject.GetComponent<RegionMoveController>();
+            if (target != null)
+            {
+                body = target.body;
+            }
+        }
+
+    }
 	
 	// Update is called once per frame
 	void Update () {
@@ -44,13 +64,19 @@ public class RegionHook : MonoBehaviour {
         Vector3 direction;
         Vector3 v3;
 
-        direction = player.transform.position - hook.transform.position;
+        if(player == null)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        direction = hookHandBone.position - hook.transform.position;
 
         throwingTime += Time.deltaTime;
 
         if (throwingTime > 0.311f && !hookMesh.enabled)
         {
-            transform.position = player.transform.position;
+            transform.position = hookHandBone.position;
             hook.transform.position = hookHandBone.transform.position;
             hookMesh.enabled = true;
             hookInHandMesh.enabled = false;
@@ -112,7 +138,7 @@ public class RegionHook : MonoBehaviour {
             }
         }
 
-        if (velocity.magnitude > 0.0f && throwingTime > 0.311f)
+        if (velocity.magnitude > 0.0f && throwingTime > 0.311f && transform.parent == null)
         {
             transform.position += velocity * Time.deltaTime;
         }
@@ -129,7 +155,7 @@ public class RegionHook : MonoBehaviour {
                 if (rollback)
                 {
                     v3 = new Vector3(v3.z, (Mathf.Abs(v3.x) + Mathf.Abs(v3.z)) * 0.1f, -v3.x) * Mathf.Sin(f * l * 2.0f + Time.time * 15.0f) * 0.5f;
-                    points[i] = (hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f) + (hookHandBone.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f + v3 * (1.0f - Mathf.Abs(f - 0.5f) * 2.0f) * c;
+                    points[i] = (hook.transform.position + direction.normalized * 0.0f) * (1.0f - f) + (hookHandBone.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f + v3 * (1.0f - Mathf.Abs(f - 0.5f) * 2.0f) * c;
                 }
                 else
                 {
@@ -139,20 +165,20 @@ public class RegionHook : MonoBehaviour {
                         v3 = new Vector3(Mathf.Sin(f * 12.0f) * 0.4f, f, Mathf.Cos(f * 12.0f) * 0.4f);
                         f2 = Mathf.Min(1.0f, (1.0f - f) * 8.0f);
                         f3 = 0.0f;
-                        points[i] = (hook.transform.position + v3) * f2 + ((hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f3) + (hookHandBone.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f3 + v3 * (1.0f - Mathf.Abs(f3 - 0.5f) * 2.0f) * c) * (1.0f - f2);
+                        points[i] = (hook.transform.position + v3) * f2 + ((hook.transform.position + direction.normalized * 0.0f) * (1.0f - f3) + (hookHandBone.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f3 + v3 * (1.0f - Mathf.Abs(f3 - 0.5f) * 2.0f) * c) * (1.0f - f2);
                     }
                     else
                     {
                         f = (float)i / (float)(points.Length); //(float)(i - points.Length / 2) / (float)(points.Length / 2);
                         v3 = new Vector3(v3.z, (Mathf.Abs(v3.x) + Mathf.Abs(v3.z)) * 0.1f, -v3.x) * Mathf.Sin(f * l * 2.0f + Time.time * 5.0f) * 0.5f;
-                        points[i] = (hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f) + (hookHandBone.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f + v3 * (1.0f - Mathf.Abs(f - 0.5f) * 2.0f) * c;
+                        points[i] = (hook.transform.position + direction.normalized * 0.0f) * (1.0f - f) + (hookHandBone.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f + v3 * (1.0f - Mathf.Abs(f - 0.5f) * 2.0f) * c;
                     }
                 }
             }
             else
             {
                 v3 = new Vector3(Mathf.Sin(f * 4.0f + Time.time * 5.0f), Mathf.Sin(f * 3.0f + Time.time * 5.0f - 0.5f) + 1.0f, Mathf.Cos(f * 4.0f + Time.time * 5.0f)) * (0.2f + direction.magnitude * 0.5f);
-                points[i] = (hook.transform.position - Vector3.up * 0.05f + direction.normalized * 0.0f) * (1.0f - f) + (hookHandBone.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f + v3 * (1.0f - Mathf.Pow(Mathf.Abs(f - 0.5f) * 2.0f, 4.0f)) * c;
+                points[i] = (hook.transform.position + direction.normalized * 0.0f) * (1.0f - f) + (hookHandBone.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f + v3 * (1.0f - Mathf.Pow(Mathf.Abs(f - 0.5f) * 2.0f, 4.0f)) * c;
             }
             if (i > 0)
             {
@@ -163,7 +189,8 @@ public class RegionHook : MonoBehaviour {
         //points[1] = (hook.transform.position + player.transform.position - direction.normalized * (0.2f * direction.magnitude + 0.1f)) * 0.5f - Vector3.up * 0.05f - velocity.normalized * 0.2f * direction.magnitude;
         //points[2] = player.transform.position - Vector3.up * 0.05f - direction.normalized * 0.3f;
         chain.SetPositions(points);
-        chain.material.SetTextureScale("_MainTex", new Vector2((l - 0.5f) * 7.0f, 1.0f));
+        chain.material.SetTextureScale("_MainTex", new Vector2((l - 0.5f) * ropeScale, 1.0f));
+        chain.material.SetTextureScale("_BumpMap", new Vector2((l - 0.5f) * ropeScale, 1.0f));
         v3 = points[points.Length - 1] - points[points.Length - 2];
         v3.Normalize();
         a = Vector3.Angle(Vector3.forward, v3);
@@ -172,23 +199,29 @@ public class RegionHook : MonoBehaviour {
             a *= -1.0f;
         }
         //a += Mathf.Sin(Time.time * 5.0f) * 20.0f * c;
-        chain.transform.rotation = Quaternion.Euler(0.0f, a, 0.0f);
+        if (transform.parent == null)
+        {
+            chain.transform.rotation = Quaternion.Euler(0.0f, a, 0.0f);
+        }
 
     }
 
     public void Hide()
     {
-        throwingTime = 0.0f;
+        Debug.Log("HOOK HIDE");
         enabled = false;
         hookMesh.enabled = false;
         hookInHandMesh.enabled = true;
         hook.transform.position = new Vector3(hook.transform.position.x, -10.0f, hook.transform.position.z);
         chain.enabled = false;
         rollback = false;
+        throwing = false;
+        throwingTime = 0.0f;
     }
 
     public void Show(float throwTime)
     {
+        Debug.Log("HOOK SHOW");
         hook.transform.position = new Vector3(hook.transform.position.x, 0.1f, hook.transform.position.z);
         destinationTimemark = throwTime;
         throwTimemark = destinationTimemark;
@@ -200,6 +233,9 @@ public class RegionHook : MonoBehaviour {
 
     public void Move(float throwTime)
     {
+        int i;
+
+        Debug.Log("HOOK MOVE");
         //hook.transform.position = new Vector3(hook.transform.position.x, 0.1f, hook.transform.position.z);
         destinationTimemark = throwTime;
         throwTimemark = destinationTimemark;
@@ -211,17 +247,61 @@ public class RegionHook : MonoBehaviour {
         */
         throwing = false;
         wrappingCooldown = 1.0f;
+
+        /* Cling to nearest body for pulling */
+        RaycastHit[] hits = Physics.SphereCastAll(transform.position, 0.5f, Vector3.up);
+        for(i = 0; i < hits.Length; i++)
+        {
+            RaycastHit hit = hits[i];
+            if((hit.collider.tag == "Enemy" || hit.collider.tag == "Player") && hit.collider.gameObject != player.gameObject)
+            {
+                RegionBodyController targetBody = null;
+                RegionHook targetHook = null;
+                if (hit.collider.tag == "Enemy")
+                {
+                    RegionBotBehavior target = hit.collider.gameObject.GetComponent<RegionBotBehavior>();
+                    if (target != null)
+                    {
+                        targetBody = target.body;
+                        targetHook = target.hook;
+                    }
+                }
+                else if(hit.collider.tag == "Player")
+                {
+                    RegionMoveController target = hit.collider.gameObject.GetComponent<RegionMoveController>();
+                    if (target != null)
+                    {
+                        targetBody = target.body;
+                        targetHook = target.hook;
+                    }
+                }
+                if (targetBody != null)
+                {
+                    transform.parent = targetBody.locomotionBones[4].transform;
+                    transform.localPosition = new Vector3(-0.05f, 0.4f, 0.0f);
+                    transform.localRotation = Quaternion.Euler(-90.0f, 90.0f, 0.0f);
+                    if (targetHook != null)
+                    {
+                        if (targetHook.hookInHandMesh.enabled)
+                        {
+                            targetHook.hookInHandMesh.enabled = false;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public void Rollback()
     {
-        Vector3 direction3D = player.transform.position - hook.transform.position;
+        Vector3 direction3D = hookHandBone.position - hook.transform.position;
         Vector2 direction = new Vector2(direction3D.x, direction3D.z);
         //velocity = direction.normalized * direction.magnitude / 1.5f;
         startRollbackDistance = direction.magnitude;
         rollbackTimemark = 2.0f;
         rollback = true;
         throwing = false;
+        transform.parent = null;
     }
 
 }

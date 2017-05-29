@@ -39,6 +39,8 @@ public class LoginController : MonoBehaviour {
     private bool waitingForInternet = false;
     private int waitingConnectType = -1;
 
+    public bool firstConnect = true;
+
     public PlayerViewMessage playerView = null;
 
     // Use this for initialization
@@ -70,11 +72,11 @@ public class LoginController : MonoBehaviour {
         //serverHost = "localhost";
         //
 
-        if (PlayerPrefs.GetInt("LastVersion", 7) < 8)
+        if (PlayerPrefs.GetInt("LastVersion", 8) < 9)
         {
             storedKey = "";
             storedSecret = "";
-            PlayerPrefs.SetInt("LastVersion", 8);
+            PlayerPrefs.SetInt("LastVersion", 9);
             PlayerPrefs.SetString("CredentialsKey", "");
             PlayerPrefs.SetString("CredentialsSecret", "");
         }
@@ -273,7 +275,7 @@ public class LoginController : MonoBehaviour {
 
     void GameReceiveCallback(IAsyncResult result)
     {
-        Debug.Log("GameReceiveCallback() game:" + (gameSocket != null) + " ; updates:" + updates);
+        //Debug.Log("GameReceiveCallback() game:" + (gameSocket != null) + " ; updates:" + updates);
         byte[] rawData;
         gameSocket.Client.EndReceive(result);
         rawData = new byte[2048];

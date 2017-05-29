@@ -9,15 +9,21 @@ public class RegionMoveController : MonoBehaviour {
 
     public GameMatchMaker matchMaker = null;
 
+    public HidingPanelController topPanel;
+    public HidingPanelController bottomLabel;
+
     public float speed = 1.0f;
     public Camera camera;
     public Canvas mainCanvas;
-    public Animation anim;
+    public RegionBodyController body;
+    //public Animation anim;
+    public MeshRenderer overlayMesh;
     public GameObject playerIcon;
     public GameObject playerIconOuter;
     public GameObject playerIconInner;
     public Transform[] locomotionBones;
     public Rigidbody[] turbulencedBones = new Rigidbody[0];
+    public GameObject directionPointer;
     public SpriteRenderer playerIconRenderer;
     public SpriteRenderer playerFaceRenderer;
     public SpriteRenderer battleIcon;
@@ -63,6 +69,8 @@ public class RegionMoveController : MonoBehaviour {
     public float inputTargetingCooldown = 0.0f;
     public float applyInputCooldown = 0.0f;
     public float inputSendCooldown = 0.0f;
+    public float animBlockCooldown = 0.0f;
+    public float animPickupCooldown = 0.0f;
     public float blockInput = 0.0f;
     public int ignoreFinger = -1;
 
@@ -77,10 +85,10 @@ public class RegionMoveController : MonoBehaviour {
 
     public Button traceTypeButton;
 
-    public Vector3 direction = Vector3.zero;
+    public Vector3 direction = Vector3.forward * 0.05f;
     public Vector3 normalDirection = Vector3.forward;
-    private Vector3 smoothDirection = Vector3.zero;
-    private Vector3 adaptiveSmoothDirection = Vector3.zero;
+    private Vector3 smoothDirection = Vector3.forward;
+    private Vector3 adaptiveSmoothDirection = Vector3.forward;
     public Vector3 inputDirection = Vector3.zero;
     public Vector3 lastInputDirection = Vector3.zero;
     private bool inputTouched = false;
@@ -92,12 +100,17 @@ public class RegionMoveController : MonoBehaviour {
     private float smileyCooldown = 0.0f;
     private float leaveCooldown = 0.0f;
     private float releaseProgress = 0.0f;
+    public float animHookLocoAngle = 0.0f;
+    private bool hookAnimSetupMoving = false;
+    public Vector3 lastSearchingPosition = Vector3.up * 1000.0f;
+    public float searchingCooldown = 0.0f;
 
     private LinkedList<RegionBotBehavior> bots = new LinkedList<RegionBotBehavior>();
     private LinkedList<RoutePoint> route = new LinkedList<RoutePoint>();
 
     private float animTime = 0.0f;
     public float animMoveWeight = 0.0f;
+    public float animSearchingWeight = 0.0f;
 
     public Transform[] clothTailTransforms = new Transform[0];
 
@@ -328,6 +341,11 @@ public class RegionMoveController : MonoBehaviour {
         region = ((GameObject)GameObject.Instantiate(Resources.Load("Prefabs/Regions/Region" + currentRegionId))).GetComponent<RegionPreset>();
         region.transform.position = new Vector3(0.0f, -0.015f, 0.0f);
 
+        if(currentRegionId == "01")
+        {
+            SetStatusText("Долина змеиной головы");
+        }
+
         GameObject gameNetworkGO = GameObject.Find("GameNetwork");
         if (gameNetworkGO != null)
         {
@@ -345,6 +363,7 @@ public class RegionMoveController : MonoBehaviour {
         }
         */
 
+        /*
         anim["Walk"].enabled = false;
         anim["Idle"].enabled = true;
         anim["Idle"].blendMode = AnimationBlendMode.Blend;
@@ -352,6 +371,13 @@ public class RegionMoveController : MonoBehaviour {
         anim["Idle"].layer = 1;
         anim["Idle"].weight = 100.0f;
         anim["Idle"].speed = 1.0f;
+
+        anim["Searching"].enabled = false;
+        anim["Searching"].blendMode = AnimationBlendMode.Blend;
+        anim["Searching"].wrapMode = WrapMode.Loop;
+        anim["Searching"].layer = 1;
+        anim["Searching"].weight = 0.0f;
+        anim["Searching"].speed = 1.0f;
 
         anim["Run"].enabled = true;
         anim["Run"].blendMode = AnimationBlendMode.Blend;
@@ -381,11 +407,47 @@ public class RegionMoveController : MonoBehaviour {
         anim["Spear_Idle"].weight = 0.0f;
         anim["Spear_Idle"].speed = 1.0f;
 
+        anim["Spear_In"].AddMixingTransform(locomotionBones[3]);
+        anim["Spear_Idle"].AddMixingTransform(locomotionBones[3]);
+        anim["Spear_Out"].AddMixingTransform(locomotionBones[3]);
+
+        anim["Spear_Damage_Attacker"].enabled = false;
+        anim["Spear_Damage_Attacker"].blendMode = AnimationBlendMode.Blend;
+        anim["Spear_Damage_Attacker"].wrapMode = WrapMode.ClampForever;
+        anim["Spear_Damage_Attacker"].layer = 2;
+        anim["Spear_Damage_Attacker"].weight = 1.0f;
+        anim["Spear_Damage_Attacker"].speed = 1.0f;
+
+        anim["Spear_Damage_Victim"].enabled = false;
+        anim["Spear_Damage_Victim"].blendMode = AnimationBlendMode.Blend;
+        anim["Spear_Damage_Victim"].wrapMode = WrapMode.ClampForever;
+        anim["Spear_Damage_Victim"].layer = 2;
+        anim["Spear_Damage_Victim"].weight = 1.0f;
+        anim["Spear_Damage_Victim"].speed = 1.0f;
+
+        anim["Spear_DamagePull_Attacker"].enabled = false;
+        anim["Spear_DamagePull_Attacker"].blendMode = AnimationBlendMode.Blend;
+        anim["Spear_DamagePull_Attacker"].wrapMode = WrapMode.Loop;
+        anim["Spear_DamagePull_Attacker"].layer = 2;
+        anim["Spear_DamagePull_Attacker"].weight = 1.0f;
+        anim["Spear_DamagePull_Attacker"].speed = 1.0f;
+
+        anim["Spear_DamagePull_Victim"].enabled = false;
+        anim["Spear_DamagePull_Victim"].blendMode = AnimationBlendMode.Blend;
+        anim["Spear_DamagePull_Victim"].wrapMode = WrapMode.Loop;
+        anim["Spear_DamagePull_Victim"].layer = 2;
+        anim["Spear_DamagePull_Victim"].weight = 1.0f;
+        anim["Spear_DamagePull_Victim"].speed = 1.0f;
+        */
+
+
         for (i = 0; i < clothTailTransforms.Length; i++)
         {
             //anim["Idle"].RemoveMixingTransform(clothTailTransforms[i]);
             //anim["Run"].RemoveMixingTransform(clothTailTransforms[i]);
         }
+
+        overlayMesh.transform.localScale = new Vector3(overlayMesh.transform.localScale.y * ((float)Screen.width / (float)Screen.height), overlayMesh.transform.localScale.y, 1.0f);
 
     }
 
@@ -511,6 +573,9 @@ public class RegionMoveController : MonoBehaviour {
             }
         }
 
+        float xEdge = 5.0f * (float)Screen.width / (float)Screen.height;
+        float yEdge = 5.0f;
+
         botActionCooldown -= Time.deltaTime;
         if (botActionCooldown < 0.0f)
         {
@@ -528,6 +593,10 @@ public class RegionMoveController : MonoBehaviour {
                     bot.direction.Normalize();
                 }
                 */
+
+                bot.xEdge = xEdge;
+                bot.yEdge = yEdge;
+
                 v3 = bot.transform.position - transform.position;
                 if(v3.magnitude < bot.visibleDistance)
                 {
@@ -537,10 +606,10 @@ public class RegionMoveController : MonoBehaviour {
                         {
                             bot.isGoodVisible = true;
                             bot.isVisible = true;
-                            bot.playerIconRenderer.enabled = true;
-                            bot.playerFaceRenderer.enabled = true;
-                            bot.playerIconRenderer.color = new Color(1.0f, 0.5f, 0.5f, 1.0f);
-                            bot.playerFaceRenderer.color = new Color(1.0f, 0.5f, 0.5f, 1.0f);
+                            //bot.playerIconRenderer.enabled = true;
+                            //bot.playerFaceRenderer.enabled = true;
+                            //bot.playerIconRenderer.color = new Color(1.0f, 0.5f, 0.5f, 1.0f);
+                            //bot.playerFaceRenderer.color = new Color(1.0f, 0.5f, 0.5f, 1.0f);
                         }
                     }
                     else
@@ -549,10 +618,10 @@ public class RegionMoveController : MonoBehaviour {
                         {
                             bot.isVisible = true;
                             bot.isGoodVisible = false;
-                            bot.playerIconRenderer.enabled = true;
-                            bot.playerFaceRenderer.enabled = true;
-                            bot.playerIconRenderer.color = new Color(1.0f, 0.5f, 0.5f, 0.25f);
-                            bot.playerFaceRenderer.color = new Color(1.0f, 0.5f, 0.5f, 0.25f);
+                            //bot.playerIconRenderer.enabled = true;
+                            //bot.playerFaceRenderer.enabled = true;
+                            //bot.playerIconRenderer.color = new Color(1.0f, 0.5f, 0.5f, 0.25f);
+                            //bot.playerFaceRenderer.color = new Color(1.0f, 0.5f, 0.5f, 0.25f);
                         }
                     }
                 }
@@ -562,19 +631,23 @@ public class RegionMoveController : MonoBehaviour {
                     {
                         bot.isVisible = false;
                         bot.isGoodVisible = false;
-                        bot.playerIconRenderer.enabled = false;
-                        bot.playerFaceRenderer.enabled = false;
+                        //bot.playerIconRenderer.enabled = false;
+                        //bot.playerFaceRenderer.enabled = false;
                     }
                 }
-                if((v3.x > 2.7f || v3.x < -2.7f || v3.y > 5.0f || v3.y < -5.0f) && !bot.offscreenPointer.enabled && bot.isVisible)
+
+                bot.xx1 = v3.x;
+                bot.yy1 = v3.z;
+
+                if ((v3.x > -xEdge || v3.x < xEdge || v3.z > -yEdge || v3.z < yEdge) && !bot.offscreenPointer.enabled && bot.isVisible)
                 {
                     bot.offscreenPointer.enabled = true;
                 }
                 if(bot.offscreenPointer.enabled)
                 {
-                    bot.offscreenPointer.color = new Color(1.0f, 0.5f, 0.5f, Mathf.Max(0.0f, Mathf.Min(1.0f, 1.0f - (v3.magnitude - 2.7f) / (bot.visibleDistance - 2.7f))));
+                    bot.offscreenPointer.color = new Color(1.0f, 0.5f, 0.5f, Mathf.Max(0.0f, Mathf.Min(1.0f, 1.0f - (v3.magnitude - xEdge) / (bot.visibleDistance - xEdge))));
                 }
-                if (((v3.x <= 2.7f && v3.x >= -2.7f && v3.y <= 5.0f && v3.y >= -5.0f) && bot.offscreenPointer.enabled) || !bot.isVisible)
+                if (((v3.x <= xEdge && v3.x >= -xEdge && v3.z <= yEdge && v3.z >= -yEdge) && bot.offscreenPointer.enabled) /*|| !bot.isVisible*/)
                 {
                     bot.offscreenPointer.enabled = false;
                 }
@@ -589,16 +662,30 @@ public class RegionMoveController : MonoBehaviour {
             if (bot.offscreenPointer.enabled)
             {
                 v3 = bot.transform.position - transform.position;
-                v3.x /= 2.7f;
-                v3.z /= 5.0f;
+                float halfWidth = (((float)Screen.width) / mainCanvas.scaleFactor - 24.0f) / 2.0f;
+                float halfHeight = (((float)Screen.height) / mainCanvas.scaleFactor - 24.0f) / 2.0f;
+                v3 = v3.normalized * halfHeight;
+                if (Mathf.Abs(v3.x) / Mathf.Abs(v3.z) > halfWidth / halfHeight)
+                {
+                    v3.z = v3.z * (halfWidth * v3.x / Mathf.Abs(v3.x)) / v3.x;
+                    v3.x = halfWidth * v3.x / Mathf.Abs(v3.x);
+                }
+                else
+                {
+                    v3.x = v3.x * (halfHeight * v3.z / Mathf.Abs(v3.z)) / v3.z;
+                    v3.z = halfHeight * v3.z / Mathf.Abs(v3.z);
+                }
+                bot.offscreenPointer.rectTransform.anchoredPosition = new Vector2(v3.x, v3.z);
+                /*
                 if(Mathf.Abs(v3.x) > Mathf.Abs(v3.z))
                 {
-                    bot.offscreenPointer.rectTransform.anchoredPosition = new Vector2(v3.x / Mathf.Abs(v3.x) * (((float)Screen.width) / mainCanvas.scaleFactor - 24.0f) / 2.0f, v3.z * ((float)Screen.height) / mainCanvas.scaleFactor / 2.0f);
+                    bot.offscreenPointer.rectTransform.anchoredPosition = new Vector2(v3.x / Mathf.Abs(v3.x) * (((float)Screen.width) / mainCanvas.scaleFactor - 24.0f) / 2.0f, v3.z * (((float)Screen.height) / mainCanvas.scaleFactor - 24.0f) / 2.0f);
                 }
                 else
                 {
                     bot.offscreenPointer.rectTransform.anchoredPosition = new Vector2(v3.x * (((float)Screen.width) / mainCanvas.scaleFactor - 24.0f) / 2.0f, v3.z / Mathf.Abs(v3.z) * ((float)Screen.height) / mainCanvas.scaleFactor / 2.0f);
                 }
+                */
             }
             botNode = botNode.Next;
         }
@@ -728,11 +815,56 @@ public class RegionMoveController : MonoBehaviour {
             {
                 blockInput = 0.0f;
             }
+
+
+            /*
+            if (pullingTime <= 0.0f)
+            {
+                if(hook.hookMesh.enabled)
+                {
+                    anim["Spear_Damage_Attacker"].time = 0.0f;
+                    anim["Spear_Damage_Attacker"].enabled = true;
+                }
+                else
+                {
+                    anim["Spear_Damage_Victim"].time = 0.0f;
+                    anim["Spear_Damage_Victim"].enabled = true;
+                }
+            }
+            else
+            {
+                if(pullingTime >= 0.667f && anim["Spear_Damage_Attacker"].enabled)
+                {
+                    anim["Spear_DamagePull_Attacker"].time = 0.0f;
+                    anim["Spear_DamagePull_Attacker"].enabled = true;
+                    anim["Spear_Damage_Attacker"].enabled = false;
+                }
+                else if(pullingTime >= 1.0f && anim["Spear_Damage_Victim"].enabled)
+                {
+                    anim["Spear_DamagePull_Victim"].time = 0.0f;
+                    anim["Spear_DamagePull_Victim"].enabled = true;
+                    anim["Spear_Damage_Victim"].enabled = false;
+                }
+            }
+            */
+            if (blockInput > 0.0f && animPickupCooldown <= 0.0f && animBlockCooldown <= 0.0f)
+            {
+                body.pulling = true;
+            }
         }
+        else
+        {
+            if(body.pulling)
+            {
+                body.pulling = false;
+            }
+        }
+        /*
         else if (releaseProgress > 0.0f)
         {
             releaseProgress = 0.0f;
         }
+        */
 
         if (stop)
         {
@@ -874,9 +1006,16 @@ public class RegionMoveController : MonoBehaviour {
             //f = Mathf.Min(0.1f, Time.deltaTime * 6.0f);
             //smoothDirection = smoothDirection * (1.0f - f) + new Vector3(v3.x, v3.z, 0.0f) * f;
             f = Mathf.Min(1.0f, Time.deltaTime * 1.0f);
+            if (blockInput > 0.0f)
+            {
+                f = Mathf.Min(1.0f, Time.deltaTime * 10.0f);
+            }
             smoothDirection = Vector3.RotateTowards(smoothDirection, v3, f * Mathf.PI, 1.0f);
             adaptiveSmoothDirection = new Vector3(smoothDirection.x, 0.0f, smoothDirection.z);
 
+            directionPointer.transform.localRotation = Quaternion.LookRotation(smoothDirection, Vector3.up);
+
+            /*
             v3 = new Vector3(v3.x, v3.z, 0.0f);
             q = Quaternion.LookRotation(smoothDirection, Vector3.up);
 
@@ -912,16 +1051,50 @@ public class RegionMoveController : MonoBehaviour {
             {
                 turbulencedBones[i].AddForce((Vector3.up * (Mathf.Sin(Time.time * 15.0f + turbulencedBones[i].transform.position.x * 5.0f) + 0.7f) * 10.0f) * 50.0f * Time.deltaTime);
             }
+            */
 
         }
         else
         {
+            /*
             if (Mathf.Abs(smoothLean) > 0.05f)
             {
                 smoothLean *= (1.0f - Time.deltaTime * 2.0f);
                 playerIconInner.transform.localRotation = Quaternion.LookRotation(Vector3.forward, Vector3.up + Vector3.right * smoothLean);
             }
+            */
         }
+
+        if (searchingCooldown > 0.0f)
+        {
+            searchingCooldown -= Time.deltaTime;
+            if (searchingCooldown <= 0.0f)
+            {
+                lastSearchingPosition = Vector3.up * 1000.0f;
+            }
+        }
+        if (animBlockCooldown > 0.0f)
+        {
+            animBlockCooldown -= Time.deltaTime;
+            if(animBlockCooldown <= 0.0f)
+            {
+                hook.hookInHandMesh.enabled = true;
+            }
+        }
+        if (animPickupCooldown > 0.0f)
+        {
+            animPickupCooldown -= Time.deltaTime;
+        }
+
+        body.direction = smoothDirection;
+        body.desiredDirection = normalDirection;
+        body.speed = direction.magnitude;
+        body.searching = searchingCooldown > 0.0f;
+        body.block = animBlockCooldown > 0.0f;
+        body.pickingup = animPickupCooldown > 0.0f;
+        body.hookThrowing = hook.enabled && !hook.rollback;//hook.throwing;
+        body.hookRollback = hook.rollback;
+        body.hookDirection = (hook.transform.position + smoothDirection * 2.0f - transform.position).normalized;
 
         ParticleSystem.EmissionModule emission1 = stepsPS1.emission;
         ParticleSystem.EmissionModule emission2 = stepsPS2.emission;
@@ -943,6 +1116,8 @@ public class RegionMoveController : MonoBehaviour {
             emission2.enabled = true;
         }
         */
+
+        /*
         if(direction.magnitude > 0.1f)
         {
             animMoveWeight = Mathf.Min(1.0f, animMoveWeight + Time.deltaTime * 5.0f);
@@ -952,21 +1127,87 @@ public class RegionMoveController : MonoBehaviour {
             animMoveWeight = Mathf.Max(0.0f, animMoveWeight - Time.deltaTime * 5.0f);
             //animTime = 0.0f;
         }
+        animMoveWeight = Mathf.Min(1.0f, Mathf.Max(0.0f, animMoveWeight));
+        if (searchingCooldown > 0.0f)
+        {
+            searchingCooldown -= Time.deltaTime;
+            if(searchingCooldown <= 0.0f)
+            {
+                lastSearchingPosition = Vector3.up * 1000.0f;
+            }
+            if((lastSearchingPosition - transform.position).magnitude <= 1.5f)
+            {
+                if(!anim["Searching"].enabled)
+                {
+                    anim["Searching"].enabled = true;
+                }
+                animSearchingWeight += Time.deltaTime * 5.0f;
+                if (animSearchingWeight > 1.0f)
+                {
+                    animSearchingWeight = 1.0f;
+                }
+            }
+        }
+        if(searchingCooldown <= 0.0f || (lastSearchingPosition - transform.position).magnitude >= 3.0f)
+        {
+            if (animSearchingWeight > 0.0f)
+            {
+                animSearchingWeight -= Time.deltaTime * 5.0f;
+                if(animSearchingWeight < 0.0f)
+                {
+                    animSearchingWeight = 0.0f;
+                    anim["Searching"].enabled = false;
+                }
+            }
+        }
+        */
 
+        /*
         animTime += Time.deltaTime * (1.0f + Mathf.Abs(smoothLean) * 0.5f - Mathf.Max(0.0f, (Vector3.Angle(adaptiveSmoothDirection, normalDirection) - 120.0f) / 60.0f));
         if (animTime > 360.0f * 0.3f)
         {
             animTime -= 360.0f * 0.3f;
         }
+        */
 
         //Debug.Log("anim[stay] enabled: " + anim["Idle"].enabled + " layer: " + anim["Idle"].layer + " weight: " + anim["Idle"].weight);
 
-        anim["Idle"].weight = (1.0f - animMoveWeight) * 100.0f;
+        /*
+        anim["Idle"].weight = Mathf.Max(0.0f, 1.0f - animSearchingWeight - animMoveWeight) * 100.0f;
+        anim["Searching"].weight = Mathf.Max(0.0f, animSearchingWeight - animMoveWeight) * 100.0f;
         anim["Run"].weight = animMoveWeight * 100.0f;
+        */
+
         //anim["Idle"].time = animTime * 1.0f;
         //anim["Run"].time = animTime * 1.0f;
 
+        /*
+        float spearAnimWeight = 10200.0f - animMoveWeight * 10000.0f;
 
+
+        if (hook.throwing || hook.rollback)
+        {
+            if (direction.magnitude > 0.05f && !hookAnimSetupMoving)
+            {
+                hookAnimSetupMoving = true;
+                anim["Spear_In"].RemoveMixingTransform(locomotionBones[3]);
+                anim["Spear_In"].AddMixingTransform(locomotionBones[4]);
+                anim["Spear_Idle"].RemoveMixingTransform(locomotionBones[3]);
+                anim["Spear_Idle"].AddMixingTransform(locomotionBones[4]);
+                anim["Spear_Out"].RemoveMixingTransform(locomotionBones[3]);
+                anim["Spear_Out"].AddMixingTransform(locomotionBones[4]);
+            }
+            else if (direction.magnitude <= 0.05f && hookAnimSetupMoving)
+            {
+                hookAnimSetupMoving = false;
+                anim["Spear_In"].RemoveMixingTransform(locomotionBones[4]);
+                anim["Spear_In"].AddMixingTransform(locomotionBones[3]);
+                anim["Spear_Idle"].RemoveMixingTransform(locomotionBones[4]);
+                anim["Spear_Idle"].AddMixingTransform(locomotionBones[3]);
+                anim["Spear_Out"].RemoveMixingTransform(locomotionBones[4]);
+                anim["Spear_Out"].AddMixingTransform(locomotionBones[3]);
+            }
+        }
         if (hook.throwing)
         {
             if (hook.throwingTime > 0.433f)
@@ -979,11 +1220,23 @@ public class RegionMoveController : MonoBehaviour {
                 }
                 if (anim["Spear_In"].weight > 0.0f)
                 {
-                    anim["Spear_In"].weight -= 50000.0f * Time.deltaTime;
+                    anim["Spear_In"].weight -= 20000.0f * Time.deltaTime;
                 }
-                if (anim["Spear_Idle"].weight < 10000.0f)
+                if (anim["Spear_Idle"].weight < spearAnimWeight)
                 {
-                    anim["Spear_Idle"].weight += 50000.0f * Time.deltaTime;
+                    anim["Spear_Idle"].weight += 20000.0f * Time.deltaTime;
+                    if (anim["Spear_Idle"].weight > spearAnimWeight)
+                    {
+                        anim["Spear_Idle"].weight = spearAnimWeight;
+                    }
+                }
+                if (anim["Spear_Idle"].weight > spearAnimWeight)
+                {
+                    anim["Spear_Idle"].weight -= 20000.0f * Time.deltaTime;
+                    if (anim["Spear_Idle"].weight < spearAnimWeight)
+                    {
+                        anim["Spear_Idle"].weight = spearAnimWeight;
+                    }
                 }
             }
             else
@@ -994,9 +1247,21 @@ public class RegionMoveController : MonoBehaviour {
                     anim["Spear_In"].weight = 0.0f;
                     anim["Spear_In"].enabled = true;
                 }
-                if (anim["Spear_In"].weight < 10000.0f)
+                if (anim["Spear_In"].weight < spearAnimWeight)
                 {
-                    anim["Spear_In"].weight += 50000.0f * Time.deltaTime;
+                    anim["Spear_In"].weight += 20000.0f * Time.deltaTime;
+                    if (anim["Spear_In"].weight > spearAnimWeight)
+                    {
+                        anim["Spear_In"].weight = spearAnimWeight;
+                    }
+                }
+                if (anim["Spear_In"].weight > spearAnimWeight)
+                {
+                    anim["Spear_In"].weight -= 20000.0f * Time.deltaTime;
+                    if (anim["Spear_In"].weight < spearAnimWeight)
+                    {
+                        anim["Spear_In"].weight = spearAnimWeight;
+                    }
                 }
             }
         }
@@ -1012,11 +1277,15 @@ public class RegionMoveController : MonoBehaviour {
                 }
                 if (anim["Spear_Idle"].weight > 0.0f)
                 {
-                    anim["Spear_Idle"].weight -= 50000.0f * Time.deltaTime;
+                    anim["Spear_Idle"].weight -= 20000.0f * Time.deltaTime;
                 }
-                if (anim["Spear_Out"].weight < 10000.0f)
+                if (anim["Spear_Out"].weight < spearAnimWeight)
                 {
-                    anim["Spear_Out"].weight += 50000.0f * Time.deltaTime;
+                    anim["Spear_Out"].weight += 20000.0f * Time.deltaTime;
+                    if (anim["Spear_Out"].weight > spearAnimWeight)
+                    {
+                        anim["Spear_Out"].weight = spearAnimWeight;
+                    }
                 }
                 anim["Idle"].time = 0.0f;
             }
@@ -1038,6 +1307,7 @@ public class RegionMoveController : MonoBehaviour {
                 }
             }
         }
+        */
 
 
         /*
@@ -1155,6 +1425,7 @@ public class RegionMoveController : MonoBehaviour {
             if (leaveCooldown + Time.deltaTime > Mathf.Ceil(leaveCooldown) && Mathf.Ceil(leaveCooldown) >= 0.0f)
             {
                 statusBar.text = "Переход через " + Mathf.Ceil(leaveCooldown) + " секунд";
+                bottomLabel.Show();
             }
         }
 
@@ -1283,13 +1554,42 @@ public class RegionMoveController : MonoBehaviour {
 
     }
 
+    /*
     public void LateUpdate()
     {
         int i;
+        float a;
+        float f;
         locomotionBones[0].Rotate(0.0f, -smoothLean * 60.0f, 0.0f);
         locomotionBones[1].Rotate(smoothLean * 90.0f, 0.0f, 0.0f);
         locomotionBones[2].Rotate(smoothLean * 90.0f, 0.0f, 0.0f);
+        if(hook.throwing || hook.rollback)
+        {
+            a = Vector3.Angle(playerIcon.transform.forward, (hook.transform.position + playerIcon.transform.forward * 2.0f - transform.position).normalized);
+            if (Vector3.Cross(playerIcon.transform.forward, (hook.transform.position + playerIcon.transform.forward * 2.0f - transform.position).normalized).y > 0.0f)
+            {
+                a *= -1.0f;
+            }
+            f = Mathf.Min(1.0f, Time.deltaTime * 5.0f);
+            animHookLocoAngle = animHookLocoAngle * (1.0f - f) + a * f;
+            a = animHookLocoAngle;
+            if (a < 0.0f)
+            {
+                locomotionBones[4].Rotate(0.0f, 0.0f, a * 0.25f);
+                locomotionBones[5].Rotate(0.0f, 0.0f, a * 0.25f);
+                locomotionBones[6].Rotate(0.0f, 0.0f, a * 0.3f);
+                locomotionBones[7].Rotate(0.0f, 0.0f, a * 0.6f);
+            }
+            else
+            {
+                locomotionBones[4].Rotate(0.0f, 0.0f, a * 0.25f);
+                locomotionBones[5].Rotate(0.0f, 0.0f, a * 0.4f);
+                locomotionBones[6].Rotate(0.0f, 0.0f, a * 0.4f);
+                locomotionBones[7].Rotate(0.0f, 0.0f, a * 0.3f);
+            }
+        }
     }
+    */
 
     public void SetState(Vector2 destination, float moveTime)
     {
@@ -1444,6 +1744,9 @@ public class RegionMoveController : MonoBehaviour {
                 break;
             case 2:
                 smileyIcon.sprite = itemFoundSprite;
+                SetStatusText("Найден предмет");
+                AnimatePickup();
+                return;
                 break;
         }
         smileyIcon.transform.localScale = Vector3.one * 0.5f;
@@ -1491,20 +1794,67 @@ public class RegionMoveController : MonoBehaviour {
 
     public void ShowEffect(Vector2 position, int iconId)
     {
-        RegionTimedIcon icon = (RegionTimedIcon)((GameObject)GameObject.Instantiate(timedIconPrefab)).GetComponent<RegionTimedIcon>();
-        switch(iconId)
+        int i;
+        RegionTimedIcon icon;
+        GameObject obj;
+        ParticleSystem ps;
+        switch (iconId)
         {
             case 1:
-                icon.transform.position = new Vector3(position.x, 0.8f, position.y - 0.4f);
-                icon.sprite.transform.localScale = Vector3.one * 0.5f;
+                /*
+                icon = (RegionTimedIcon)((GameObject)GameObject.Instantiate(timedIconPrefab)).GetComponent<RegionTimedIcon>();
+                icon.transform.position = new Vector3(position.x, 0.8f, position.y - 0.8f);
+                icon.sprite.transform.localScale = Vector3.one * 0.3f;
                 icon.sprite.sprite = startBattleSprite;
                 icon.cooldown = 4.0f;
+                */
+                SetStatusText("Поединок начался!");
                 break;
             case 2:
-                icon.transform.position = new Vector3(position.x, 0.3f, position.y - 0.1f);
-                icon.sprite.transform.localScale = Vector3.one * 1.0f;
-                icon.sprite.sprite = hookBounceSprite;
-                icon.cooldown = 0.5f;
+                obj = (GameObject)GameObject.Instantiate(Resources.Load<GameObject>("Prefabs/Effects/SparksEffect"));
+                obj.transform.position = new Vector3(position.x, 0.3f, position.y);
+                GameObject.Destroy(obj, 2.0f);
+                ps = obj.GetComponentInChildren<ParticleSystem>();
+                ps.Emit(30);
+
+
+                RaycastHit[] hits = Physics.SphereCastAll(transform.position, 0.5f, Vector3.up);
+                for (i = 0; i < hits.Length; i++)
+                {
+                    RaycastHit hit = hits[i];
+                    if (hit.collider.tag == "Enemy" || hit.collider.tag == "Player")
+                    {
+                        if (hit.collider.tag == "Enemy")
+                        {
+                            RegionBotBehavior target = hit.collider.gameObject.GetComponent<RegionBotBehavior>();
+                            if (target != null)
+                            {
+                                target.AnimateBlock();
+                            }
+                        }
+                        else if (hit.collider.tag == "Player")
+                        {
+                            RegionMoveController target = hit.collider.gameObject.GetComponent<RegionMoveController>();
+                            if (target != null)
+                            {
+                                target.AnimateBlock();
+                            }
+                        }
+                    }
+                }
+
+                break;
+            case 3:
+                obj = (GameObject)GameObject.Instantiate(Resources.Load<GameObject>("Prefabs/Effects/BlinkEffect"));
+                obj.transform.position = new Vector3(position.x, 0.0f, position.y);
+                GameObject.Destroy(obj, 3.5f);
+                ps = obj.GetComponentInChildren<ParticleSystem>();
+                lastSearchingPosition = obj.transform.position;
+                if ((lastSearchingPosition - transform.position).magnitude <= 1.5f)
+                {
+                    searchingCooldown = 3.5f;
+                }
+                //ps.Emit(30);
                 break;
         }
     }
@@ -1513,6 +1863,7 @@ public class RegionMoveController : MonoBehaviour {
     {
         leaveCooldown = time;
         statusBar.text = "Переход через 5 секунд";
+        bottomLabel.Show();
         exitButton.enabled = true;
         exitButton.image.enabled = true;
     }
@@ -1521,6 +1872,7 @@ public class RegionMoveController : MonoBehaviour {
     {
         leaveCooldown = 0.0f;
         statusBar.text = "";
+        bottomLabel.Hide();
         exitButton.enabled = false;
         exitButton.image.enabled = false;
     }
@@ -1530,10 +1882,19 @@ public class RegionMoveController : MonoBehaviour {
         // ... show new gold and gold change
         goldLabel.text = "+ " + newGold;
         gold = newGold;
+        topPanel.Show();
+    }
+
+    public void SetStatusText(string value)
+    {
+        statusBar.text = value;
+        bottomLabel.Show();
     }
 
     public void SetCloth(string id)
     {
+        body.SetCloth(id);
+        /*
         int i;
         bool b = false;
         string clothId = "Body" + id;
@@ -1555,6 +1916,18 @@ public class RegionMoveController : MonoBehaviour {
                 Destroy(bodies[i]);
             }
         }
+        */
+    }
+
+    public void AnimateBlock()
+    {
+        animBlockCooldown = 0.8f;
+    }
+
+    public void AnimatePickup()
+    {
+        animPickupCooldown = 3.0f; // 4.667f
+        blockInput = 3.0f;
     }
 
 }

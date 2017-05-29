@@ -191,7 +191,7 @@ public class GameMatchMaker : Photon.PunBehaviour
     {
         PhotonNetwork.logLevel = PhotonLogLevel.ErrorsOnly;
         //PhotonNetwork.logLevel = PhotonLogLevel.Full;
-        PhotonNetwork.OnEventCall += OnEvent;
+        //PhotonNetwork.OnEventCall += OnEvent;
         Debug.Log("Connecting to Photon Server start #1");
         //if (PhotonNetwork.ConnectUsingSettings("1.0"))
         if (PhotonNetwork.ConnectUsingSettings("1.0"))
@@ -233,6 +233,7 @@ public class GameMatchMaker : Photon.PunBehaviour
         SceneManager.activeSceneChanged += SceneChanged;
 
         OnBackground += CheckConnection;
+        PhotonNetwork.OnEventCall += OnEvent;
 
     }
 
@@ -440,7 +441,7 @@ public class GameMatchMaker : Photon.PunBehaviour
             case 2:
                 moveMessage = new RegionMoveMessage();
                 moveMessage.Unpack((byte[])content);
-                Debug.Log("OBJECT [" + moveMessage.userId + "] MOVE TO: " + moveMessage.destination + " IN " + moveMessage.moveTimemark + " SEC");
+                //Debug.Log("OBJECT [" + moveMessage.userId + "] MOVE TO: " + moveMessage.destination + " IN " + moveMessage.moveTimemark + " SEC");
                 if (moveMessage.userId == "")
                 {
                     regionMoveController.SetState(moveMessage.destination, moveMessage.moveTimemark);
@@ -453,7 +454,7 @@ public class GameMatchMaker : Photon.PunBehaviour
             case 3:
                 RegionThrowMessage throwMessage = new RegionThrowMessage();
                 throwMessage.Unpack((byte[])content);
-                Debug.Log("PLAYER [" + throwMessage.userId + "] THROW HOOK distance: " + (throwMessage.destination - new Vector2(regionMoveController.transform.position.x, regionMoveController.transform.position.z)).magnitude + " ; time: " + throwMessage.throwTimemark);
+                //Debug.Log("PLAYER [" + throwMessage.userId + "] THROW HOOK distance: " + (throwMessage.destination - new Vector2(regionMoveController.transform.position.x, regionMoveController.transform.position.z)).magnitude + " ; time: " + throwMessage.throwTimemark);
                 if(throwMessage.userId == "")
                 {
                     regionMoveController.ThrowHook(throwMessage.destination, throwMessage.throwTimemark);

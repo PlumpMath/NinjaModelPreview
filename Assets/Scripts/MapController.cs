@@ -425,7 +425,12 @@ public class MapController : MonoBehaviour {
 
                     // !!!
 
-                    //TapToRegion("01");
+                    /* TEMPORARY FOR TESTING */
+                    if (loginController.firstConnect)
+                    {
+                        loginController.firstConnect = false;
+                        TapToRegion("01");
+                    }
 
                     // !!!
 

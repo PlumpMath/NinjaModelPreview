@@ -245,6 +245,7 @@
     <Compile Include="Assets\Scripts\PlayerController.cs" />
     <Compile Include="Assets\Scripts\Posteffects\FogEffect.cs" />
     <Compile Include="Assets\Scripts\Posteffects\HighlightEffect.cs" />
+    <Compile Include="Assets\Scripts\RegionBodyController.cs" />
     <Compile Include="Assets\Scripts\RegionBotBehavior.cs" />
     <Compile Include="Assets\Scripts\RegionColliderController.cs" />
     <Compile Include="Assets\Scripts\RegionHook.cs" />
@@ -259,6 +260,7 @@
     <Compile Include="Assets\Scripts\Swipe.cs" />
     <Compile Include="Assets\Scripts\SwipeTrailController.cs" />
     <Compile Include="Assets\Scripts\TaskTarget.cs" />
+    <Compile Include="Assets\Scripts\UI\HidingPanelController.cs" />
     <Compile Include="Assets\Scripts\UI\SelectorController.cs" />
     <Compile Include="Assets\Scripts\UI\SelectorItem.cs" />
     <Compile Include="Assets\Scripts\UI\SelectorItems\AbilityEquipItem.cs" />
@@ -332,6 +334,7 @@
     <None Include="Assets\Resources\Shaders\Normal.shader" />
     <None Include="Assets\Resources\Shaders\ParticleRadialLight.shader" />
     <None Include="Assets\Resources\Shaders\ProjectorAlphaBlend.shader" />
+    <None Include="Assets\Resources\Shaders\SpriteAdditive.shader" />
     <None Include="Assets\Resources\Shaders\SpriteRadialLight.shader" />
     <None Include="Assets\Resources\Shaders\TransparentDiffuseWithHighlight.shader" />
     <None Include="Assets\Resources\Shaders\UnlitShaderWithShadow.shader" />

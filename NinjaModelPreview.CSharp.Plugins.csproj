@@ -111,6 +111,7 @@
     <None Include="Assets\Resources\Shaders\Normal.shader" />
     <None Include="Assets\Resources\Shaders\ParticleRadialLight.shader" />
     <None Include="Assets\Resources\Shaders\ProjectorAlphaBlend.shader" />
+    <None Include="Assets\Resources\Shaders\SpriteAdditive.shader" />
     <None Include="Assets\Resources\Shaders\SpriteRadialLight.shader" />
     <None Include="Assets\Resources\Shaders\TransparentDiffuseWithHighlight.shader" />
     <None Include="Assets\Resources\Shaders\UnlitShaderWithShadow.shader" />

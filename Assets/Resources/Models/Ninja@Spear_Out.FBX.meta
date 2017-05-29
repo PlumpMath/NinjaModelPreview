@@ -151,7 +151,7 @@ ModelImporter:
       takeName: Ninja
       firstFrame: 0
       lastFrame: 60
-      wrapMode: 1
+      wrapMode: 8
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0

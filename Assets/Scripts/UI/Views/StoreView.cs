@@ -352,6 +352,10 @@ public class StoreView : MonoBehaviour {
     public int GetItemAmount(string id)
     {
         int itemId = Int32.Parse(id);
+        if(map.playerInventory == null)
+        {
+            return 0;
+        }
         LinkedListNode<PlayerItemNode> node = map.playerInventory.items.First;
         while(node != null)
         {

@@ -49,7 +49,7 @@ Shader "Custom/Bumped/Textured Bumped Add"
 				v2f o;
 				o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
 				o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
-				o.uv_bump = TRANSFORM_TEX(v.texcoord,_BumpMap);
+				o.uv_bump = TRANSFORM_TEX(v.texcoord, _BumpMap);
 
 			#if MATCAP_ACCURATE
 				//Accurate bump calculation: calculate tangent space matrix and pass it to fragment shader
