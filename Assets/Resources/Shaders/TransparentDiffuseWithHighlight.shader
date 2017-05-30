@@ -1,4 +1,6 @@
-﻿// Upgrade NOTE: commented out 'float4 unity_LightmapST', a built-in variable
+﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
+// Upgrade NOTE: commented out 'float4 unity_LightmapST', a built-in variable
 // Upgrade NOTE: commented out 'sampler2D unity_Lightmap', a built-in variable
 
 // MatCap Shader, (c) 2015 Jean Moreno
@@ -56,7 +58,7 @@ Shader "Custom/Transparent/Textured Multiply Highlighted"
 			v2f vert(appdata_full v) //appdata_tan
 			{
 				v2f o;
-				o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
+				o.pos = UnityObjectToClipPos(v.vertex);
 				o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
 				o.uv_bump = TRANSFORM_TEX(v.texcoord,_BumpMap);
 

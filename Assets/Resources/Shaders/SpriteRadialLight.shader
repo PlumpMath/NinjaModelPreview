@@ -1,4 +1,6 @@
-﻿Shader "Sprites/Radial Light"
+﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
+Shader "Sprites/Radial Light"
 {
 	Properties
 	{
@@ -64,7 +66,7 @@
 			v2f vert(appdata_full IN)
 			{
 				v2f OUT;
-				OUT.vertex = mul(UNITY_MATRIX_MVP, IN.vertex);
+				OUT.vertex = UnityObjectToClipPos(IN.vertex);
 				OUT.texcoord = IN.texcoord;
 				OUT.color = IN.color * _Color;
 

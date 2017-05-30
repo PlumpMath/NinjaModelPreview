@@ -1,4 +1,6 @@
-﻿Shader "Posteffects/FogDepth"
+﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
+Shader "Posteffects/FogDepth"
 {
 	Properties
 	{
@@ -31,7 +33,7 @@
 			v2f vert(appdata v)
 			{
 				v2f o;
-				o.vertex = mul(UNITY_MATRIX_MVP, v.vertex);
+				o.vertex = UnityObjectToClipPos(v.vertex);
 				float4 f4 = mul(unity_ObjectToWorld, v.vertex);
 				o.coord = float3(f4.x, f4.y, f4.z);
 				o.coord.z = o.vertex.z;
