@@ -33,6 +33,7 @@ public class RegionMoveController : MonoBehaviour {
     public Image discoveredFrame2;
     public Image discoveredIcon;
     public Image taskPointer;
+    public Image progressCircle;
     public TaskTarget taskTarget;
     public TaskTarget[] taskTargets = new TaskTarget[0];
     public TaskTarget[] enteringPoints = new TaskTarget[0];
@@ -72,6 +73,7 @@ public class RegionMoveController : MonoBehaviour {
     public float animBlockCooldown = 0.0f;
     public float animPickupCooldown = 0.0f;
     public float blockInput = 0.0f;
+    public float taskProgress = 0.0f;
     public int ignoreFinger = -1;
 
     public RegionHook hook = null;
@@ -79,9 +81,6 @@ public class RegionMoveController : MonoBehaviour {
     public RegionPreset region = null;
 
     public int traceType = 1;
-
-    public ParticleSystem stepsPS1;
-    public ParticleSystem stepsPS2;
 
     public Button traceTypeButton;
 
@@ -314,11 +313,13 @@ public class RegionMoveController : MonoBehaviour {
             statusBar.text = "Пустошь дырявых штанов";
         }
 
+        /*
         ParticleSystem.EmissionModule emission1 = stepsPS1.emission;
         ParticleSystem.EmissionModule emission2 = stepsPS2.emission;
 
         emission1.enabled = false;
         emission2.enabled = false;
+        */
 
         traceTypeButton.onClick.AddListener(delegate () {
             if (traceType == 1)
@@ -1005,7 +1006,7 @@ public class RegionMoveController : MonoBehaviour {
             smoothDirection.Normalize();
             //f = Mathf.Min(0.1f, Time.deltaTime * 6.0f);
             //smoothDirection = smoothDirection * (1.0f - f) + new Vector3(v3.x, v3.z, 0.0f) * f;
-            f = Mathf.Min(1.0f, Time.deltaTime * 1.0f);
+            f = Mathf.Min(1.0f, Time.deltaTime * 3.0f);
             if (blockInput > 0.0f)
             {
                 f = Mathf.Min(1.0f, Time.deltaTime * 10.0f);
@@ -1096,10 +1097,10 @@ public class RegionMoveController : MonoBehaviour {
         body.hookRollback = hook.rollback;
         body.hookDirection = (hook.transform.position + smoothDirection * 2.0f - transform.position).normalized;
 
+        /*
         ParticleSystem.EmissionModule emission1 = stepsPS1.emission;
         ParticleSystem.EmissionModule emission2 = stepsPS2.emission;
 
-        /*
         if (direction.magnitude <= 0.5f && emission2.enabled)
         {
             emission1.enabled = false;
@@ -1552,6 +1553,18 @@ public class RegionMoveController : MonoBehaviour {
             }
         }
 
+
+        f = (taskProgress - progressCircle.fillAmount) * Time.deltaTime * 5.0f;
+        if (taskProgress > 0.0f)
+        {
+            progressCircle.fillAmount = Mathf.Min(1.0f, Mathf.Max(0.0f, progressCircle.fillAmount * (1.0f - f) + taskProgress * f));
+        }
+        else if(progressCircle.fillAmount > 0.0f)
+        {
+            progressCircle.fillAmount = 0.0f;
+        }
+
+
     }
 
     /*
@@ -1611,6 +1624,11 @@ public class RegionMoveController : MonoBehaviour {
         route.Clear();
     }
 
+    public void SetProgress(float progress)
+    {
+        taskProgress = progress;
+    }
+
     public void SetOpponentState(string id, Vector2 destination, float moveTime)
     {
         int i;
@@ -1636,6 +1654,23 @@ public class RegionMoveController : MonoBehaviour {
         bot.offscreenPointer.rectTransform.anchoredPosition = new Vector2(-1000.0f, 0.0f);
         bots.AddLast(bot);
         bot.SetState(destination, moveTime);
+    }
+
+    public void SetOpponentProgress(string id, float progress)
+    {
+        int i;
+        RegionBotBehavior bot;
+        LinkedListNode<RegionBotBehavior> botNode = bots.First;
+        while (botNode != null)
+        {
+            bot = botNode.Value;
+            if (bot.playerId == id)
+            {
+                bot.SetProgress(progress);
+                return;
+            }
+            botNode = botNode.Next;
+        }
     }
 
     public void RemoveOpponent(string id)
@@ -1696,18 +1731,15 @@ public class RegionMoveController : MonoBehaviour {
         if(!hook.enabled)
         {
             hook.transform.position = transform.position;
-            v3 = (new Vector3(destination.x, transform.position.y, destination.y) - transform.position);
-            hook.velocity = v3.normalized * (v3.magnitude / time);
-            //hook.destinationTimemark = time;
+            v3 = (new Vector3(destination.x, hook.transform.position.y, destination.y) - hook.transform.position);
+            hook.velocity = v3.normalized * Mathf.Min(10.0f, v3.magnitude / time);
             hook.cooldown = 8.0f;
-            //hook.rollbackTimemark = 2.5f;
             hook.Show(time);
         }
         else if(destination.magnitude != 0.0f)
         {
             v3 = new Vector3(destination.x, hook.transform.position.y, destination.y) - hook.transform.position;
-            v3.y = 0.0f;
-            hook.velocity = v3.normalized * (v3.magnitude / time);
+            hook.velocity = v3.normalized * Mathf.Min(10.0f, v3.magnitude / time);
             hook.Move(time);
         }
         else
@@ -1927,7 +1959,7 @@ public class RegionMoveController : MonoBehaviour {
     public void AnimatePickup()
     {
         animPickupCooldown = 3.0f; // 4.667f
-        blockInput = 3.0f;
+        //blockInput = 3.0f;
     }
 
 }

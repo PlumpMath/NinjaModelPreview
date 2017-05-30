@@ -250,42 +250,51 @@ public class RegionHook : MonoBehaviour {
 
         /* Cling to nearest body for pulling */
         RaycastHit[] hits = Physics.SphereCastAll(transform.position, 0.5f, Vector3.up);
-        for(i = 0; i < hits.Length; i++)
+        RaycastHit nearestHit = new RaycastHit();
+        nearestHit.distance = 1000.0f;
+        for (i = 0; i < hits.Length; i++)
         {
             RaycastHit hit = hits[i];
             if((hit.collider.tag == "Enemy" || hit.collider.tag == "Player") && hit.collider.gameObject != player.gameObject)
             {
-                RegionBodyController targetBody = null;
-                RegionHook targetHook = null;
-                if (hit.collider.tag == "Enemy")
+                if(hit.distance < nearestHit.distance)
                 {
-                    RegionBotBehavior target = hit.collider.gameObject.GetComponent<RegionBotBehavior>();
-                    if (target != null)
-                    {
-                        targetBody = target.body;
-                        targetHook = target.hook;
-                    }
+                    nearestHit = hit;
                 }
-                else if(hit.collider.tag == "Player")
+            }
+        }
+        if(nearestHit.distance < 1000.0f)
+        {
+            RegionBodyController targetBody = null;
+            RegionHook targetHook = null;
+            if (nearestHit.collider.tag == "Enemy")
+            {
+                RegionBotBehavior target = nearestHit.collider.gameObject.GetComponent<RegionBotBehavior>();
+                if (target != null)
                 {
-                    RegionMoveController target = hit.collider.gameObject.GetComponent<RegionMoveController>();
-                    if (target != null)
-                    {
-                        targetBody = target.body;
-                        targetHook = target.hook;
-                    }
+                    targetBody = target.body;
+                    targetHook = target.hook;
                 }
-                if (targetBody != null)
+            }
+            else if (nearestHit.collider.tag == "Player")
+            {
+                RegionMoveController target = nearestHit.collider.gameObject.GetComponent<RegionMoveController>();
+                if (target != null)
                 {
-                    transform.parent = targetBody.locomotionBones[4].transform;
-                    transform.localPosition = new Vector3(-0.05f, 0.4f, 0.0f);
-                    transform.localRotation = Quaternion.Euler(-90.0f, 90.0f, 0.0f);
-                    if (targetHook != null)
+                    targetBody = target.body;
+                    targetHook = target.hook;
+                }
+            }
+            if (targetBody != null)
+            {
+                transform.parent = targetBody.locomotionBones[4].transform;
+                transform.localPosition = new Vector3(-0.09f, 0.25f, 0.35f);
+                transform.localRotation = Quaternion.Euler(-30.0f, 0.0f, 90.0f);
+                if (targetHook != null)
+                {
+                    if (targetHook.hookInHandMesh.enabled)
                     {
-                        if (targetHook.hookInHandMesh.enabled)
-                        {
-                            targetHook.hookInHandMesh.enabled = false;
-                        }
+                        targetHook.hookInHandMesh.enabled = false;
                     }
                 }
             }

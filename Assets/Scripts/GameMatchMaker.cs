@@ -412,6 +412,7 @@ public class GameMatchMaker : Photon.PunBehaviour
         RegionDiscoverMessage discoverMessage;
         RegionIconMessage iconMessage;
         RegionEffectMessage effectMessage;
+        RegionProgressMessage progressMessage;
         RegionPlayerDataMessage playerDataMessage;
         PlayerObject playerObject = null;
         //PlayerController playerController = null;
@@ -534,6 +535,19 @@ public class GameMatchMaker : Photon.PunBehaviour
                 regionMoveController.SetGold((int)playerDataMessage.sessionGold);
                 regionMoveController.SetCloth(playerDataMessage.cloth.ToString());
                 //regionMoveController.ShowEffect(effectMessage.position, effectMessage.iconId);
+                break;
+            case 11:
+                progressMessage = new RegionProgressMessage();
+                progressMessage.Unpack((byte[])content);
+                Debug.Log("PROGRESS MESSAGE: " + progressMessage.taskProgress);
+                if (progressMessage.userId == "")
+                {
+                    regionMoveController.SetProgress(progressMessage.taskProgress);
+                }
+                else
+                {
+                    regionMoveController.SetOpponentProgress(progressMessage.userId, progressMessage.taskProgress);
+                }
                 break;
         }
     }

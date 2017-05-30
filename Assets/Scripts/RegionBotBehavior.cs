@@ -21,9 +21,6 @@ public class RegionBotBehavior : MonoBehaviour {
     public SpriteRenderer smileyBackground;
     public SpriteRenderer smileyIcon;
 
-    public ParticleSystem stepsPS1;
-    public ParticleSystem stepsPS2;
-
     public RegionMap map = new RegionMap();
     public RegionMapNode mapNode = null;
 
@@ -259,6 +256,7 @@ public class RegionBotBehavior : MonoBehaviour {
             */
         }
 
+        /*
         ParticleSystem.EmissionModule emission1 = stepsPS1.emission;
         ParticleSystem.EmissionModule emission2 = stepsPS2.emission;
 
@@ -277,6 +275,7 @@ public class RegionBotBehavior : MonoBehaviour {
             emission1.enabled = false;
             emission2.enabled = true;
         }
+        */
 
 
 
@@ -390,22 +389,26 @@ public class RegionBotBehavior : MonoBehaviour {
         }
     }
 
+    public void SetProgress(float progress)
+    {
+        //progressCircle.fillAmount = Mathf.Min(1.0f, Mathf.Max(0.0f, progress));
+    }
+
     public void ThrowHook(Vector2 destination, float time)
     {
         Vector3 v3;
         if (!hook.enabled)
         {
             hook.transform.position = transform.position;
-            v3 = (new Vector3(destination.x, transform.position.y, destination.y) - transform.position);
-            hook.velocity = v3.normalized * (v3.magnitude / time);
+            v3 = (new Vector3(destination.x, hook.transform.position.y, destination.y) - hook.transform.position);
+            hook.velocity = v3.normalized * Mathf.Min(10.0f, v3.magnitude / time);
             hook.cooldown = 8.0f;
             hook.Show(time);
         }
         else if (destination.magnitude != 0.0f)
         {
             v3 = new Vector3(destination.x, hook.transform.position.y, destination.y) - hook.transform.position;
-            v3.y = 0.0f;
-            hook.velocity = v3.normalized * (v3.magnitude / time);
+            hook.velocity = v3.normalized * Mathf.Min(10.0f, v3.magnitude / time);
             hook.Move(time);
         }
         else

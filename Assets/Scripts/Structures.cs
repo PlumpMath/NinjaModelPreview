@@ -2388,6 +2388,40 @@ public class RegionMoveMessage : BaseObjectMessage
 
 }
 
+public class RegionProgressMessage : BaseObjectMessage
+{
+
+    public string userId = "";
+    public float taskProgress = 0.0f;
+
+    public RegionProgressMessage() : base()
+    {
+    }
+
+    public RegionProgressMessage(float currentTimestamp, float targetTimemark) : base(currentTimestamp, targetTimemark)
+    {
+    }
+
+    public override byte[] Pack()
+    {
+        int index = 0;
+        byte[] data = new byte[5 * 4 + Encoding.UTF8.GetBytes(userId).Length];
+        PackBase(ref data, ref index);
+        PutString(data, userId, ref index);
+        PutFloat(data, taskProgress, ref index);
+        return data;
+    }
+
+    public override void Unpack(byte[] data)
+    {
+        int index = 0;
+        UnpackBase(ref data, ref index);
+        userId = GetString(data, ref index);
+        taskProgress = GetFloat(data, ref index);
+    }
+
+}
+
 public class RegionThrowMessage : BaseObjectMessage
 {
 

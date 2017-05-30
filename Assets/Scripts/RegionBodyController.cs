@@ -17,9 +17,10 @@ public class RegionBodyController : MonoBehaviour {
      * 7 - Right forearm
      **/
     public Transform[] locomotionBones;
+    public ParticleSystem stepCloudPS;
 
-    public float blendSpeed = 10.0f;
-    public float smoothBlendSpeed = 3.0f;
+    public float blendSpeed = 13.0f;
+    public float smoothBlendSpeed = 8.0f;
     public float leaningSpeed = 5.0f;
     public float leaningAngle = 25.0f;
 
@@ -88,7 +89,7 @@ public class RegionBodyController : MonoBehaviour {
         animRun = anim["Run"];
         animRun.enabled = false;
         animRun.layer = 1;
-        animRun.speed = 0.66f;
+        //animRun.speed = 1.0f;
         animSearching = anim["Searching"];
         animSearching.enabled = false;
         animSearching.layer = 1;
@@ -130,7 +131,6 @@ public class RegionBodyController : MonoBehaviour {
         animSpearIdle.AddMixingTransform(locomotionBones[3]);
         animSpearOut.AddMixingTransform(locomotionBones[3]);
         animBlock.AddMixingTransform(locomotionBones[3]);
-
 
     }
 
@@ -182,6 +182,17 @@ public class RegionBodyController : MonoBehaviour {
 
         /* Moving weight setup */
 
+        animWalk.time = 0.5f;
+        BlendBooleanAnimation(ref animWalkingWeight, speed > 0.1f && Mathf.Abs(smoothLean) > 8.0f);
+        if(animWalkingWeight >= 0.2f && !stepCloudPS.emission.enabled)
+        {
+            stepCloudPS.enableEmission = true;
+        }
+        else if (animWalkingWeight < 0.2f && stepCloudPS.emission.enabled)
+        {
+            stepCloudPS.enableEmission = false;
+        }
+
         animSpearWeight = Mathf.Min(1.0f, animSpearInWeight + animSpearIdleWeight + animSpearOutWeight);
 
         animPriorActionWeight = animSpearWeight;
@@ -190,21 +201,22 @@ public class RegionBodyController : MonoBehaviour {
         BlendBooleanAnimation(ref animLeavingWeight, leaving);
         BlendBooleanAnimation(ref animBlockWeight, block && animSpearWeight <= 0.0f);
 
-        animBlockingActionWeight = Mathf.Max(0.0f, Mathf.Min(1.0f, Mathf.Max(animDancingWeight, Mathf.Max(animPickingUpWeight, Mathf.Max(animSearchingWeight, animLeavingWeight)))));
+        animBlockingActionWeight = Mathf.Max(0.0f, Mathf.Min(1.0f, Mathf.Max(animDancingWeight, Mathf.Max(animSearchingWeight, animLeavingWeight))));
 
-        BlendBooleanAnimation(ref animRunningWeight, speed >= 0.05f, true);
+        BlendBooleanAnimation(ref animRunningWeight, speed >= 0.5f, true);
 
-        animIdleWeight = Mathf.Max(0.0f, 1.0f - animWalkingWeight - animRunningWeight - animPriorActionWeight - animBlockingActionWeight);
+        animIdleWeight = Mathf.Max(0.0f, 1.0f - animWalkingWeight - animRunningWeight - animPriorActionWeight - animBlockingActionWeight - animPickingUpWeight);
 
         /* Set animation states */
 
         SetAnimationWeight(animIdle, animIdleWeight);
-        SetAnimationWeight(animRun, Mathf.Max(0.0f, animRunningWeight - animBlockingActionWeight));
-        SetAnimationWeight(animSearching, animSearchingWeight);
+        SetAnimationWeight(animWalk, animWalkingWeight * 0.5f);
+        SetAnimationWeight(animRun, Mathf.Max(0.0f, animRunningWeight - animBlockingActionWeight - animWalkingWeight * 0.5f - animSpearWeight * 0.9f));
+        SetAnimationWeight(animSearching, Mathf.Max(0.0f, animSearchingWeight - animPickingUpWeight));
         SetAnimationWeight(animBlock, animBlockWeight * 5.0f);
         //SetAnimationWeight(animLeaving, animLeavingWeight);
         //SetAnimationWeight(animDancing, animDancingWeight);
-        SetAnimationWeight(animPickingUp, animPickingUpWeight * 5.0f);
+        SetAnimationWeight(animPickingUp, animPickingUpWeight - animRunningWeight);
         //SetAnimationWeight(animBlock, animBlockWeight);
         SetAnimationWeight(animSpearIn, animSpearInWeight);
         SetAnimationWeight(animSpearIdle, animSpearIdleWeight);
@@ -252,6 +264,14 @@ public class RegionBodyController : MonoBehaviour {
 
         /* Body transformations */
 
+        if(pulling)
+        {
+            if (hookVisible)
+            {
+                direction = hookDirection.normalized;
+            }
+        }
+
         transform.localRotation = Quaternion.LookRotation(direction, Vector3.up);
 
     }
@@ -283,18 +303,25 @@ public class RegionBodyController : MonoBehaviour {
             a = animHookLocoAngle;
             if (a < 0.0f)
             {
-                locomotionBones[4].Rotate(0.0f, 0.0f, a * 0.25f);
-                locomotionBones[5].Rotate(0.0f, 0.0f, a * 0.25f);
-                locomotionBones[6].Rotate(0.0f, 0.0f, a * 0.3f);
-                locomotionBones[7].Rotate(0.0f, 0.0f, a * 0.6f);
+                locomotionBones[4].Rotate(0.0f, 0.0f, a * 0.3f);
+                locomotionBones[5].Rotate(0.0f, 0.0f, a * 0.3f);
+                locomotionBones[6].Rotate(0.0f, 0.0f, -a * 0.3f);
+                locomotionBones[7].Rotate(0.0f, 0.0f, -a * 0.3f);
             }
             else
             {
-                locomotionBones[4].Rotate(0.0f, 0.0f, a * 0.25f);
-                locomotionBones[5].Rotate(0.0f, 0.0f, a * 0.4f);
-                locomotionBones[6].Rotate(0.0f, 0.0f, a * 0.4f);
+                locomotionBones[4].Rotate(0.0f, 0.0f, a * 0.3f);
+                locomotionBones[5].Rotate(0.0f, 0.0f, a * 0.3f);
+                locomotionBones[6].Rotate(0.0f, 0.0f, a * 0.3f);
                 locomotionBones[7].Rotate(0.0f, 0.0f, a * 0.3f);
             }
+        }
+        else if(!pulling)
+        {
+            locomotionBones[4].Rotate(0.0f, 0.0f, Mathf.Abs(smoothLean) * 5.0f * 0.25f);
+            locomotionBones[5].Rotate(0.0f, 0.0f, Mathf.Abs(smoothLean) * 5.0f * 0.25f);
+            locomotionBones[6].Rotate(0.0f, 0.0f, Mathf.Abs(smoothLean) * 5.0f * 0.3f);
+            locomotionBones[7].Rotate(0.0f, 0.0f, Mathf.Abs(smoothLean) * 5.0f * 0.6f);
         }
     }
 
