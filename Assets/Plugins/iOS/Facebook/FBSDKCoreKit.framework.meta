@@ -1,7 +1,7 @@
 fileFormatVersion: 2
-guid: 5a615e8f154e68a4390f9a6f4a833158
+guid: 1d73ee7381fbc494ebf6092bc1d17929
 folderAsset: yes
-timeCreated: 1493639284
+timeCreated: 1496221647
 licenseType: Free
 PluginImporter:
   serializedVersion: 2
@@ -16,7 +16,7 @@ PluginImporter:
       second:
         enabled: 0
         settings:
-          Exclude Android: 0
+          Exclude Android: 1
           Exclude Editor: 0
           Exclude Linux: 1
           Exclude Linux64: 1
@@ -39,7 +39,7 @@ PluginImporter:
       first:
         Android: Android
       second:
-        enabled: 1
+        enabled: 0
         settings:
           CPU: ARMv7
     data:
@@ -85,6 +85,13 @@ PluginImporter:
           CPU: x86_64
     data:
       first:
+        Standalone: LinuxUniversal
+      second:
+        enabled: 0
+        settings:
+          CPU: None
+    data:
+      first:
         Standalone: OSXIntel
       second:
         enabled: 0
@@ -97,6 +104,13 @@ PluginImporter:
         enabled: 0
         settings:
           CPU: AnyCPU
+    data:
+      first:
+        Standalone: OSXUniversal
+      second:
+        enabled: 0
+        settings:
+          CPU: None
     data:
       first:
         Standalone: Win
