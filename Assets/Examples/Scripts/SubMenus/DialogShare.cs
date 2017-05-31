@@ -54,6 +54,7 @@ namespace Facebook.Unity.Example
 
         protected override void GetGui()
         {
+            bool enabled = GUI.enabled;
             if (this.Button("Share - Link"))
             {
                 FB.ShareLink(new Uri("https://developers.facebook.com/"), callback: this.HandleResult);
@@ -84,6 +85,7 @@ namespace Facebook.Unity.Example
                     this.HandleResult);
             }
 
+            GUI.enabled = enabled && (!Constants.IsEditor || (Constants.IsEditor && FB.IsLoggedIn));
             if (this.Button("Feed Share - No To"))
             {
                 FB.FeedShare(
@@ -116,6 +118,8 @@ namespace Facebook.Unity.Example
                     this.feedMediaSource,
                     this.HandleResult);
             }
+
+            GUI.enabled = enabled;
         }
     }
 }

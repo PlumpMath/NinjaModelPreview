@@ -21,23 +21,13 @@
 namespace Facebook.Unity.Example
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
     using UnityEngine;
+    using UnityEngine.SceneManagement;
 
     internal class ConsoleBase : MonoBehaviour
     {
-        #if UNITY_IOS || UNITY_ANDROID || UNITY_WP8
-        protected const int ButtonHeight = 60;
-        protected static int MainWindowWidth = Screen.width - 30;
-        protected static int MainWindowFullWidth = Screen.width;
-        #else
-        protected const int ButtonHeight = 24;
-        protected const int MainWindowWidth = 700;
-        protected const int MainWindowFullWidth = 760;
-        #endif
-
         private const int DpiScalingFactor = 160;
         private static Stack<string> menuStack = new Stack<string>();
         private string status = "Ready";
@@ -50,6 +40,38 @@ namespace Facebook.Unity.Example
         private GUIStyle buttonStyle;
         private GUIStyle textInputStyle;
         private GUIStyle labelStyle;
+
+        protected static int ButtonHeight
+        {
+            get
+            {
+                return Constants.IsMobile ? 60 : 24;
+            }
+        }
+
+        protected static int MainWindowWidth
+        {
+            get
+            {
+                return Constants.IsMobile ? Screen.width - 30 : 700;
+            }
+        }
+
+        protected static int MainWindowFullWidth
+        {
+            get
+            {
+                return Constants.IsMobile ? Screen.width : 760;
+            }
+        }
+
+        protected static int MarginFix
+        {
+            get
+            {
+                return Constants.IsMobile ? 0 : 48;
+            }
+        }
 
         protected static Stack<string> MenuStack
         {
@@ -217,7 +239,7 @@ namespace Facebook.Unity.Example
 
         protected bool IsHorizontalLayout()
         {
-            #if UNITY_IOS || UNITY_ANDROID || UNITY_WP8
+            #if UNITY_IOS || UNITY_ANDROID
             return Screen.orientation == ScreenOrientation.Landscape;
             #else
             return true;
@@ -227,14 +249,14 @@ namespace Facebook.Unity.Example
         protected void SwitchMenu(Type menuClass)
         {
             ConsoleBase.menuStack.Push(this.GetType().Name);
-            Application.LoadLevel(menuClass.Name);
+            SceneManager.LoadScene(menuClass.Name);
         }
 
         protected void GoBack()
         {
             if (ConsoleBase.menuStack.Any())
             {
-                Application.LoadLevel(ConsoleBase.menuStack.Pop());
+                SceneManager.LoadScene(ConsoleBase.menuStack.Pop());
             }
         }
     }

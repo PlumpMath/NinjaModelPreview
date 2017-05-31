@@ -46,6 +46,7 @@ public class RegionBotBehavior : MonoBehaviour {
     public Vector3 lastInputDirection = Vector3.zero;
     private bool inputTouched = false;
     public float blockInput = 0.0f;
+    public float pullingTime = 0.0f;
     public float smoothLean = 0.0f;
     public float battleCooldown = 0.0f;
     private float botActionCooldown = 0.0f;
@@ -181,12 +182,17 @@ public class RegionBotBehavior : MonoBehaviour {
             {
                 blockInput = 0.0f;
             }
-            body.pulling = true;
+            if (pullingTime > 0.0f)
+            {
+                pullingTime -= Time.deltaTime;
+                body.pulling = true;
+            }
         }
         else
         {
             if (body.pulling)
             {
+                pullingTime = 0.0f;
                 body.pulling = false;
             }
         }
@@ -353,12 +359,15 @@ public class RegionBotBehavior : MonoBehaviour {
 
         body.direction = smoothDirection;
         body.desiredDirection = normalDirection;
-        body.speed = direction.magnitude;
+        body.speed = speed; // direction.magnitude / cooldown;
         body.searching = searchingCooldown > 0.0f;
         body.block = animBlockCooldown > 0.0f;
         body.hookThrowing = hook.enabled && !hook.rollback; //hook.throwing;
         body.hookRollback = hook.rollback;
-        body.hookDirection = (hook.transform.position + smoothDirection * 2.0f - transform.position).normalized;
+        body.hookVisible = hook.hookMesh.enabled;
+        body.hookDirection = (hook.transform.position + smoothDirection * 0.5f - transform.position).normalized;
+        body.hookDirection.y = 0.0f;
+        body.hookDirection.Normalize();
 
     }
 
@@ -377,13 +386,10 @@ public class RegionBotBehavior : MonoBehaviour {
         else
         {
             speed = direction.magnitude / cooldown;
-            if ((destination - new Vector2(player.transform.position.x, player.transform.position.z)).magnitude < 0.5f)
+            if (hook.transform.parent != null || body.locomotionBones[4].transform.FindChild("Hook") != null)
             {
                 blockInput = moveTime;
-            }
-            if ((new Vector2(hook.transform.position.x, hook.transform.position.z) - new Vector2(player.transform.position.x, player.transform.position.z)).magnitude < 0.5f)
-            {
-                blockInput = moveTime;
+                pullingTime = moveTime;
             }
             direction.Normalize();
         }

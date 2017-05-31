@@ -32,7 +32,7 @@ public class SocialFBView : MonoBehaviour {
         });
 
         loginButton.onClick.AddListener(delegate () {
-            FB.Init("1683948398576587", true, true, true, false, true, null, null, delegate () {
+            FB.Init("1683948398576587", null, true, true, true, false, true, null, "en_US", null, delegate () {
                 FB.LogInWithReadPermissions(permissions, delegate (ILoginResult result) {
                     if (result.Error != null)
                     {

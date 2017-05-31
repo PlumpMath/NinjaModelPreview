@@ -73,6 +73,7 @@ public class RegionMoveController : MonoBehaviour {
     public float animBlockCooldown = 0.0f;
     public float animPickupCooldown = 0.0f;
     public float blockInput = 0.0f;
+    public float pullingTime = 0.0f;
     public float taskProgress = 0.0f;
     public int ignoreFinger = -1;
 
@@ -848,15 +849,20 @@ public class RegionMoveController : MonoBehaviour {
                 }
             }
             */
-            if (blockInput > 0.0f && animPickupCooldown <= 0.0f && animBlockCooldown <= 0.0f)
+            if (blockInput > 0.0f)
             {
-                body.pulling = true;
+                if(pullingTime > 0.0f)
+                {
+                    pullingTime -= Time.deltaTime;
+                    body.pulling = true;
+                }
             }
         }
         else
         {
             if(body.pulling)
             {
+                pullingTime = 0.0f;
                 body.pulling = false;
             }
         }
@@ -1095,7 +1101,11 @@ public class RegionMoveController : MonoBehaviour {
         body.pickingup = animPickupCooldown > 0.0f;
         body.hookThrowing = hook.enabled && !hook.rollback;//hook.throwing;
         body.hookRollback = hook.rollback;
-        body.hookDirection = (hook.transform.position + smoothDirection * 2.0f - transform.position).normalized;
+        body.hookVisible = hook.hookMesh.enabled;
+        body.hookDirection = (hook.transform.position + smoothDirection * 0.5f - transform.position).normalized;
+        body.hookDirection.y = 0.0f;
+        body.hookDirection.Normalize();
+
 
         /*
         ParticleSystem.EmissionModule emission1 = stepsPS1.emission;
@@ -1618,6 +1628,12 @@ public class RegionMoveController : MonoBehaviour {
             direction.Normalize();
 
             blockInput = inputCooldown;
+
+            if(hook.transform.parent != null || body.locomotionBones[4].transform.FindChild("Hook") != null)
+            {
+                pullingTime = inputCooldown;
+            }
+
             applyInputCooldown = inputCooldown;
         }
         inputTargetingCooldown = 0.0f;
