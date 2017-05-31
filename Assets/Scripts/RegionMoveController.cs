@@ -1017,7 +1017,7 @@ public class RegionMoveController : MonoBehaviour {
             {
                 f = Mathf.Min(1.0f, Time.deltaTime * 10.0f);
             }
-            smoothDirection = Vector3.RotateTowards(smoothDirection, v3, f * Mathf.PI, 1.0f);
+            smoothDirection = Vector3.RotateTowards(smoothDirection, v3, f * Mathf.PI * (0.2f + Vector3.Angle(v3, smoothDirection) / 180.0f), 1.0f);
             adaptiveSmoothDirection = new Vector3(smoothDirection.x, 0.0f, smoothDirection.z);
 
             directionPointer.transform.localRotation = Quaternion.LookRotation(smoothDirection, Vector3.up);
