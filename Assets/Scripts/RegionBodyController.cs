@@ -7,14 +7,16 @@ public class RegionBodyController : MonoBehaviour {
     /* Body parts names BodyXXXXX */
     public GameObject[] bodyParts;
     /* Bones:
-     * 0 - Neck
-     * 1 - Left calf
-     * 2 - Right calf
-     * 3 - Root
-     * 4 - Spine
-     * 5 - Right clavicle
-     * 6 - Right upper arm
-     * 7 - Right forearm
+     * 0 -  Neck
+     * 1 -  Left calf
+     * 2 -  Right calf
+     * 3 -  Root
+     * 4 -  Spine
+     * 5 -  Right clavicle
+     * 6 -  Right upper arm
+     * 7 -  Right forearm
+     * 8 -  Head ribbon 1
+     * 9 - Head ribbon 2
      **/
     public Transform[] locomotionBones;
     public ParticleSystem stepCloudPS;
@@ -102,6 +104,7 @@ public class RegionBodyController : MonoBehaviour {
         animPickingUp = anim["Pickup"];
         animPickingUp.enabled = false;
         animPickingUp.layer = 1;
+        animPickingUp.speed = 1.3f;
         animBlock = anim["Block"];
         animBlock.enabled = false;
         animBlock.layer = 1;
@@ -290,7 +293,7 @@ public class RegionBodyController : MonoBehaviour {
         locomotionBones[0].Rotate(0.0f, -smoothLean * 0.5f, 0.0f);
         locomotionBones[1].Rotate(0.0f, smoothLean, 0.0f);
         locomotionBones[2].Rotate(0.0f, smoothLean, 0.0f);
-        locomotionBones[8].Rotate(smoothLean, 0.0f, 0.0f);
+        locomotionBones[3].Rotate(smoothLean, 0.0f, 0.0f);
         if (hookThrowing || hookRollback)
         {
             a = Vector3.Angle(direction, hookDirection.normalized);
@@ -323,6 +326,8 @@ public class RegionBodyController : MonoBehaviour {
             locomotionBones[6].Rotate(0.0f, 0.0f, Mathf.Abs(smoothLean) * 5.0f * 0.3f);
             locomotionBones[7].Rotate(0.0f, 0.0f, Mathf.Abs(smoothLean) * 5.0f * 0.6f);
         }
+        locomotionBones[8].localScale = Vector3.one * 0.001f;
+        locomotionBones[9].localScale = Vector3.one * 0.001f;
     }
 
     /*********************************
@@ -338,9 +343,12 @@ public class RegionBodyController : MonoBehaviour {
         string clothId = "Body" + id;
         for (i = 0; i < bodyParts.Length; i++)
         {
-            if (bodyParts[i].name == clothId)
+            if (bodyParts[i] != null)
             {
-                b = true;
+                if (bodyParts[i].name == clothId)
+                {
+                    b = true;
+                }
             }
         }
         if (!b)
@@ -349,9 +357,12 @@ public class RegionBodyController : MonoBehaviour {
         }
         for (i = 0; i < bodyParts.Length; i++)
         {
-            if (bodyParts[i].name.Substring(0, clothId.Length) != clothId)
+            if (bodyParts[i] != null)
             {
-                Destroy(bodyParts[i]);
+                if (bodyParts[i].name.Substring(0, clothId.Length) != clothId)
+                {
+                    Destroy(bodyParts[i]);
+                }
             }
         }
     }

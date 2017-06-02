@@ -443,32 +443,18 @@ public class GameMatchMaker : Photon.PunBehaviour
                 moveMessage = new RegionMoveMessage();
                 moveMessage.Unpack((byte[])content);
                 //Debug.Log("OBJECT [" + moveMessage.userId + "] MOVE TO: " + moveMessage.destination + " IN " + moveMessage.moveTimemark + " SEC");
-                if (moveMessage.userId == "")
-                {
-                    regionMoveController.SetState(moveMessage.destination, moveMessage.moveTimemark);
-                }
-                else
-                {
-                    regionMoveController.SetOpponentState(moveMessage.userId, moveMessage.destination, moveMessage.moveTimemark);
-                }
+                regionMoveController.SetState(moveMessage.userId, moveMessage.destination, moveMessage.moveTimemark);
                 break;
             case 3:
                 RegionThrowMessage throwMessage = new RegionThrowMessage();
                 throwMessage.Unpack((byte[])content);
                 //Debug.Log("PLAYER [" + throwMessage.userId + "] THROW HOOK distance: " + (throwMessage.destination - new Vector2(regionMoveController.transform.position.x, regionMoveController.transform.position.z)).magnitude + " ; time: " + throwMessage.throwTimemark);
-                if(throwMessage.userId == "")
-                {
-                    regionMoveController.ThrowHook(throwMessage.destination, throwMessage.throwTimemark);
-                }
-                else
-                {
-                    regionMoveController.ThrowOpponentHook(throwMessage.userId, throwMessage.destination, throwMessage.throwTimemark);
-                }
+                regionMoveController.ThrowHook(throwMessage.userId, throwMessage.destination, throwMessage.throwTimemark);
                 break;
             case 4:
                 RegionChatMessage chatMessage = new RegionChatMessage();
                 chatMessage.Unpack((byte[])content);
-                regionMoveController.ShowOpponentChat(chatMessage.userId, chatMessage.iconId);
+                regionMoveController.ShowChat(chatMessage.userId, chatMessage.iconId);
                 break;
             case 5:
                 BaseObjectMessage leaveMessage = new BaseObjectMessage();
@@ -498,17 +484,10 @@ public class GameMatchMaker : Photon.PunBehaviour
                 //Debug.Log("DISCOVER MESSAGE");
                 discoverMessage = new RegionDiscoverMessage();
                 discoverMessage.Unpack((byte[])content);
-                if (discoverMessage.userId == "")
+                regionMoveController.ShowDiscovered(discoverMessage.userId, discoverMessage.iconId);
+                if (discoverMessage.userId == "" && discoverMessage.playerGold > -1)
                 {
-                    regionMoveController.ShowDiscovered(discoverMessage.iconId);
-                    if (discoverMessage.playerGold > -1)
-                    {
-                        regionMoveController.SetGold(discoverMessage.playerGold);
-                    }
-                }
-                else
-                {
-                    regionMoveController.ShowOpponentDiscovered(discoverMessage.userId, discoverMessage.iconId);
+                    regionMoveController.SetGold(discoverMessage.playerGold);
                 }
                 break;
             case 8:
@@ -533,21 +512,14 @@ public class GameMatchMaker : Photon.PunBehaviour
                 Debug.Log("PlayerData[" + playerDataMessage.playerId + "].sessionGold: " + playerDataMessage.sessionGold);
                 Debug.Log("PlayerData[" + playerDataMessage.playerId + "].emerald: " + playerDataMessage.emerald);
                 regionMoveController.SetGold((int)playerDataMessage.sessionGold);
-                regionMoveController.SetCloth(playerDataMessage.cloth.ToString());
+                regionMoveController.SetCloth("", playerDataMessage.cloth.ToString());
                 //regionMoveController.ShowEffect(effectMessage.position, effectMessage.iconId);
                 break;
             case 11:
                 progressMessage = new RegionProgressMessage();
                 progressMessage.Unpack((byte[])content);
                 Debug.Log("PROGRESS MESSAGE: " + progressMessage.taskProgress);
-                if (progressMessage.userId == "")
-                {
-                    regionMoveController.SetProgress(progressMessage.taskProgress);
-                }
-                else
-                {
-                    regionMoveController.SetOpponentProgress(progressMessage.userId, progressMessage.taskProgress);
-                }
+                regionMoveController.SetProgress(progressMessage.userId, progressMessage.taskProgress);
                 break;
         }
     }

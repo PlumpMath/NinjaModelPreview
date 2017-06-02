@@ -64,17 +64,17 @@ public class TaskTarget : MonoBehaviour {
             {
                 next.active = true;
                 area.enabled = false;
-                invoker.taskTarget = next;
-                invoker.taskPointer.enabled = true;
-                invoker.ShowDiscovered(2);
+                //invoker.taskTarget = next;
+                //invoker.taskPointer.enabled = true;
+                //invoker.ShowDiscovered(2);
                 invoker.statusBar.text = "Обнаружен предмет";
                 active = false;
             }
             if(progress >= 0.0f && type == 1)
             {
-                invoker.taskTarget = null;
-                invoker.taskPointer.enabled = false;
-                invoker.ShowDiscovered(1);
+                //invoker.taskTarget = null;
+                //invoker.taskPointer.enabled = false;
+                //invoker.ShowDiscovered(1);
                 invoker.statusBar.text = "";
                 active = false;
                 if(unlockPoint != "")

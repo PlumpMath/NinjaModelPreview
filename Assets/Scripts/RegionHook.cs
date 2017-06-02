@@ -7,7 +7,7 @@ public class RegionHook : MonoBehaviour {
     public MeshRenderer hookMesh;
     public MeshRenderer hookInHandMesh;
     public LineRenderer chain;
-    public GameObject player;
+    public RegionBodyBehavior player;
     public Transform hookHandBone;
     public float targetRank = 0.0f;
 
@@ -27,26 +27,21 @@ public class RegionHook : MonoBehaviour {
 
     private Vector3[] points = new Vector3[60];
 
+    private RegionBodyBehavior delayedClingTarget = null;
+    private float delayedClingTimeout = 0.0f;
+    private float delayedClingTime = 0.0f;
+
     public float ropeScale = 3.5f;
+
+    private Vector3 lastVelocity = Vector3.zero;
 
     // Use this for initialization
     void Start () {
 
-        if (player.tag == "Enemy")
+        RegionBodyBehavior target = player.gameObject.GetComponent<RegionBodyBehavior>();
+        if (target != null)
         {
-            RegionBotBehavior target = player.gameObject.GetComponent<RegionBotBehavior>();
-            if (target != null)
-            {
-                body = target.body;
-            }
-        }
-        else if (player.tag == "Player")
-        {
-            RegionMoveController target = player.gameObject.GetComponent<RegionMoveController>();
-            if (target != null)
-            {
-                body = target.body;
-            }
+            body = target.body;
         }
 
     }
@@ -104,6 +99,39 @@ public class RegionHook : MonoBehaviour {
             return;
         }
 
+        if(delayedClingTimeout > 0.0f)
+        {
+            delayedClingTimeout -= Time.deltaTime;
+            if(delayedClingTimeout <= 0.0f)
+            {
+                delayedClingTime += delayedClingTimeout;
+                RegionBodyController targetBody = null;
+                RegionHook targetHook = null;
+                if (delayedClingTarget != null)
+                {
+                    targetBody = delayedClingTarget.body;
+                    targetHook = delayedClingTarget.hook;
+                    //delayedClingTarget.blockInput = delayedClingTime;
+                    delayedClingTarget.pullingTime = delayedClingTime;
+                    if (targetBody != null)
+                    {
+                        Debug.Log("HOOK VICTIM: " + targetBody.name + " ; " + targetBody.transform.parent.parent.gameObject.name);
+                        transform.parent = targetBody.locomotionBones[4].transform;
+                        transform.localPosition = new Vector3(-0.09f, 0.25f, 0.35f);
+                        transform.localRotation = Quaternion.Euler(-30.0f, 0.0f, 90.0f);
+                        if (targetHook != null)
+                        {
+                            if (targetHook.hookInHandMesh.enabled)
+                            {
+                                targetHook.hookInHandMesh.enabled = false;
+                            }
+                        }
+                    }
+                    player.pullingTime = delayedClingTime;
+                }
+            }
+        }
+
         if(wrappingCooldown > 0.0f)
         {
             wrappingCooldown -= Time.deltaTime;
@@ -138,12 +166,17 @@ public class RegionHook : MonoBehaviour {
             }
         }
 
-        if (velocity.magnitude > 0.0f && throwingTime > 0.311f && transform.parent == null)
+        if (velocity.magnitude > 0.0f && throwingTime > 0.311f && transform.parent == null && destinationTimemark > 0.0f)
         {
             transform.position += velocity * Time.deltaTime;
         }
 
         l = 0.0f;
+
+        if (transform.parent != null)
+        {
+            c = 0.0f;
+        }
 
         for (i = 0; i < points.Length; i++)
         {
@@ -208,6 +241,7 @@ public class RegionHook : MonoBehaviour {
 
     public void Hide()
     {
+        DelayedCling(null, 0.0f, 0.0f);
         Debug.Log("HOOK HIDE");
         enabled = false;
         hookMesh.enabled = false;
@@ -221,96 +255,87 @@ public class RegionHook : MonoBehaviour {
 
     public void Show(float throwTime)
     {
-        Debug.Log("HOOK SHOW");
+        Debug.Log("HOOK SHOW (time: " + throwTime + ")");
+        DelayedCling(null, 0.0f, 0.0f);
         hook.transform.position = new Vector3(hook.transform.position.x, 0.1f, hook.transform.position.z);
         destinationTimemark = throwTime;
         throwTimemark = destinationTimemark;
-        Update();
+        //Update();
         enabled = true;
         throwing = true;
         throwingTime = 0.0f;
+        lastVelocity = new Vector3(velocity.x, velocity.y, velocity.z);
     }
 
     public void Move(float throwTime)
     {
+        Debug.Log("HOOK MOVE (time: " + throwTime + ")");
         int i;
 
-        Debug.Log("HOOK MOVE");
-        //hook.transform.position = new Vector3(hook.transform.position.x, 0.1f, hook.transform.position.z);
-        destinationTimemark = throwTime;
-        throwTimemark = destinationTimemark;
-        Update();
-        enabled = true;
-        /*
-        hookMesh.enabled = true;
-        chain.enabled = true;
-        */
-        throwing = false;
-        wrappingCooldown = 1.0f;
-
         /* Cling to nearest body for pulling */
-        RaycastHit[] hits = Physics.SphereCastAll(transform.position, 0.5f, Vector3.up);
+        RaycastHit[] hits = Physics.SphereCastAll(transform.position + lastVelocity * 0.1f, 1.5f, Vector3.up);
         RaycastHit nearestHit = new RaycastHit();
         nearestHit.distance = 1000.0f;
         for (i = 0; i < hits.Length; i++)
         {
             RaycastHit hit = hits[i];
-            if((hit.collider.tag == "Enemy" || hit.collider.tag == "Player") && hit.collider.gameObject != player.gameObject)
+            if ((hit.collider.tag == "Enemy" || hit.collider.tag == "Player") && hit.collider.gameObject != player.gameObject)
             {
-                if(hit.distance < nearestHit.distance)
+                if (hit.distance < nearestHit.distance)
                 {
                     nearestHit = hit;
                 }
             }
         }
-        if(nearestHit.distance < 1000.0f)
+        if (nearestHit.distance < 1000.0f)
         {
-            RegionBodyController targetBody = null;
-            RegionHook targetHook = null;
-            if (nearestHit.collider.tag == "Enemy")
-            {
-                RegionBotBehavior target = nearestHit.collider.gameObject.GetComponent<RegionBotBehavior>();
-                if (target != null)
-                {
-                    targetBody = target.body;
-                    targetHook = target.hook;
-                }
-            }
-            else if (nearestHit.collider.tag == "Player")
-            {
-                RegionMoveController target = nearestHit.collider.gameObject.GetComponent<RegionMoveController>();
-                if (target != null)
-                {
-                    targetBody = target.body;
-                    targetHook = target.hook;
-                }
-            }
-            if (targetBody != null)
-            {
-                transform.parent = targetBody.locomotionBones[4].transform;
-                transform.localPosition = new Vector3(-0.09f, 0.25f, 0.35f);
-                transform.localRotation = Quaternion.Euler(-30.0f, 0.0f, 90.0f);
-                if (targetHook != null)
-                {
-                    if (targetHook.hookInHandMesh.enabled)
-                    {
-                        targetHook.hookInHandMesh.enabled = false;
-                    }
-                }
-            }
+            RegionBodyBehavior target = nearestHit.collider.gameObject.GetComponent<RegionBodyBehavior>();
+            DelayedCling(target, throwTime, 0.15f);
+            destinationTimemark += 0.15f;
+            velocity = target.transform.position - transform.position;
+            velocity.y = 0.0f;
+            velocity = velocity.normalized * lastVelocity.magnitude;
+            lastVelocity = new Vector3(velocity.x, velocity.y, velocity.z);
         }
+        else
+        {
+            destinationTimemark = throwTime;
+            throwTimemark = destinationTimemark;
+            //Update();
+            throwing = false;
+            //wrappingCooldown = 1.0f;
+            lastVelocity = new Vector3(velocity.x, velocity.y, velocity.z);
+        }
+        enabled = true;
     }
 
     public void Rollback()
     {
+        Debug.Log("HOOK ROLLBACK");
+        DelayedCling(null, 0.0f, 0.0f);
         Vector3 direction3D = hookHandBone.position - hook.transform.position;
         Vector2 direction = new Vector2(direction3D.x, direction3D.z);
         //velocity = direction.normalized * direction.magnitude / 1.5f;
         startRollbackDistance = direction.magnitude;
         rollbackTimemark = 2.0f;
         rollback = true;
+        enabled = true;
         throwing = false;
         transform.parent = null;
+    }
+
+    public void DelayedCling(RegionBodyBehavior target, float time, float timeout)
+    {
+        Debug.Log("SETUP DELAYED CLING: " + (target != null));
+        transform.parent = null;
+        delayedClingTarget = target;
+        delayedClingTime = time - timeout;
+        delayedClingTimeout = timeout;
+    }
+
+    public RegionBodyBehavior GetDelayedClingTarget()
+    {
+        return delayedClingTarget;
     }
 
 }
