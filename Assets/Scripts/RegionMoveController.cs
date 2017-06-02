@@ -410,7 +410,7 @@ public class RegionMoveController : MonoBehaviour {
         }
 
 #if UNITY_EDITOR
-            if (Input.GetMouseButton(0))
+        if (Input.GetMouseButton(0))
         {
             if (!EventSystem.current.IsPointerOverGameObject())
             {
@@ -571,7 +571,7 @@ public class RegionMoveController : MonoBehaviour {
         }
 
         Vector2 position2D = new Vector2(transform.position.x, transform.position.z);
-        Vector2 direction2D = new Vector2(body.smoothDirection.x, body.smoothDirection.z) * body.direction.magnitude;
+        Vector2 direction2D = new Vector2(body.body.desiredDirection.x, body.body.desiredDirection.z) * body.direction.magnitude;
         Vector2 newPosition2D = position2D + direction2D * body.speed * Time.deltaTime;
 
         if (inputSendCooldown <= 0.0f)

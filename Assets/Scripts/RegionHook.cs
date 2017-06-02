@@ -31,7 +31,7 @@ public class RegionHook : MonoBehaviour {
     private float delayedClingTimeout = 0.0f;
     private float delayedClingTime = 0.0f;
 
-    public float ropeScale = 3.5f;
+    public float ropeScale = 12.0f;
 
     private Vector3 lastVelocity = Vector3.zero;
 
@@ -258,8 +258,8 @@ public class RegionHook : MonoBehaviour {
         Debug.Log("HOOK SHOW (time: " + throwTime + ")");
         DelayedCling(null, 0.0f, 0.0f);
         hook.transform.position = new Vector3(hook.transform.position.x, 0.1f, hook.transform.position.z);
-        destinationTimemark = throwTime;
-        throwTimemark = destinationTimemark;
+        destinationTimemark = throwTime + 0.311f;
+        throwTimemark = throwTime;
         //Update();
         enabled = true;
         throwing = true;

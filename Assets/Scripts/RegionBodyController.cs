@@ -24,7 +24,7 @@ public class RegionBodyController : MonoBehaviour {
     public float blendSpeed = 13.0f;
     public float smoothBlendSpeed = 8.0f;
     public float leaningSpeed = 5.0f;
-    public float leaningAngle = 25.0f;
+    public float leaningAngle = 15.0f;
 
     public Vector3 desiredDirection = Vector3.forward;
     public Vector3 direction = Vector3.forward;
@@ -208,13 +208,13 @@ public class RegionBodyController : MonoBehaviour {
 
         BlendBooleanAnimation(ref animRunningWeight, speed >= 0.5f, true);
 
-        animIdleWeight = Mathf.Max(0.0f, 1.0f - animWalkingWeight - animRunningWeight - animPriorActionWeight - animBlockingActionWeight - animPickingUpWeight);
+        animIdleWeight = Mathf.Max(0.0f, 1.0f /*- animWalkingWeight*/ - animRunningWeight - animPriorActionWeight - animBlockingActionWeight - animPickingUpWeight);
 
         /* Set animation states */
 
         SetAnimationWeight(animIdle, animIdleWeight);
-        SetAnimationWeight(animWalk, animWalkingWeight * 0.5f);
-        SetAnimationWeight(animRun, Mathf.Max(0.0f, animRunningWeight - animBlockingActionWeight - animWalkingWeight * 0.5f - animSpearWeight * 0.9f));
+        //SetAnimationWeight(animWalk, animWalkingWeight * 0.5f);
+        SetAnimationWeight(animRun, Mathf.Max(0.0f, animRunningWeight - animBlockingActionWeight /*- animWalkingWeight * 0.5f*/ - animSpearWeight * 0.9f));
         SetAnimationWeight(animSearching, Mathf.Max(0.0f, animSearchingWeight - animPickingUpWeight));
         SetAnimationWeight(animBlock, animBlockWeight * 5.0f);
         //SetAnimationWeight(animLeaving, animLeavingWeight);
@@ -321,10 +321,12 @@ public class RegionBodyController : MonoBehaviour {
         }
         else if(!pulling)
         {
+            /*
             locomotionBones[4].Rotate(0.0f, 0.0f, Mathf.Abs(smoothLean) * 5.0f * 0.25f);
             locomotionBones[5].Rotate(0.0f, 0.0f, Mathf.Abs(smoothLean) * 5.0f * 0.25f);
             locomotionBones[6].Rotate(0.0f, 0.0f, Mathf.Abs(smoothLean) * 5.0f * 0.3f);
             locomotionBones[7].Rotate(0.0f, 0.0f, Mathf.Abs(smoothLean) * 5.0f * 0.6f);
+            */
         }
         locomotionBones[8].localScale = Vector3.one * 0.001f;
         locomotionBones[9].localScale = Vector3.one * 0.001f;

@@ -65,7 +65,7 @@ public class RegionBodyBehavior : MonoBehaviour {
         Vector3 v3;
         Quaternion q;
 
-        speed = Mathf.Min(2.1f, Mathf.Max(0.0f, speed));
+        speed = Mathf.Min(2.1f * 1.5f, Mathf.Max(0.0f, speed));
 
         transform.position += smoothDirection.normalized * speed * Time.deltaTime;
 
@@ -118,11 +118,11 @@ public class RegionBodyBehavior : MonoBehaviour {
             normalDirection.Normalize();
             v3 = new Vector3(normalDirection.x, 0.0f, normalDirection.z);
             smoothDirection.Normalize();
-            f = Mathf.Min(1.0f, Time.deltaTime * 3.0f);
-            if (blockInput > 0.0f)
-            {
-                f = Mathf.Min(1.0f, Time.deltaTime * 10.0f);
-            }
+            f = Mathf.Min(1.0f, Time.deltaTime * 5.0f);
+            //if (blockInput > 0.0f)
+            //{
+            //    f = Mathf.Min(1.0f, Time.deltaTime * 10.0f);
+            //}
             smoothDirection = Vector3.RotateTowards(smoothDirection, v3, f * Mathf.PI * (0.2f + Vector3.Angle(v3, smoothDirection) / 180.0f), 1.0f);
             directionPointer.transform.localRotation = Quaternion.LookRotation(smoothDirection, Vector3.up);
         }
