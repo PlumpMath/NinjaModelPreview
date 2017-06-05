@@ -152,21 +152,17 @@ public class RegionMoveController : MonoBehaviour {
             RegionChatMessage regionChatMessage = new RegionChatMessage();
             regionChatMessage.iconId = 0;
             PhotonNetwork.networkingPeer.OpCustom((byte)4, new Dictionary<byte, object> { { 245, regionChatMessage.Pack() } }, true);
+            HideSmileyButtons();
         });
 
         smileyButtons[1].button.onClick.AddListener(delegate () {
             RegionChatMessage regionChatMessage = new RegionChatMessage();
             regionChatMessage.iconId = 1;
             PhotonNetwork.networkingPeer.OpCustom((byte)4, new Dictionary<byte, object> { { 245, regionChatMessage.Pack() } }, true);
+            HideSmileyButtons();
         });
 
-        b = false;
-        for (i = 0; i < smileyButtons.Length; i++)
-        {
-            smileyButtons[i].button.enabled = b;
-            smileyButtons[i].button.image.enabled = b;
-            smileyButtons[i].icon.enabled = b;
-        }
+        HideSmileyButtons();
 
         map.size = new Vector2(60.0f, 178.0f);
         map.Load("map_01_areas");
@@ -216,6 +212,7 @@ public class RegionMoveController : MonoBehaviour {
         {
             matchMaker = gameNetworkGO.GetComponent<GameMatchMaker>();
             matchMaker.regionMoveController = this;
+            body.resources = matchMaker.regionResources;
         }
 
         xEdge = 5.0f * (float)Screen.width / (float)Screen.height;
@@ -536,7 +533,6 @@ public class RegionMoveController : MonoBehaviour {
             applyInputCooldown += 0.1f;
             if (inputTouched)
             {
-                Debug.Log("SET DIRECTION");
                 inputTouched = false;
                 inputTargetingCooldown += 0.1f;
                 body.direction.x = inputDirection.x;
@@ -649,7 +645,38 @@ public class RegionMoveController : MonoBehaviour {
             }
         }
 
+
+        SphereCollider sphereCollider;
+        RaycastHit[] hits = Physics.SphereCastAll(transform.position, body.collider.radius, Vector3.up);
+        for(i = 0; i < hits.Length; i++)
+        {
+            RaycastHit hit = hits[i];
+            if(hit.collider.gameObject != gameObject)
+            {
+                v3 = hit.collider.transform.position - transform.position;
+                v3.y = 0.0f;
+                switch (hit.collider.gameObject.tag)
+                {
+                    case "Enemy":
+                        sphereCollider = (SphereCollider)hit.collider;
+                        transform.position -= v3.normalized * Mathf.Max(0.0f, sphereCollider.radius + body.collider.radius - v3.magnitude + 0.01f);
+                        break;
+                    case "RegionObstacle":
+                        sphereCollider = (SphereCollider)hit.collider;
+                        if(body.blockInput <= 0.0f && body.animAcroVault01Cooldown > 0.0f)
+                        {
+                            transform.position -= v3.normalized * Mathf.Max(0.0f, sphereCollider.radius * sphereCollider.transform.localScale.x + body.collider.radius - v3.magnitude + 0.01f);
+                            body.blockInput = body.animAcroVault01Cooldown;
+                        }
+                        Jump(body.smoothDirection);
+                        break;
+                }
+            }
+        }
+
     }
+
+    /***/
 
     public void SetState(string id, Vector2 destination, float moveTime)
     {
@@ -663,6 +690,7 @@ public class RegionMoveController : MonoBehaviour {
             bot.offscreenPointer = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/BotOffscreenPointer")).GetComponent<Image>();
             bot.offscreenPointer.rectTransform.parent = mainCanvas.transform;
             bot.offscreenPointer.rectTransform.anchoredPosition = new Vector2(-1000.0f, 0.0f);
+            bot.resources = body.resources;
             bots.AddLast(bot);
         }
         bot.SetState(destination, moveTime);
@@ -719,6 +747,18 @@ public class RegionMoveController : MonoBehaviour {
         if (bot != null)
         {
             bot.ShowChat(iconId);
+        }
+    }
+
+    public void HideSmileyButtons()
+    {
+        int i;
+        bool b = false;
+        for (i = 0; i < smileyButtons.Length; i++)
+        {
+            smileyButtons[i].button.enabled = b;
+            smileyButtons[i].button.image.enabled = b;
+            smileyButtons[i].icon.enabled = b;
         }
     }
 
@@ -867,6 +907,22 @@ public class RegionMoveController : MonoBehaviour {
         if (bot != null)
         {
             bot.SetCloth(value);
+        }
+    }
+
+    public void Jump(Vector3 direction)
+    {
+        if(body.blockInput <= 0.0f)
+        {
+            inputCooldown = 1.2f;
+            applyInputCooldown = inputCooldown;
+            inputDirection = direction;
+            lastInputDirection = inputDirection;
+            body.direction = direction;
+            body.blockInput = inputCooldown;
+            body.speed = 2.5f;
+            body.animAcroVault01Cooldown = 1.45f;
+            body.inputDirection = direction.normalized;
         }
     }
 

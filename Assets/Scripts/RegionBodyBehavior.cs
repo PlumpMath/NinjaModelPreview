@@ -5,7 +5,9 @@ using System.Collections.Generic;
 
 public class RegionBodyBehavior : MonoBehaviour {
 
+    public RegionResources resources;
     public RegionBodyController body;
+    public SphereCollider collider;
     public GameObject directionPointer;
     public Image progressCircle;
     public Image offscreenPointer;
@@ -43,6 +45,7 @@ public class RegionBodyBehavior : MonoBehaviour {
     private float searchingCooldown = 0.0f;
     private float animBlockCooldown = 0.0f;
     private float animPickupCooldown = 0.0f;
+    public float animAcroVault01Cooldown = 0.0f;
     private float taskProgress = 0.0f;
 
     // Use this for initialization
@@ -172,6 +175,15 @@ public class RegionBodyBehavior : MonoBehaviour {
             }
         }
 
+        if (animAcroVault01Cooldown > 0.0f)
+        {
+            animAcroVault01Cooldown -= Time.deltaTime;
+            if(animAcroVault01Cooldown <= 0.0f)
+            {
+                speed = 2.1f;
+            }
+        }
+
         if (searchingCooldown > 0.0f)
         {
             searchingCooldown -= Time.deltaTime;
@@ -207,6 +219,7 @@ public class RegionBodyBehavior : MonoBehaviour {
         body.searching = searchingCooldown > 0.0f;
         body.block = animBlockCooldown > 0.0f;
         body.pickingup = animPickupCooldown > 0.0f;
+        body.acroVault01 = animAcroVault01Cooldown > 0.0f;
         body.hookThrowing = hook.enabled && !hook.rollback; //hook.throwing;
         body.hookRollback = hook.rollback;
         body.hookVisible = hook.hookMesh.enabled;
@@ -274,7 +287,7 @@ public class RegionBodyBehavior : MonoBehaviour {
     public void ShowChat(int iconId)
     {
         smileyCooldown = 2.0f;
-        //smileyIcon.sprite = player.GetComponent<RegionMoveController>().smileyButtons[iconId].icon.sprite;
+        smileyIcon.sprite = resources.chatIcons[iconId];
         smileyIcon.transform.localScale = Vector3.one * 1.5f;
         smileyBackground.enabled = true;
         smileyIcon.enabled = true;

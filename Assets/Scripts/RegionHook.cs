@@ -80,7 +80,7 @@ public class RegionHook : MonoBehaviour {
 
         if (destinationTimemark > 0.0f)
         {
-            c = destinationTimemark / Mathf.Max(0.1f, throwTimemark);
+            c = Mathf.Min(1.0f, destinationTimemark / Mathf.Max(0.1f, throwTimemark));
             destinationTimemark -= Time.deltaTime;
             if (destinationTimemark <= 0.0f)
             {
@@ -188,7 +188,8 @@ public class RegionHook : MonoBehaviour {
                 if (rollback)
                 {
                     v3 = new Vector3(v3.z, (Mathf.Abs(v3.x) + Mathf.Abs(v3.z)) * 0.1f, -v3.x) * Mathf.Sin(f * l * 2.0f + Time.time * 15.0f) * 0.5f;
-                    points[i] = (hook.transform.position + direction.normalized * 0.0f) * (1.0f - f) + (hookHandBone.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f + v3 * (1.0f - Mathf.Abs(f - 0.5f) * 2.0f) * c;
+                    v3 = v3 * SmoothNormalizedRange(f) * c;
+                    points[i] = (hook.transform.position + direction.normalized * 0.0f) * (1.0f - f) + (hookHandBone.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f + v3;
                 }
                 else
                 {
@@ -198,20 +199,23 @@ public class RegionHook : MonoBehaviour {
                         v3 = new Vector3(Mathf.Sin(f * 12.0f) * 0.4f, f, Mathf.Cos(f * 12.0f) * 0.4f);
                         f2 = Mathf.Min(1.0f, (1.0f - f) * 8.0f);
                         f3 = 0.0f;
-                        points[i] = (hook.transform.position + v3) * f2 + ((hook.transform.position + direction.normalized * 0.0f) * (1.0f - f3) + (hookHandBone.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f3 + v3 * (1.0f - Mathf.Abs(f3 - 0.5f) * 2.0f) * c) * (1.0f - f2);
+                        v3 = v3 * SmoothNormalizedRange(f3) * c;
+                        points[i] = (hook.transform.position + v3) * f2 + ((hook.transform.position + direction.normalized * 0.0f) * (1.0f - f3) + (hookHandBone.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f3 + v3) * (1.0f - f2);
                     }
                     else
                     {
                         f = (float)i / (float)(points.Length); //(float)(i - points.Length / 2) / (float)(points.Length / 2);
                         v3 = new Vector3(v3.z, (Mathf.Abs(v3.x) + Mathf.Abs(v3.z)) * 0.1f, -v3.x) * Mathf.Sin(f * l * 2.0f + Time.time * 5.0f) * 0.5f;
-                        points[i] = (hook.transform.position + direction.normalized * 0.0f) * (1.0f - f) + (hookHandBone.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f + v3 * (1.0f - Mathf.Abs(f - 0.5f) * 2.0f) * c;
+                        v3 = v3 * SmoothNormalizedRange(f) * c;
+                        points[i] = (hook.transform.position + direction.normalized * 0.0f) * (1.0f - f) + (hookHandBone.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f + v3;
                     }
                 }
             }
             else
             {
-                v3 = new Vector3(Mathf.Sin(f * 4.0f + Time.time * 5.0f), Mathf.Sin(f * 3.0f + Time.time * 5.0f - 0.5f) + 1.0f, Mathf.Cos(f * 4.0f + Time.time * 5.0f)) * (0.2f + direction.magnitude * 0.5f);
-                points[i] = (hook.transform.position + direction.normalized * 0.0f) * (1.0f - f) + (hookHandBone.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f + v3 * (1.0f - Mathf.Pow(Mathf.Abs(f - 0.5f) * 2.0f, 4.0f)) * c;
+                v3 = new Vector3(Mathf.Sin(f * 3.0f + Time.time * 5.0f), Mathf.Sin(f * 2.0f + Time.time * 5.0f - 0.5f) + 1.0f, Mathf.Cos(f * 3.0f + Time.time * 5.0f)) * (0.2f + direction.magnitude * 0.5f);
+                v3 = v3 * SmoothNormalizedRange(f) * c;
+                points[i] = (hook.transform.position + direction.normalized * 0.0f) * (1.0f - f) + (hookHandBone.transform.position + Vector3.up * 0.0f - direction.normalized * 0.0f) * f + v3;
             }
             if (i > 0)
             {
@@ -237,6 +241,14 @@ public class RegionHook : MonoBehaviour {
             chain.transform.rotation = Quaternion.Euler(0.0f, a, 0.0f);
         }
 
+    }
+
+    private float SmoothNormalizedRange(float value)
+    {
+        float ramp = Mathf.Abs(Mathf.Min(1.0f, Mathf.Max(0.0f, value)) - 0.5f) * 2.0f;
+        float quadraticRamp = Mathf.Pow(ramp, 2.0f);
+        float quadraticConvex = 1.0f - quadraticRamp;
+        return Mathf.Pow(quadraticConvex, 2.0f);
     }
 
     public void Hide()

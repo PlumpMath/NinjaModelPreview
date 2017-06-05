@@ -65,6 +65,8 @@ public class GameMatchMaker : Photon.PunBehaviour
 
     public int gameMode = 1;
 
+    public RegionResources regionResources;
+
     //public TcpClient mapSocket = null;
 
     public EventHandler<EventArgs> OnBackground;

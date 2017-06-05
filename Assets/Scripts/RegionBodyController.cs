@@ -39,6 +39,7 @@ public class RegionBodyController : MonoBehaviour {
     public bool hookRollback = false;
     public bool hookVisible = false;
     public bool pulling = false;
+    public bool acroVault01 = false;
 
     private Vector3 lastDirection = Vector3.forward;
     private float animIdleWeight = 0.0f;
@@ -57,6 +58,7 @@ public class RegionBodyController : MonoBehaviour {
     private float animSpearPullAttackerWeight = 0.0f;
     private float animSpearDamageVictimWeight = 0.0f;
     private float animSpearPullVictimWeight = 0.0f;
+    private float animAcroVault01Weight = 0.0f;
     private bool hookAnimSetupMoving = false;
     private float hookThrowingTime = 0.0f;
     private float pullingTime = 0.0f;
@@ -79,6 +81,7 @@ public class RegionBodyController : MonoBehaviour {
     private AnimationState animSpearPullAttacker = null;
     private AnimationState animSpearDamageVictim = null;
     private AnimationState animSpearPullVictim = null;
+    private AnimationState animAcroVault01 = null;
 
     void Start () {
 
@@ -129,6 +132,9 @@ public class RegionBodyController : MonoBehaviour {
         animSpearPullVictim = anim["Spear_DamagePull_Victim"];
         animSpearPullVictim.enabled = false;
         animSpearPullVictim.layer = 2;
+        animAcroVault01 = anim["AcroVault_01"];
+        animAcroVault01.enabled = false;
+        animAcroVault01.layer = 1;
 
         animSpearIn.AddMixingTransform(locomotionBones[3]);
         animSpearIdle.AddMixingTransform(locomotionBones[3]);
@@ -175,6 +181,7 @@ public class RegionBodyController : MonoBehaviour {
         /* Blocking action weights setup */
 
         BlendBooleanAnimation(ref animPickingUpWeight, pickingup);
+        BlendBooleanAnimation(ref animAcroVault01Weight, acroVault01);
 
         /* Pulling weight setup */
 
@@ -204,7 +211,7 @@ public class RegionBodyController : MonoBehaviour {
         BlendBooleanAnimation(ref animLeavingWeight, leaving);
         BlendBooleanAnimation(ref animBlockWeight, block && animSpearWeight <= 0.0f);
 
-        animBlockingActionWeight = Mathf.Max(0.0f, Mathf.Min(1.0f, Mathf.Max(animDancingWeight, Mathf.Max(animSearchingWeight, animLeavingWeight))));
+        animBlockingActionWeight = Mathf.Max(0.0f, Mathf.Min(1.0f, Mathf.Max(animDancingWeight, Mathf.Max(animSearchingWeight, Mathf.Max(animAcroVault01Weight, animLeavingWeight)))));
 
         BlendBooleanAnimation(ref animRunningWeight, speed >= 0.5f, true);
 
@@ -228,6 +235,7 @@ public class RegionBodyController : MonoBehaviour {
         SetAnimationWeight(animSpearPullAttacker, animSpearPullAttackerWeight);
         SetAnimationWeight(animSpearDamageVictim, animSpearDamageVictimWeight);
         SetAnimationWeight(animSpearPullVictim, animSpearPullVictimWeight);
+        SetAnimationWeight(animAcroVault01, animAcroVault01Weight);
 
         /* Leaning */
 
@@ -330,6 +338,10 @@ public class RegionBodyController : MonoBehaviour {
         }
         locomotionBones[8].localScale = Vector3.one * 0.001f;
         locomotionBones[9].localScale = Vector3.one * 0.001f;
+        if(animAcroVault01Weight > 0.0f)
+        {
+            locomotionBones[10].localPosition -= new Vector3(locomotionBones[10].localPosition.x, 0.0f, locomotionBones[10].localPosition.z);
+        }
     }
 
     /*********************************
